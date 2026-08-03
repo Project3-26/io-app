@@ -98,7 +98,6 @@ function App() {
       label: 'Compass',
       icon: Compass,
       active: false,
-      featured: true,
     },
     {
       label: 'Profile',
