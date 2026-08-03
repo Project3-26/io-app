@@ -1,26 +1,73 @@
+import {
+  ArrowRight,
+  Bell,
+  BookOpen,
+  CalendarDays,
+  Crown,
+  Flame,
+  Headphones,
+  Lock,
+  Sprout,
+  Trophy,
+  Users,
+} from 'lucide-react'
+
 function App() {
+  // Change this to 'leader' to preview an unlocked Leader Guide.
+  const userPlan = 'standard'
+
   const currentStreak = 20
   const nextMilestone = 30
   const milestoneProgress = (currentStreak / nextMilestone) * 100
+  const hasLeaderAccess = userPlan === 'leader'
 
   const actionButtonClass =
     'rounded-2xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] px-3 py-4 text-center shadow-lg shadow-black/10 transition duration-150 hover:-translate-y-0.5 hover:border-white/10 active:translate-y-0 active:scale-[0.97] sm:py-5'
 
+  const coreResources = [
+    {
+      title: 'Listen',
+      detail: '10 min',
+      icon: Headphones,
+      iconClass: 'text-orange-400',
+      backgroundClass: 'border-orange-400/10 bg-orange-500/10',
+    },
+    {
+      title: 'Bible Study Guide',
+      detail: 'Read & Reflect',
+      icon: BookOpen,
+      iconClass: 'text-cyan-400',
+      backgroundClass: 'border-cyan-400/10 bg-cyan-500/10',
+    },
+  ]
+
+  const leaderResource = {
+    title: 'Leader Guide',
+    unlockedDetail: 'Lead Others',
+    lockedDetail: 'Upgrade to unlock',
+  }
+
   const badges = [
     {
-      icon: '🌱',
+      icon: Sprout,
       title: 'First Step',
       detail: 'First chapter',
+      iconClass: 'text-emerald-400',
+      backgroundClass: 'bg-emerald-500/10',
     },
     {
-      icon: '🔥',
+      icon: Flame,
       title: 'One Week Strong',
       detail: '7 day streak',
+      iconClass: 'text-orange-400',
+      backgroundClass: 'bg-orange-500/10',
     },
     {
-      icon: '🏆',
+      icon: Trophy,
       title: 'Faithful Twenty',
       detail: '20 day streak',
+      iconClass: 'text-amber-400',
+      backgroundClass: 'bg-amber-500/10',
     },
   ]
 
@@ -39,8 +86,12 @@ function App() {
       <main className="mx-auto min-h-screen w-full max-w-md px-3 pb-28 pt-5 min-[375px]:px-4 sm:px-5 sm:pt-6">
         <header className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#102330] sm:h-11 sm:w-11">
-              <span className="text-xl sm:text-2xl">🔥</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-orange-400/10 bg-orange-500/10 sm:h-11 sm:w-11">
+              <Flame
+                size={22}
+                strokeWidth={2.2}
+                className="text-orange-400"
+              />
             </div>
 
             <p className="truncate text-sm font-bold tracking-[0.13em] text-[#45c6d8] min-[375px]:text-base sm:text-lg sm:tracking-[0.18em]">
@@ -50,10 +101,10 @@ function App() {
 
           <button
             type="button"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl transition duration-150 hover:bg-white/10 active:scale-90"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition duration-150 hover:border-cyan-400/20 hover:bg-white/10 hover:text-white active:scale-90"
             aria-label="Notifications"
           >
-            ♧
+            <Bell size={19} strokeWidth={2} />
           </button>
         </header>
 
@@ -90,57 +141,129 @@ function App() {
           </div>
         </section>
 
-        <section className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:grid-cols-3">
-          <button type="button" className={actionButtonClass}>
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/15 text-xl sm:h-12 sm:w-12 sm:text-2xl">
-              🎧
-            </div>
+        <section className="mt-3 grid grid-cols-2 gap-3 sm:mt-4">
+          {coreResources.map((resource) => {
+            const ResourceIcon = resource.icon
 
-            <p className="mt-3 text-sm font-semibold text-white">
-              Listen
-            </p>
+            return (
+              <button
+                key={resource.title}
+                type="button"
+                className={actionButtonClass}
+              >
+                <div
+                  className={`mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border sm:h-12 sm:w-12 ${resource.backgroundClass}`}
+                >
+                  <ResourceIcon
+                    size={24}
+                    strokeWidth={2}
+                    className={resource.iconClass}
+                  />
+                </div>
 
-            <p className="mt-1 text-xs text-slate-400">
-              10 min
-            </p>
-          </button>
+                <p className="mt-3 text-sm font-semibold leading-tight text-white">
+                  {resource.title}
+                </p>
 
-          <button type="button" className={actionButtonClass}>
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/15 text-xl sm:h-12 sm:w-12 sm:text-2xl">
-              📖
-            </div>
+                <p className="mt-1 text-xs text-slate-400">
+                  {resource.detail}
+                </p>
+              </button>
+            )
+          })}
+        </section>
 
-            <p className="mt-3 text-sm font-semibold text-white">
-              Study Guide
-            </p>
-
-            <p className="mt-1 text-xs text-slate-400">
-              Read &amp; Reflect
-            </p>
-          </button>
-
+        <section className="mt-3 sm:mt-4">
           <button
             type="button"
-            className={`${actionButtonClass} col-span-2 sm:col-span-1`}
+            className={`relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left shadow-lg shadow-black/10 transition duration-150 active:scale-[0.98] ${
+              hasLeaderAccess
+                ? 'border-violet-400/15 bg-gradient-to-br from-[#17202f] to-[#121725] hover:border-violet-400/30'
+                : 'border-amber-400/15 bg-gradient-to-br from-[#191f29] to-[#121820] hover:border-amber-400/30'
+            }`}
           >
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-xl sm:h-12 sm:w-12 sm:text-2xl">
-              👥
+            <div className="flex items-center gap-4">
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${
+                  hasLeaderAccess
+                    ? 'border-violet-400/15 bg-violet-500/10 text-violet-400'
+                    : 'border-amber-400/15 bg-amber-500/10 text-amber-400'
+                }`}
+              >
+                {hasLeaderAccess ? (
+                  <Users size={24} strokeWidth={2} />
+                ) : (
+                  <Lock size={22} strokeWidth={2} />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-white">
+                    {leaderResource.title}
+                  </p>
+
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/15 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                    <Crown size={11} strokeWidth={2} />
+                    Leader Plan
+                  </span>
+                </div>
+
+                <p className="mt-1 text-xs text-slate-400">
+                  {hasLeaderAccess
+                    ? leaderResource.unlockedDetail
+                    : leaderResource.lockedDetail}
+                </p>
+              </div>
+
+              {!hasLeaderAccess && (
+                <span className="shrink-0 rounded-lg bg-amber-400 px-3 py-2 text-xs font-bold text-[#16120a]">
+                  Upgrade
+                </span>
+              )}
             </div>
+          </button>
+        </section>
 
-            <p className="mt-3 text-sm font-semibold text-white">
-              Leader Guide
-            </p>
+        <section className="mt-3 sm:mt-4">
+          <button
+            type="button"
+            className="group relative w-full overflow-hidden rounded-2xl border border-cyan-400/15 bg-gradient-to-br from-cyan-500/[0.12] via-[#14232c] to-orange-500/[0.08] p-4 text-left shadow-lg shadow-black/10 transition duration-150 hover:border-cyan-400/30 active:scale-[0.98]"
+          >
+            <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-400/10 blur-2xl" />
 
-            <p className="mt-1 text-xs text-slate-400">
-              Lead Others
-            </p>
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-500/10 text-cyan-300">
+                <CalendarDays size={24} strokeWidth={2} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-white">
+                    5-Day Challenges
+                  </p>
+
+                  <span className="rounded-full border border-cyan-400/15 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+                    Free
+                  </span>
+                </div>
+
+                <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                  Short guided journeys for real-life needs.
+                </p>
+              </div>
+
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition group-hover:border-cyan-400/20 group-hover:text-cyan-300">
+                <ArrowRight size={17} strokeWidth={2} />
+              </div>
+            </div>
           </button>
         </section>
 
         <section className="mt-3 rounded-2xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-4 shadow-lg shadow-black/10 sm:mt-4 sm:p-5">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500/15 text-xl">
-              🔥
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-orange-400/10 bg-orange-500/10 text-orange-400">
+              <Flame size={21} strokeWidth={2.2} />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -213,25 +336,35 @@ function App() {
           </div>
 
           <div className="mt-5 flex gap-3 overflow-x-auto pb-1">
-            {badges.map((badge) => (
-              <button
-                key={badge.title}
-                type="button"
-                className="min-w-[122px] flex-1 rounded-2xl border border-white/5 bg-white/[0.03] p-3 text-center transition duration-150 hover:-translate-y-0.5 hover:border-cyan-400/30 hover:bg-white/[0.05] active:translate-y-0 active:scale-[0.97]"
-              >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#102330] text-2xl">
-                  {badge.icon}
-                </div>
+            {badges.map((badge) => {
+              const BadgeIcon = badge.icon
 
-                <p className="mt-3 text-xs font-semibold leading-tight text-white">
-                  {badge.title}
-                </p>
+              return (
+                <button
+                  key={badge.title}
+                  type="button"
+                  className="min-w-[122px] flex-1 rounded-2xl border border-white/5 bg-white/[0.03] p-3 text-center transition duration-150 hover:-translate-y-0.5 hover:border-cyan-400/30 hover:bg-white/[0.05] active:translate-y-0 active:scale-[0.97]"
+                >
+                  <div
+                    className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/5 ${badge.backgroundClass}`}
+                  >
+                    <BadgeIcon
+                      size={23}
+                      strokeWidth={2}
+                      className={badge.iconClass}
+                    />
+                  </div>
 
-                <p className="mt-1 text-[11px] text-slate-400">
-                  {badge.detail}
-                </p>
-              </button>
-            ))}
+                  <p className="mt-3 text-xs font-semibold leading-tight text-white">
+                    {badge.title}
+                  </p>
+
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    {badge.detail}
+                  </p>
+                </button>
+              )
+            })}
           </div>
         </section>
 
