@@ -133,9 +133,7 @@ function App() {
                 className={`group flex w-full flex-col items-center gap-2 rounded-2xl px-2 py-3 transition duration-150 active:scale-95 ${
                   item.active
                     ? 'bg-cyan-400/10 text-[#45c6d8]'
-                    : item.featured
-                      ? 'border border-cyan-400/10 bg-cyan-400/5 text-cyan-400 hover:bg-cyan-400/10'
-                      : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
+                    : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
                 }`}
               >
                 <NavigationIcon
@@ -210,14 +208,14 @@ function App() {
           <div className="mt-5 grid gap-4 sm:mt-6 lg:mt-8 lg:grid-cols-12 lg:gap-6 xl:gap-8">
             {/* Left column */}
             <div className="space-y-3 sm:space-y-4 lg:col-span-7">
-              {/* Today’s chapter */}
+              {/* Clickable Today’s Chapter card */}
               <button
                 type="button"
-                className={`${cardClass} relative w-full overflow-hidden p-4 text-left shadow-2xl shadow-black/20 transition duration-150 hover:-translate-y-0.5 hover:border-cyan-400/20 hover:shadow-cyan-950/20 active:translate-y-0 active:scale-[0.99] sm:p-5 lg:p-6`}
-                aria-label="Open John 1"
+                className={`${cardClass} group relative w-full overflow-hidden p-4 text-left shadow-2xl shadow-black/20 transition duration-150 hover:-translate-y-0.5 hover:border-cyan-400/25 hover:shadow-cyan-950/20 active:translate-y-0 active:scale-[0.99] sm:p-5 lg:p-6`}
+                aria-label="Open John 1 chapter"
               >
-                <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-400/[0.06] blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-orange-400/[0.05] blur-3xl" />
+                <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-400/[0.06] blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-orange-400/[0.05] blur-3xl" />
 
                 <div className="relative">
                   <div className="flex items-start justify-between gap-4">
@@ -246,7 +244,7 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="mt-5 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 lg:p-5">
+                  <div className="mt-5 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 transition group-hover:border-cyan-400/20 group-hover:bg-cyan-400/[0.07] lg:p-5">
                     <div className="flex items-start gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-300">
                         <Quote size={16} strokeWidth={2} />
@@ -277,8 +275,17 @@ function App() {
                     <span>Lesson 1 of 21</span>
                     <span>5%</span>
                   </div>
+
+                  <div className="mt-5 flex items-center justify-end gap-2 text-xs font-semibold text-cyan-300 opacity-80 transition group-hover:opacity-100">
+                    <span>Continue chapter</span>
+                    <ArrowRight
+                      size={15}
+                      strokeWidth={2}
+                      className="transition group-hover:translate-x-1"
+                    />
+                  </div>
                 </div>
-              </section>
+              </button>
 
               {/* Core resources */}
               <section className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -628,9 +635,7 @@ function App() {
                     className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
                       item.active
                         ? 'bg-cyan-400/15 text-[#45c6d8]'
-                        : item.featured
-                          ? 'border border-cyan-400/20 bg-cyan-400/5 text-cyan-400'
-                          : ''
+                        : ''
                     }`}
                   >
                     <NavigationIcon
@@ -641,11 +646,7 @@ function App() {
 
                   <span
                     className={`truncate text-[10px] font-medium min-[375px]:text-[11px] ${
-                      item.active
-                        ? 'text-[#45c6d8]'
-                        : item.featured
-                          ? 'text-cyan-400'
-                          : ''
+                      item.active ? 'text-[#45c6d8]' : ''
                     }`}
                   >
                     {item.label}
