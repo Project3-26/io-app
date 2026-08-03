@@ -211,8 +211,10 @@ function App() {
             {/* Left column */}
             <div className="space-y-3 sm:space-y-4 lg:col-span-7">
               {/* Today’s chapter */}
-              <section
-                className={`${cardClass} relative overflow-hidden p-4 shadow-2xl shadow-black/20 sm:p-5 lg:p-6`}
+              <button
+                type="button"
+                className={`${cardClass} relative w-full overflow-hidden p-4 text-left shadow-2xl shadow-black/20 transition duration-150 hover:-translate-y-0.5 hover:border-cyan-400/20 hover:shadow-cyan-950/20 active:translate-y-0 active:scale-[0.99] sm:p-5 lg:p-6`}
+                aria-label="Open John 1"
               >
                 <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-400/[0.06] blur-3xl" />
                 <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-orange-400/[0.05] blur-3xl" />
