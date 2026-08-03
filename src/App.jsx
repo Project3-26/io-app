@@ -506,15 +506,19 @@ function App() {
   }`}
 >
                     <NavigationIcon
-                      size={item.featured ? 23 : 20}
-                      strokeWidth={item.featured ? 2.4 : 2}
+                      size={21}
+                      strokeWidth={item.active ? 2.4 : 2}
                     />
                   </div>
 
                   <span
                     className={`truncate text-[10px] font-medium min-[375px]:text-[11px] ${
-                      item.featured ? 'text-cyan-300' : ''
-                    }`}
+                      item.active
+                      ? 'text-[#45c6d8]'
+                      : item.featured
+                        ? 'text-cyan-400'
+                      : ''
+                }`}
                   >
                     {item.label}
                   </span>
