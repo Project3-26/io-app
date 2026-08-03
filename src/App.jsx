@@ -11,6 +11,7 @@ import {
   Library,
   Lock,
   Map,
+  Quote,
   Sprout,
   Trophy,
   User,
@@ -206,7 +207,7 @@ function App() {
             </p>
           </section>
 
-          {/* Desktop dashboard grid */}
+          {/* Dashboard grid */}
           <div className="mt-5 grid gap-4 sm:mt-6 lg:mt-8 lg:grid-cols-12 lg:gap-6 xl:gap-8">
             {/* Left column */}
             <div className="space-y-3 sm:space-y-4 lg:col-span-7">
@@ -241,6 +242,29 @@ function App() {
                       <p className="mt-1 text-sm font-semibold text-orange-300">
                         Lesson 1
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 lg:p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-300">
+                        <Quote size={16} strokeWidth={2} />
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-300">
+                          Quote of the Chapter
+                        </p>
+
+                        <blockquote className="mt-2 text-sm font-medium leading-relaxed text-slate-100 lg:text-base">
+                          “The Word became flesh and tabernacled among us—God
+                          didn&apos;t visit, He moved into the neighborhood.”
+                        </blockquote>
+
+                        <p className="mt-3 text-xs font-semibold text-slate-400">
+                          — Project 3|26
+                        </p>
+                      </div>
                     </div>
                   </div>
 
