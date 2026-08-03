@@ -497,14 +497,14 @@ function App() {
                   aria-label={item.label}
                 >
                   <div
-                    className={`flex items-center justify-center transition ${
-                      item.featured
-                        ? '-mt-6 h-12 w-12 rounded-full border border-cyan-300/30 bg-gradient-to-br from-cyan-400 to-cyan-600 text-[#06111b] shadow-lg shadow-cyan-500/25'
-                        : item.active
-                          ? 'h-8 w-8 rounded-xl bg-cyan-400/10'
-                          : 'h-8 w-8'
-                    }`}
-                  >
+  className={`flex items-center justify-center transition ${
+    item.active
+      ? 'h-9 w-9 rounded-xl bg-cyan-400/15 text-[#45c6d8]'
+      : item.featured
+        ? 'h-9 w-9 rounded-xl border border-cyan-400/20 bg-cyan-400/5 text-cyan-400'
+        : 'h-9 w-9'
+  }`}
+>
                     <NavigationIcon
                       size={item.featured ? 23 : 20}
                       strokeWidth={item.featured ? 2.4 : 2}
