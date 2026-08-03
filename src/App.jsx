@@ -3,12 +3,17 @@ import {
   Bell,
   BookOpen,
   CalendarDays,
+  Compass,
   Crown,
   Flame,
   Headphones,
+  Home,
+  Library,
   Lock,
+  Map,
   Sprout,
   Trophy,
+  User,
   Users,
 } from 'lucide-react'
 
@@ -40,12 +45,6 @@ function App() {
       backgroundClass: 'border-cyan-400/10 bg-cyan-500/10',
     },
   ]
-
-  const leaderResource = {
-    title: 'Leader Guide',
-    unlockedDetail: 'Lead Others',
-    lockedDetail: 'Upgrade to unlock',
-  }
 
   const badges = [
     {
@@ -81,9 +80,38 @@ function App() {
     ['S', false],
   ]
 
+  const navigationItems = [
+    {
+      label: 'Today',
+      icon: Home,
+      active: true,
+    },
+    {
+      label: 'Journey',
+      icon: Map,
+      active: false,
+    },
+    {
+      label: 'Library',
+      icon: Library,
+      active: false,
+    },
+    {
+      label: 'Compass',
+      icon: Compass,
+      active: false,
+      featured: true,
+    },
+    {
+      label: 'Profile',
+      icon: User,
+      active: false,
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-[#06111b] text-white">
-      <main className="mx-auto min-h-screen w-full max-w-md px-3 pb-28 pt-5 min-[375px]:px-4 sm:px-5 sm:pt-6">
+      <main className="mx-auto min-h-screen w-full max-w-md px-3 pb-36 pt-5 min-[375px]:px-4 sm:px-5 sm:pt-6">
         <header className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-orange-400/10 bg-orange-500/10 sm:h-11 sm:w-11">
@@ -200,7 +228,7 @@ function App() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-semibold text-white">
-                    {leaderResource.title}
+                    Leader Guide
                   </p>
 
                   <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/15 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
@@ -210,9 +238,7 @@ function App() {
                 </div>
 
                 <p className="mt-1 text-xs text-slate-400">
-                  {hasLeaderAccess
-                    ? leaderResource.unlockedDetail
-                    : leaderResource.lockedDetail}
+                  {hasLeaderAccess ? 'Lead Others' : 'Upgrade to unlock'}
                 </p>
               </div>
 
@@ -452,6 +478,52 @@ function App() {
           </button>
         </section>
       </main>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50">
+        <div className="mx-auto w-full max-w-md border-t border-white/10 bg-[#08131d]/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <div className="grid grid-cols-5 items-end">
+            {navigationItems.map((item) => {
+              const NavigationIcon = item.icon
+
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={`group flex min-w-0 flex-col items-center justify-end gap-1 rounded-xl px-1 py-1.5 transition duration-150 active:scale-95 ${
+                    item.active
+                      ? 'text-[#45c6d8]'
+                      : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                  aria-label={item.label}
+                >
+                  <div
+                    className={`flex items-center justify-center transition ${
+                      item.featured
+                        ? '-mt-6 h-12 w-12 rounded-full border border-cyan-300/30 bg-gradient-to-br from-cyan-400 to-cyan-600 text-[#06111b] shadow-lg shadow-cyan-500/25'
+                        : item.active
+                          ? 'h-8 w-8 rounded-xl bg-cyan-400/10'
+                          : 'h-8 w-8'
+                    }`}
+                  >
+                    <NavigationIcon
+                      size={item.featured ? 23 : 20}
+                      strokeWidth={item.featured ? 2.4 : 2}
+                    />
+                  </div>
+
+                  <span
+                    className={`truncate text-[10px] font-medium min-[375px]:text-[11px] ${
+                      item.featured ? 'text-cyan-300' : ''
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </nav>
     </div>
   )
 }
