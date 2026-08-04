@@ -14,6 +14,20 @@ import {
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
 
+function getGreeting() {
+  const hour = new Date().getHours()
+
+  if (hour < 12) {
+    return 'Good morning'
+  }
+
+  if (hour < 17) {
+    return 'Good afternoon'
+  }
+
+  return 'Good evening'
+}
+
 function DashboardPage({ onOpenChapter, onNavigate }) {
   // Change this to 'leader' to preview an unlocked Leader Guide.
   const userPlan = 'standard'
@@ -111,7 +125,7 @@ function DashboardPage({ onOpenChapter, onNavigate }) {
               </p>
 
               <h1 className="mt-3 text-3xl font-bold text-white xl:text-4xl">
-                Good morning, Brian!
+                    {getGreeting()}, Brian!
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
@@ -133,7 +147,7 @@ function DashboardPage({ onOpenChapter, onNavigate }) {
           {/* Mobile greeting */}
           <section className="mt-7 lg:hidden">
             <h1 className="text-xl font-bold min-[375px]:text-2xl">
-              Good morning, Brian!
+                {getGreeting()}, Brian!
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
