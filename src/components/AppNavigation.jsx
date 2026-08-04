@@ -1,9 +1,9 @@
 import {
-  Compass,
   Flame,
   Home,
   Library,
   Map,
+  MessageCircle,
   User,
 } from 'lucide-react'
 
@@ -24,9 +24,9 @@ const navigationItems = [
     icon: Library,
   },
   {
-    id: 'compass',
-    label: 'Compass',
-    icon: Compass,
+    id: 'connect',
+    label: 'Connect',
+    icon: MessageCircle,
   },
   {
     id: 'profile',
