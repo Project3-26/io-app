@@ -10,7 +10,6 @@ import {
   Flame,
   Lock,
   Map,
-  Mountain,
   Play,
   Rocket,
 } from 'lucide-react'
@@ -118,141 +117,128 @@ function JourneyPage({
   )
 
   return (
-    <div className="min-h-screen bg-[#06111b] text-white">
+    <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation
         activePage="journey"
         onNavigate={onNavigate}
       />
 
       <div className="lg:pl-24">
-        <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-32 pt-5 min-[375px]:px-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8 xl:px-10">
+        <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
           <header className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-bold tracking-[0.18em] text-[#45c6d8]">
+              <p className="text-xs font-semibold tracking-[0.2em] text-cyan-400 sm:text-sm">
                 PROJECT 3|26
               </p>
 
-              <h1 className="mt-3 text-3xl font-bold sm:text-4xl">
-                Journey
+              <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                Your Journey
               </h1>
 
               <p className="mt-2 text-sm text-slate-400 sm:text-base">
-                Your 3.26-year journey through Scripture.
+                See where you have been and what comes next.
               </p>
             </div>
 
             <button
               type="button"
-              className="group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-orange-400/60 bg-orange-400/15 text-orange-300 shadow-[0_0_22px_rgba(251,146,60,0.45)] transition hover:scale-105 hover:bg-orange-400/20 hover:shadow-[0_0_30px_rgba(251,146,60,0.65)] active:scale-95"
+              className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-300/30 bg-orange-500/10 text-orange-400 shadow-lg shadow-black/20 transition hover:border-orange-400/50 hover:bg-orange-500/15 active:scale-95"
               aria-label="New journey achievement"
               title="New achievement earned"
             >
-              <span className="absolute inset-0 animate-ping rounded-full border border-orange-400/30 opacity-40" />
+              <Rocket size={22} strokeWidth={2.2} />
 
-              <Rocket
-                size={23}
-                className="relative z-10"
-              />
-
-              <span className="absolute -right-1 -top-1 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-[#06111b] bg-orange-500 px-1 text-[10px] font-bold text-white shadow-lg shadow-orange-500/40">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-[#041326] bg-orange-500 px-1 text-[10px] font-semibold text-white">
                 1
               </span>
             </button>
           </header>
 
-          <section className="mt-7 grid gap-4 lg:grid-cols-12 lg:gap-6">
-            <article className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5 shadow-xl shadow-black/20 lg:col-span-7 lg:p-6">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-semibold sm:text-lg">
-                  Overall Progress
-                </h2>
+          <section className="mt-6 grid gap-4 lg:grid-cols-12">
+            <article className="rounded-[30px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047] shadow-2xl shadow-black/15 sm:p-7 lg:col-span-7">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
+                    Overall progress
+                  </p>
 
-                <span className="text-lg font-bold text-cyan-300">
-                  {overallProgress}%
-                </span>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
-                <div className="relative mx-auto flex h-36 w-36 shrink-0 items-center justify-center sm:mx-0 lg:h-40 lg:w-40">
-                  <div className="absolute inset-0 rounded-full border-[14px] border-slate-700/50" />
-
-                  <div
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background: `conic-gradient(#22d3ee ${overallProgress}%, transparent ${overallProgress}%)`,
-                      maskImage:
-                        'radial-gradient(circle, transparent 56%, black 58%)',
-                      WebkitMaskImage:
-                        'radial-gradient(circle, transparent 56%, black 58%)',
-                    }}
-                  />
-
-                  <div className="text-center">
-                    <p className="text-3xl font-bold">
-                      {chaptersCompleted}
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-400">
-                      of {totalChapters}
-                    </p>
-
-                    <p className="text-xs text-slate-400">
-                      chapters
-                    </p>
-                  </div>
+                  <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">
+                    {chaptersCompleted} chapters completed
+                  </h2>
                 </div>
 
-                <div className="grid flex-1 gap-3">
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3">
-                    <CheckCircle2
-                      size={20}
-                      className="text-cyan-300"
-                    />
+                <div className="rounded-2xl border border-[#b8ccd7] bg-[#c7dce7] px-4 py-3 text-center">
+                  <p className="text-2xl font-bold text-cyan-700">
+                    {overallProgress}%
+                  </p>
+                </div>
+              </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-200">
-                        Completed
-                      </p>
-                    </div>
+              <div className="mt-7">
+                <div className="h-3 overflow-hidden rounded-full bg-[#c8d3db]">
+                  <div
+                    className="h-full rounded-full bg-cyan-500"
+                    style={{
+                      width: `${overallProgress}%`,
+                    }}
+                  />
+                </div>
 
-                    <p className="font-semibold">
-                      {chaptersCompleted}
-                    </p>
-                  </div>
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  <span className="text-slate-500">
+                    Genesis to Revelation
+                  </span>
 
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3">
-                    <BookOpen
-                      size={20}
-                      className="text-cyan-300"
-                    />
+                  <span className="font-semibold text-slate-700">
+                    {chaptersRemaining} remaining
+                  </span>
+                </div>
+              </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-200">
-                        Remaining
-                      </p>
-                    </div>
+              <div className="mt-7 grid grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-[#c8d3db] bg-[#edf2f4] p-4 text-center">
+                  <CheckCircle2
+                    className="mx-auto text-cyan-700"
+                    size={22}
+                  />
 
-                    <p className="font-semibold">
-                      {chaptersRemaining}
-                    </p>
-                  </div>
+                  <p className="mt-2 text-xl font-bold">
+                    {chaptersCompleted}
+                  </p>
 
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3">
-                    <CalendarDays
-                      size={20}
-                      className="text-cyan-300"
-                    />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Completed
+                  </p>
+                </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-200">
-                        Total Journey
-                      </p>
-                    </div>
+                <div className="rounded-2xl border border-[#c8d3db] bg-[#edf2f4] p-4 text-center">
+                  <BookOpen
+                    className="mx-auto text-cyan-700"
+                    size={22}
+                  />
 
-                    <p className="font-semibold">
-                      {totalChapters}
-                    </p>
-                  </div>
+                  <p className="mt-2 text-xl font-bold">
+                    {chaptersRemaining}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Remaining
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-[#c8d3db] bg-[#edf2f4] p-4 text-center">
+                  <CalendarDays
+                    className="mx-auto text-cyan-700"
+                    size={22}
+                  />
+
+                  <p className="mt-2 text-xl font-bold">
+                    {totalChapters}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Total
+                  </p>
                 </div>
               </div>
             </article>
@@ -260,149 +246,141 @@ function JourneyPage({
             <button
               type="button"
               onClick={() => onOpenChapter('john-1')}
-              className="group rounded-3xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.08] to-[#0d1821] p-5 text-left shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:border-cyan-400/30 active:translate-y-0 active:scale-[0.99] lg:col-span-5 lg:p-6"
+              className="group rounded-[30px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-left text-[#153047] shadow-2xl shadow-black/15 transition hover:-translate-y-0.5 hover:border-cyan-400/40 hover:bg-[#e7eef2] active:translate-y-0 active:scale-[0.99] sm:p-7 lg:col-span-5"
             >
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-semibold sm:text-lg">
-                  Current Book
-                </h2>
-
-                <span className="font-semibold text-cyan-300">
-                  John
-                </span>
-              </div>
-
-              <div className="mt-7 flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-slate-400">
-                    Current chapter
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
+                    Current book
                   </p>
 
-                  <p className="mt-1 text-3xl font-bold">
-                    John 1
-                  </p>
+                  <h2 className="mt-2 text-3xl font-bold">
+                    John
+                  </h2>
                 </div>
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 transition group-hover:bg-cyan-400/15">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-md shadow-cyan-500/15">
                   <Play
-                    size={23}
+                    size={22}
                     fill="currentColor"
                   />
                 </div>
               </div>
 
-              <div className="mt-8 flex items-center justify-between text-sm">
-                <span className="text-slate-300">
+              <div className="mt-8">
+                <p className="text-sm text-slate-500">
+                  Current chapter
+                </p>
+
+                <p className="mt-1 text-2xl font-semibold">
+                  John 1
+                </p>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between text-sm">
+                <span className="text-slate-500">
                   Chapter 1 of 21
                 </span>
 
-                <span className="font-semibold">
+                <span className="font-semibold text-cyan-700">
                   {currentBookProgress}%
                 </span>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[#c8d3db]">
                 <div
-                  className="h-full rounded-full bg-[#45c6d8]"
+                  className="h-full rounded-full bg-cyan-500"
                   style={{
                     width: `${currentBookProgress}%`,
                   }}
                 />
               </div>
 
-              <p className="mt-6 text-sm leading-relaxed text-slate-400">
-                You&apos;re on day {chaptersCompleted} of your
-                3.26-year journey.
-              </p>
-
-              <div className="mt-5 flex items-center justify-end gap-2 text-sm font-semibold text-cyan-300">
-                Continue John 1
+              <div className="mt-7 flex items-center justify-between">
+                <span className="font-semibold">
+                  Continue John 1
+                </span>
 
                 <ArrowRight
-                  size={17}
-                  className="transition group-hover:translate-x-1"
+                  size={19}
+                  className="text-cyan-700 transition group-hover:translate-x-1"
                 />
               </div>
             </button>
           </section>
 
-          <section className="mt-4 rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5 shadow-xl shadow-black/20 lg:mt-6 lg:p-6">
-            <h2 className="text-base font-semibold sm:text-lg">
-              Journey at a Glance
-            </h2>
-
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0">
-              <div className="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.03] p-4 sm:flex-col sm:border-0 sm:bg-transparent sm:text-center">
-                <CalendarDays
-                  size={25}
-                  className="text-cyan-300"
-                />
-
-                <div>
-                  <p className="text-sm text-slate-400">
-                    Started
-                  </p>
-
-                  <p className="mt-1 font-semibold">
-                    January 1, 2026
-                  </p>
-                </div>
+          <section className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
+            <div className="flex items-center gap-4 rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:flex-col sm:text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
+                <CalendarDays size={22} />
               </div>
 
-              <div className="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.03] p-4 sm:flex-col sm:border-y-0 sm:border-x sm:bg-transparent sm:text-center">
-                <Flame
-                  size={25}
-                  className="text-orange-400"
-                />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  Started
+                </p>
 
-                <div>
-                  <p className="text-sm text-slate-400">
-                    Current Streak
-                  </p>
+                <p className="mt-1 font-semibold">
+                  January 1, 2026
+                </p>
+              </div>
+            </div>
 
-                  <p className="mt-1 font-semibold text-orange-300">
-                    20 Days
-                  </p>
-                </div>
+            <div className="flex items-center gap-4 rounded-[22px] border border-orange-300/40 bg-[#e8ddd0] p-4 text-[#153047] shadow-lg shadow-black/10 sm:flex-col sm:text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-200/70 text-orange-600">
+                <Flame size={22} />
               </div>
 
-              <div className="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.03] p-4 sm:flex-col sm:border-0 sm:bg-transparent sm:text-center">
-                <Flag
-                  size={25}
-                  className="text-cyan-300"
-                />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  Current streak
+                </p>
 
-                <div>
-                  <p className="text-sm text-slate-400">
-                    Projected Finish
-                  </p>
+                <p className="mt-1 font-semibold text-orange-600">
+                  20 days
+                </p>
+              </div>
+            </div>
 
-                  <p className="mt-1 font-semibold">
-                    April 10, 2029
-                  </p>
-                </div>
+            <div className="flex items-center gap-4 rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:flex-col sm:text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
+                <Flag size={22} />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  Projected finish
+                </p>
+
+                <p className="mt-1 font-semibold">
+                  April 10, 2029
+                </p>
               </div>
             </div>
           </section>
 
-          <section className="mt-7">
+          <section className="mt-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-xl font-bold sm:text-2xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
+                  Your progress
+                </p>
+
+                <h2 className="mt-2 text-2xl font-semibold">
                   Journey Timeline
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-400">
-                  Revisit completed books and see what comes next.
+                  Revisit completed books and preview what is ahead.
                 </p>
               </div>
 
               <button
                 type="button"
-                className="inline-flex w-fit items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-2.5 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/10"
+                className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[#c8d3db] bg-[#dfe8ee] px-4 py-3 text-sm font-semibold text-[#153047] transition hover:border-cyan-400/40 hover:bg-[#e7eef2]"
               >
                 <Map size={17} />
-                View by Book
+                View by book
               </button>
             </div>
 
@@ -416,10 +394,10 @@ function JourneyPage({
                 <button
                   key={filter}
                   type="button"
-                  className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`shrink-0 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
                     index === 0
-                      ? 'bg-[#45c6d8] text-[#06111b]'
-                      : 'border border-white/5 bg-white/[0.04] text-slate-400 hover:text-white'
+                      ? 'border-cyan-500/50 bg-cyan-500 text-[#041326]'
+                      : 'border-[#c8d3db] bg-[#dfe8ee] text-[#153047] hover:border-cyan-400/40'
                   }`}
                 >
                   {filter}
@@ -427,14 +405,7 @@ function JourneyPage({
               ))}
             </div>
 
-            <div className="mt-3 hidden grid-cols-[1fr_180px_130px_30px] gap-5 px-5 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 lg:grid">
-              <span>Book</span>
-              <span>Chapters</span>
-              <span>Status</span>
-              <span />
-            </div>
-
-            <div className="mt-2 overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821]">
+            <div className="mt-3 overflow-hidden rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] text-[#153047] shadow-xl shadow-black/10">
               {journeyBooks.map((book) => {
                 const progress =
                   book.total > 0
@@ -463,26 +434,28 @@ function JourneyPage({
                         : undefined
                     }
                     disabled={!isCurrent}
-                    className={`group grid w-full items-center gap-3 border-b border-white/5 p-4 text-left transition last:border-b-0 sm:grid-cols-[44px_1fr_auto] lg:grid-cols-[44px_1fr_180px_130px_30px] lg:gap-5 lg:px-5 ${
+                    className={`group grid w-full grid-cols-[44px_1fr_auto] items-center gap-3 border-b border-[#c8d3db] p-4 text-left transition last:border-b-0 sm:p-5 lg:grid-cols-[44px_1fr_200px_130px_24px] ${
                       isCurrent
-                        ? 'bg-orange-400/[0.06] ring-1 ring-inset ring-orange-400/40'
-                        : 'cursor-default'
+                        ? 'bg-[#c7dce7]'
+                        : isLocked
+                          ? 'cursor-default bg-[#d2dce1]'
+                          : 'cursor-default hover:bg-[#e7eef2]'
                     }`}
                   >
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full border ${
+                      className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${
                         isCompleted
-                          ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-300'
+                          ? 'border-cyan-300 bg-cyan-100 text-cyan-700'
                           : isCurrent
-                            ? 'border-orange-400/40 bg-orange-400/10 text-orange-300'
-                            : 'border-slate-600 bg-slate-700/20 text-slate-500'
+                            ? 'border-cyan-400 bg-cyan-500 text-white'
+                            : 'border-[#b9c4cb] bg-[#e1e8eb] text-slate-500'
                       }`}
                     >
                       {isCompleted && <Check size={18} />}
 
                       {isCurrent && (
                         <Circle
-                          size={16}
+                          size={15}
                           fill="currentColor"
                         />
                       )}
@@ -494,53 +467,49 @@ function JourneyPage({
                       <p
                         className={`font-semibold ${
                           isLocked
-                            ? 'text-slate-400'
-                            : 'text-white'
+                            ? 'text-slate-500'
+                            : 'text-[#153047]'
                         }`}
                       >
                         {book.name}
                       </p>
 
                       <p className="mt-1 text-xs text-slate-500 lg:hidden">
-                        {book.completed}/{book.total} chapters
+                        {book.completed} of {book.total} chapters
                       </p>
                     </div>
 
                     <div className="hidden items-center gap-3 lg:flex">
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#c3ced5]">
                         <div
-                          className={`h-full rounded-full ${
-                            isCurrent
-                              ? 'bg-orange-400'
-                              : 'bg-[#45c6d8]'
-                          }`}
+                          className="h-full rounded-full bg-cyan-500"
                           style={{
                             width: `${progress}%`,
                           }}
                         />
                       </div>
 
-                      <span className="w-12 text-right text-sm text-slate-300">
+                      <span className="w-14 text-right text-sm font-semibold text-slate-600">
                         {book.completed}/{book.total}
                       </span>
                     </div>
 
                     <div className="justify-self-end">
                       {isCompleted && (
-                        <span className="text-xs font-semibold text-cyan-300 sm:text-sm">
+                        <span className="text-xs font-semibold text-cyan-700 sm:text-sm">
                           Completed
                         </span>
                       )}
 
                       {isCurrent && (
-                        <span className="text-xs font-semibold text-orange-300 sm:text-sm">
-                          In Progress
+                        <span className="text-xs font-semibold text-cyan-700 sm:text-sm">
+                          In progress
                         </span>
                       )}
 
                       {book.status === 'next' && (
-                        <span className="text-xs font-medium text-slate-400 sm:text-sm">
-                          Up Next
+                        <span className="text-xs font-medium text-slate-500 sm:text-sm">
+                          Up next
                         </span>
                       )}
 
@@ -551,38 +520,10 @@ function JourneyPage({
                       )}
                     </div>
 
-                    <ChevronRight className="hidden text-slate-500 transition group-hover:translate-x-1 group-hover:text-slate-300 lg:block" />
+                    <ChevronRight className="hidden text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-700 lg:block" />
                   </button>
                 )
               })}
-            </div>
-          </section>
-
-          <section className="mt-6 overflow-hidden rounded-3xl border border-cyan-400/10 bg-gradient-to-br from-cyan-400/[0.08] via-[#15222d] to-orange-400/[0.05] p-5 sm:p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-cyan-400/15 bg-cyan-400/10 text-cyan-300">
-                <Mountain size={38} />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <h2 className="text-xl font-bold">
-                  Keep going!
-                </h2>
-
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-base">
-                  Every chapter is another step toward knowing
-                  Scripture more deeply and living it more
-                  faithfully.
-                </p>
-
-                <button
-                  type="button"
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2.5 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/15"
-                >
-                  View Stats
-                  <ArrowRight size={16} />
-                </button>
-              </div>
             </div>
           </section>
         </main>

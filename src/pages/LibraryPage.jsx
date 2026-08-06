@@ -5,13 +5,11 @@ import {
   Bookmark,
   ChevronRight,
   Clock3,
-  Download,
   FileText,
   Headphones,
   Library,
   Lock,
   Search,
-  Sparkles,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
 import {
@@ -33,7 +31,7 @@ const libraryResources = [
     reference: 'John 1',
     title: 'The Word Tabernacled Among Us',
     type: 'audio',
-    label: 'Audio Study',
+    label: 'Audio',
     duration: '9:43',
     isFavorite: true,
   },
@@ -72,7 +70,7 @@ const libraryResources = [
     reference: 'John 2',
     title: 'The First Sign',
     type: 'audio',
-    label: 'Audio Study',
+    label: 'Audio',
     duration: '11:08',
     isFavorite: false,
   },
@@ -98,7 +96,7 @@ const libraryResources = [
     reference: 'John 3',
     title: 'Born From Above',
     type: 'audio',
-    label: 'Audio Study',
+    label: 'Audio',
     duration: '10:34',
     isFavorite: false,
   },
@@ -124,7 +122,7 @@ const libraryResources = [
     reference: 'Romans 8',
     title: 'No Condemnation',
     type: 'audio',
-    label: 'Audio Study',
+    label: 'Audio',
     duration: '14:02',
     isFavorite: false,
   },
@@ -147,7 +145,7 @@ const resourceTypes = [
   {
     id: 'bible',
     label: 'Bible',
-    description: 'NASB 1995',
+    description: 'Read Scripture',
     icon: BookOpen,
   },
   {
@@ -159,19 +157,19 @@ const resourceTypes = [
   {
     id: 'study',
     label: 'Study Guides',
-    description: 'Study',
+    description: 'Go deeper',
     icon: FileText,
   },
   {
     id: 'leader',
     label: 'Leader Guides',
-    description: 'Lead',
+    description: 'Lead others',
     icon: BookOpen,
   },
   {
     id: 'favorites',
     label: 'Favorites',
-    description: 'Saved',
+    description: 'Saved items',
     icon: Bookmark,
   },
 ]
@@ -282,38 +280,35 @@ function LibraryPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#06111b] text-white">
+    <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation
         activePage="library"
         onNavigate={onNavigate}
       />
 
       <div className="lg:pl-24">
-        <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-32 pt-5 min-[375px]:px-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8 xl:px-10">
-          <header>
-            <p className="text-sm font-bold tracking-[0.18em] text-[#45c6d8]">
-              PROJECT 3|26
-            </p>
+        <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
+          <header className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.2em] text-cyan-400 sm:text-sm">
+                PROJECT 3|26
+              </p>
 
-            <div className="mt-3 flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold sm:text-4xl">
-                  Library
-                </h1>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                Library
+              </h1>
 
-                <p className="mt-2 text-sm text-slate-400 sm:text-base">
-                  Read the Bible and access your audio,
-                  studies, leader guides, and saved resources.
-                </p>
-              </div>
+              <p className="mt-2 max-w-xl text-sm text-slate-400 sm:text-base">
+                Read Scripture and find the resources connected to your journey.
+              </p>
+            </div>
 
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] text-cyan-300">
-                <Library size={23} />
-              </div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-400">
+              <Library size={23} strokeWidth={2.2} />
             </div>
           </header>
 
-          <section className="mt-7">
+          <section className="mt-6">
             <div className="relative">
               <Search
                 size={20}
@@ -326,77 +321,78 @@ function LibraryPage({
                 onChange={(event) =>
                   setSearchTerm(event.target.value)
                 }
-                placeholder="Search chapters, audio, PDFs, or topics"
-                className="h-14 w-full rounded-2xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] pl-12 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/30 focus:ring-2 focus:ring-cyan-400/10"
+                placeholder="Search chapters, audio, guides, or topics"
+                className="h-14 w-full rounded-2xl border border-[#c8d3db] bg-[#dfe8ee] pl-12 pr-4 text-sm text-[#153047] shadow-lg shadow-black/10 outline-none transition placeholder:text-slate-500 focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/10"
               />
             </div>
           </section>
 
-          <section className="mt-5">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {resourceTypes.map((resourceType) => {
-                const ResourceTypeIcon =
-                  resourceType.icon
+          <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {resourceTypes.map((resourceType) => {
+              const ResourceTypeIcon =
+                resourceType.icon
 
-                const isBible =
-                  resourceType.id === 'bible'
+              const isBible =
+                resourceType.id === 'bible'
 
-                const isActive =
-                  activeFilter === resourceType.id
+              const isActive =
+                activeFilter === resourceType.id
 
-                return (
-                  <button
-                    key={resourceType.id}
-                    type="button"
-                    onClick={() =>
-                      handleResourceType(
-                        resourceType.id,
-                      )
-                    }
-                    className={`group rounded-2xl border p-4 text-left transition active:scale-[0.98] ${
+              return (
+                <button
+                  key={resourceType.id}
+                  type="button"
+                  onClick={() =>
+                    handleResourceType(
+                      resourceType.id,
+                    )
+                  }
+                  className={`group rounded-[22px] border p-4 text-left shadow-lg shadow-black/10 transition hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] ${
+                    isBible
+                      ? 'border-cyan-400/40 bg-[#dfe8ee] text-[#153047]'
+                      : isActive
+                        ? 'border-orange-300/60 bg-[#e8ddd0] text-[#153047]'
+                        : 'border-[#c8d3db] bg-[#dfe8ee] text-[#153047] hover:border-cyan-400/40'
+                  }`}
+                >
+                  <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
                       isBible
-                        ? 'border-cyan-400/25 bg-gradient-to-br from-cyan-400/[0.15] to-[#0d1821] hover:border-cyan-400/40'
+                        ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/15'
                         : isActive
-                          ? 'border-cyan-400/30 bg-cyan-400/10'
-                          : 'border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] hover:border-white/10'
+                          ? 'bg-orange-200/70 text-orange-600'
+                          : 'bg-[#c7dce7] text-cyan-700'
                     }`}
                   >
-                    <div
-                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-                        isBible
-                          ? 'bg-cyan-400/15 text-cyan-200'
-                          : isActive
-                            ? 'bg-cyan-400/15 text-cyan-300'
-                            : 'bg-white/5 text-slate-300'
-                      }`}
-                    >
-                      <ResourceTypeIcon size={21} />
+                    <ResourceTypeIcon
+                      size={21}
+                      strokeWidth={2.2}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-sm font-semibold">
+                    {resourceType.label}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    {resourceType.description}
+                  </p>
+
+                  {isBible && (
+                    <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-cyan-700">
+                      Open Bible
+                      <ArrowRight
+                        size={14}
+                        className="transition group-hover:translate-x-1"
+                      />
                     </div>
-
-                    <p className="mt-3 text-sm font-semibold">
-                      {resourceType.label}
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      {resourceType.description}
-                    </p>
-
-                    {isBible && (
-                      <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-cyan-300">
-                        Open
-                        <ArrowRight
-                          size={14}
-                          className="transition group-hover:translate-x-1"
-                        />
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
+                  )}
+                </button>
+              )
+            })}
           </section>
 
-          <section className="mt-4 flex gap-2 overflow-x-auto pb-2">
+          <section className="mt-5 flex gap-2 overflow-x-auto pb-2">
             {[
               ['all', 'All'],
               ['unlocked', 'Unlocked'],
@@ -411,10 +407,10 @@ function LibraryPage({
                 onClick={() =>
                   setActiveFilter(filterId)
                 }
-                className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                className={`shrink-0 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
                   activeFilter === filterId
-                    ? 'bg-[#45c6d8] text-[#06111b]'
-                    : 'border border-white/5 bg-white/[0.04] text-slate-400 hover:text-white'
+                    ? 'border-cyan-500/50 bg-cyan-500 text-[#041326]'
+                    : 'border-[#c8d3db] bg-[#dfe8ee] text-[#153047] hover:border-cyan-400/40'
                 }`}
               >
                 {filterLabel}
@@ -422,190 +418,189 @@ function LibraryPage({
             ))}
           </section>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-12">
-            <div className="space-y-6 lg:col-span-8">
-              <section>
-                <div>
-                  <h2 className="text-xl font-bold">
-                    Continue
+          <section className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-400">
+              Continue
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                onOpenChapter('john-1')
+              }
+              className="group mt-3 w-full rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-left text-[#153047] shadow-xl shadow-black/10 transition hover:-translate-y-0.5 hover:border-cyan-400/40 active:translate-y-0 active:scale-[0.99] sm:p-6"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-md shadow-cyan-500/15">
+                  <BookOpen size={25} strokeWidth={2.2} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-semibold">
+                    John 1
                   </h2>
 
-                  <p className="mt-1 text-sm text-slate-400">
-                    Return to your current Project 3|26 chapter.
+                  <p className="mt-1 truncate text-sm text-slate-500">
+                    The Word Tabernacled Among Us
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    onOpenChapter('john-1')
-                  }
-                  className="group mt-4 w-full rounded-3xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.08] to-[#0d1821] p-5 text-left shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:border-cyan-400/30 active:translate-y-0 active:scale-[0.99]"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/10 text-cyan-300">
-                      <BookOpen size={26} />
-                    </div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
+                  <ArrowRight
+                    size={19}
+                    className="transition group-hover:translate-x-1"
+                  />
+                </div>
+              </div>
+            </button>
+          </section>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-cyan-300">
-                        Current Chapter
-                      </p>
-
-                      <h3 className="mt-2 text-lg font-bold">
-                        John 1
-                      </h3>
-
-                      <p className="mt-1 text-sm text-slate-400">
-                        The Word Tabernacled Among Us
-                      </p>
-                    </div>
-
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-400/15 bg-cyan-400/10 text-cyan-300">
-                      <ArrowRight
-                        size={19}
-                        className="transition group-hover:translate-x-1"
-                      />
-                    </div>
-                  </div>
-                </button>
-              </section>
-
-              <section>
+          <div className="mt-7 grid gap-6 lg:grid-cols-12">
+            <section className="lg:col-span-8">
+              <div className="flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
+                    Resources
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-semibold">
                     {searchTerm
                       ? 'Search Results'
                       : 'Available Resources'}
                   </h2>
-
-                  <p className="mt-1 text-sm text-slate-400">
-                    {filteredResources.length} resources found
-                  </p>
                 </div>
 
-                <div className="mt-4 space-y-3">
-                  {unlockedResources.map((resource) => {
-                    const ResourceIcon =
-                      getResourceIcon(resource.type)
+                <p className="text-sm text-slate-500">
+                  {filteredResources.length} found
+                </p>
+              </div>
 
-                    return (
-                      <button
-                        key={resource.id}
-                        type="button"
-                        onClick={() =>
-                          handleResourceClick(resource)
-                        }
-                        className="group flex w-full items-center gap-4 rounded-2xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-4 text-left transition hover:border-cyan-400/20 hover:bg-white/[0.04] active:scale-[0.99]"
-                      >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/[0.07] text-cyan-300">
-                          <ResourceIcon size={21} />
-                        </div>
+              <div className="mt-4 space-y-3">
+                {unlockedResources.map((resource) => {
+                  const ResourceIcon =
+                    getResourceIcon(resource.type)
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-semibold">
-                              {resource.reference}
-                            </p>
-
-                            <span className="rounded-full border border-white/5 bg-white/[0.04] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                              {resource.label}
-                            </span>
-                          </div>
-
-                          <p className="mt-1 truncate text-sm text-slate-400">
-                            {resource.title}
-                          </p>
-
-                          <p className="mt-1 text-xs text-slate-500">
-                            {resource.duration ||
-                              resource.detail}
-                          </p>
-                        </div>
-
-                        {resource.isFavorite && (
-                          <Bookmark
-                            size={17}
-                            fill="currentColor"
-                            className="shrink-0 text-orange-400"
-                          />
-                        )}
-
-                        <ChevronRight
-                          size={19}
-                          className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-300"
-                        />
-                      </button>
-                    )
-                  })}
-
-                  {lockedResources.map((resource) => {
-                    const ResourceIcon =
-                      getResourceIcon(resource.type)
-
-                    return (
-                      <div
-                        key={resource.id}
-                        className="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4 opacity-70"
-                      >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-white/[0.03] text-slate-500">
-                          <ResourceIcon size={21} />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-semibold text-slate-400">
-                              {resource.reference}
-                            </p>
-
-                            <span className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                              {resource.label}
-                            </span>
-                          </div>
-
-                          <p className="mt-1 truncate text-sm text-slate-500">
-                            {resource.title}
-                          </p>
-
-                          <p className="mt-1 text-xs text-slate-600">
-                            Unlocks on Journey Day{' '}
-                            {resource.journeyDay}
-                          </p>
-                        </div>
-
-                        <Lock
-                          size={18}
-                          className="shrink-0 text-slate-600"
+                  return (
+                    <button
+                      key={resource.id}
+                      type="button"
+                      onClick={() =>
+                        handleResourceClick(resource)
+                      }
+                      className="group flex w-full items-center gap-4 rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] active:scale-[0.99]"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
+                        <ResourceIcon
+                          size={21}
+                          strokeWidth={2.2}
                         />
                       </div>
-                    )
-                  })}
 
-                  {filteredResources.length === 0 && (
-                    <div className="rounded-3xl border border-white/5 bg-white/[0.03] p-8 text-center">
-                      <Search
-                        size={30}
-                        className="mx-auto text-slate-600"
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold">
+                            {resource.reference}
+                          </p>
+
+                          <span className="rounded-full border border-[#c2ccd3] bg-[#edf2f4] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                            {resource.label}
+                          </span>
+                        </div>
+
+                        <p className="mt-1 truncate text-sm text-slate-500">
+                          {resource.title}
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-400">
+                          {resource.duration ||
+                            resource.detail}
+                        </p>
+                      </div>
+
+                      {resource.isFavorite && (
+                        <Bookmark
+                          size={17}
+                          fill="currentColor"
+                          className="shrink-0 text-orange-500"
+                        />
+                      )}
+
+                      <ChevronRight
+                        size={19}
+                        className="shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-cyan-700"
                       />
+                    </button>
+                  )
+                })}
 
-                      <h3 className="mt-4 font-semibold">
-                        No resources found
-                      </h3>
+                {lockedResources.map((resource) => {
+                  const ResourceIcon =
+                    getResourceIcon(resource.type)
 
-                      <p className="mt-2 text-sm text-slate-500">
-                        Try another chapter, topic, or
-                        resource type.
-                      </p>
+                  return (
+                    <div
+                      key={resource.id}
+                      className="flex items-center gap-4 rounded-[22px] border border-[#b9c4cb] bg-[#cbd4d9] p-4 text-[#153047] opacity-75"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#b3bec5] bg-[#d7e0e5] text-slate-500">
+                        <ResourceIcon
+                          size={21}
+                          strokeWidth={2.1}
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-slate-600">
+                            {resource.reference}
+                          </p>
+
+                          <span className="rounded-full border border-[#b3bec5] bg-[#d7e0e5] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                            {resource.label}
+                          </span>
+                        </div>
+
+                        <p className="mt-1 truncate text-sm text-slate-500">
+                          {resource.title}
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-500">
+                          Unlocks on Journey Day{' '}
+                          {resource.journeyDay}
+                        </p>
+                      </div>
+
+                      <Lock
+                        size={18}
+                        className="shrink-0 text-slate-500"
+                      />
                     </div>
-                  )}
-                </div>
-              </section>
-            </div>
+                  )
+                })}
+
+                {filteredResources.length === 0 && (
+                  <div className="rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] p-8 text-center text-[#153047]">
+                    <Search
+                      size={30}
+                      className="mx-auto text-slate-400"
+                    />
+
+                    <h3 className="mt-4 font-semibold">
+                      No resources found
+                    </h3>
+
+                    <p className="mt-2 text-sm text-slate-500">
+                      Try another chapter, topic, or resource type.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
 
             <aside className="space-y-4 lg:col-span-4">
-              <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5">
+              <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047] shadow-lg shadow-black/10">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
                     <Clock3 size={20} />
                   </div>
 
@@ -620,7 +615,7 @@ function LibraryPage({
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-2">
+                <div className="mt-4 space-y-2">
                   {recentResources.map((resource) => (
                     <button
                       key={resource.id}
@@ -628,7 +623,7 @@ function LibraryPage({
                       onClick={() =>
                         handleResourceClick(resource)
                       }
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/[0.04]"
+                      className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition hover:bg-[#e7eef2]"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold">
@@ -642,26 +637,26 @@ function LibraryPage({
 
                       <ChevronRight
                         size={17}
-                        className="text-slate-600"
+                        className="text-slate-400"
                       />
                     </button>
                   ))}
                 </div>
               </section>
 
-              <section className="rounded-3xl border border-orange-400/10 bg-gradient-to-br from-orange-400/[0.06] to-[#0d1821] p-5">
+              <section className="rounded-[24px] border border-orange-300/50 bg-[#e8ddd0] p-5 text-[#153047] shadow-lg shadow-black/10">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-400/10 text-orange-300">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-200/70 text-orange-600">
                     <Bookmark size={20} />
                   </div>
 
                   <div>
                     <h2 className="font-semibold">
-                      Saved Resources
+                      Favorites
                     </h2>
 
                     <p className="mt-1 text-xs text-slate-500">
-                      Favorites and bookmarks
+                      Saved resources and bookmarks
                     </p>
                   </div>
                 </div>
@@ -671,54 +666,11 @@ function LibraryPage({
                   onClick={() =>
                     setActiveFilter('favorites')
                   }
-                  className="mt-5 flex w-full items-center justify-between rounded-xl border border-orange-400/10 bg-orange-400/[0.05] px-4 py-3 text-sm font-semibold text-orange-300 transition hover:bg-orange-400/10"
+                  className="mt-5 flex w-full items-center justify-between rounded-2xl border border-orange-400/40 bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-400"
                 >
-                  View Favorites
+                  View favorites
                   <ArrowRight size={17} />
                 </button>
-              </section>
-
-              <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-300">
-                    <Download size={20} />
-                  </div>
-
-                  <div>
-                    <h2 className="font-semibold">
-                      Downloads
-                    </h2>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      Offline audio and PDFs
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-4 text-sm leading-relaxed text-slate-400">
-                  Offline downloads will appear here once
-                  that feature is connected.
-                </p>
-              </section>
-
-              <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.05] p-5">
-                <div className="flex items-start gap-3">
-                  <Sparkles
-                    size={22}
-                    className="mt-0.5 shrink-0 text-cyan-300"
-                  />
-
-                  <div>
-                    <h2 className="font-semibold">
-                      Challenges & Collections
-                    </h2>
-
-                    <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                      Five-day challenges and special studies
-                      will live in the Library too.
-                    </p>
-                  </div>
-                </div>
               </section>
             </aside>
           </div>

@@ -71,6 +71,7 @@ function ChapterPage({
   chapterId = 'john-1',
   onBack,
   onNavigate,
+  onOpenUpgrade,
 }) {
   const [chapter, setChapter] = useState(null)
   const [user, setUser] = useState(null)
@@ -80,8 +81,7 @@ function ChapterPage({
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioProgress, setAudioProgress] = useState(0)
   const [isCompleting, setIsCompleting] = useState(false)
-  const [completionMessage, setCompletionMessage] =
-    useState('')
+  const [completionMessage, setCompletionMessage] = useState('')
   const [notice, setNotice] = useState('')
   const [openSections, setOpenSections] = useState([
     'before-you-read',
@@ -240,8 +240,7 @@ function ChapterPage({
     }
 
     setAudioProgress(
-      (audioElement.currentTime / audioElement.duration) *
-        100,
+      (audioElement.currentTime / audioElement.duration) * 100,
     )
   }
 
@@ -276,9 +275,7 @@ function ChapterPage({
   function toggleSection(sectionId) {
     setOpenSections((currentSections) => {
       if (currentSections.includes(sectionId)) {
-        return currentSections.filter(
-          (id) => id !== sectionId,
-        )
+        return currentSections.filter((id) => id !== sectionId)
       }
 
       return [...currentSections, sectionId]
@@ -312,28 +309,27 @@ function ChapterPage({
 
   if (loadError || !chapter || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#041326] px-6">
-        <div className="max-w-md rounded-3xl border border-red-300/40 bg-[#ead9d9] p-6 text-center text-[#153047] shadow-xl shadow-black/15">
+      <div className="flex min-h-screen items-center justify-center bg-[#041326] px-6 text-white">
+        <div className="max-w-md rounded-3xl border border-red-400/20 bg-red-400/5 p-6 text-center">
           <CircleAlert
             size={34}
-            className="mx-auto text-red-700"
+            className="mx-auto text-red-300"
           />
 
           <h1 className="mt-4 text-xl font-semibold">
             Chapter unavailable
           </h1>
 
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            {loadError ||
-              'The chapter could not be loaded.'}
+          <p className="mt-2 text-sm leading-relaxed text-slate-400">
+            {loadError || 'The chapter could not be loaded.'}
           </p>
 
           <button
             type="button"
             onClick={onBack}
-            className="mt-5 rounded-xl bg-[#c8d3db] px-4 py-2 text-sm font-semibold transition hover:bg-[#edf2f4]"
+            className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold transition hover:bg-white/15"
           >
-            Return to Home
+            Return to Today
           </button>
         </div>
       </div>
@@ -358,26 +354,26 @@ function ChapterPage({
       />
 
       <div className="lg:pl-24">
-        <main className="mx-auto min-h-screen w-full max-w-7xl px-4 pb-56 pt-5 sm:px-6 lg:px-8 lg:pb-32 lg:pt-8">
+        <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-56 pt-4 min-[375px]:px-4 sm:px-6 lg:px-8 lg:pb-32 lg:pt-8 xl:px-10">
           <header className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
               <button
                 type="button"
                 onClick={onBack}
-                className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0c2138] text-slate-300 transition hover:border-cyan-400/35 hover:text-white active:scale-90"
-                aria-label="Return to Home"
+                className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-cyan-400/20 hover:text-white active:scale-90"
+                aria-label="Return to Today"
               >
                 <ArrowLeft size={20} />
               </button>
 
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
+                  <h1 className="text-2xl font-bold sm:text-3xl lg:text-4xl">
                     {chapter.reference}
                   </h1>
 
                   {isCompleted && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/35 bg-[#c7dce7] px-2.5 py-1 text-xs font-semibold text-cyan-700">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-xs font-semibold text-cyan-300">
                       <CheckCircle2 size={14} />
                       Completed
                     </span>
@@ -396,8 +392,8 @@ function ChapterPage({
               disabled={isCompleted || isCompleting}
               className={`hidden shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex ${
                 isCompleted
-                  ? 'border border-cyan-400/35 bg-[#c7dce7] text-cyan-700'
-                  : 'bg-cyan-500 text-white hover:bg-cyan-400 active:scale-95'
+                  ? 'border border-cyan-400/20 bg-cyan-400/10 text-cyan-300'
+                  : 'bg-cyan-500 text-[#041326] hover:bg-cyan-300 active:scale-95'
               } disabled:cursor-default`}
             >
               {isCompleting ? (
@@ -409,13 +405,11 @@ function ChapterPage({
                 <Check size={17} />
               )}
 
-              {isCompleted
-                ? 'Completed'
-                : 'Mark Complete'}
+              {isCompleted ? 'Completed' : 'Mark Complete'}
             </button>
           </header>
 
-          <section className="mt-5">
+          <section className="mt-6">
             <div className="flex items-center justify-between text-xs text-slate-400 sm:text-sm">
               <span>
                 Lesson {chapter.lessonNumber} of{' '}
@@ -425,17 +419,15 @@ function ChapterPage({
               <span>{chapterProgress}%</span>
             </div>
 
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#23384b]">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
               <div
                 className="h-full rounded-full bg-cyan-500"
-                style={{
-                  width: `${chapterProgress}%`,
-                }}
+                style={{ width: `${chapterProgress}%` }}
               />
             </div>
           </section>
 
-          <section className="mt-5 rounded-2xl border border-[#c8d3db] bg-[#dfe8ee] p-1 text-[#153047] shadow-lg shadow-black/10">
+          <section className="mt-6 rounded-2xl border border-white/5 bg-[#071a2d] p-1.5">
             <div className="grid grid-cols-4 gap-1">
               {tabs.map((tab) => {
                 const TabIcon = tab.icon
@@ -447,10 +439,10 @@ function ChapterPage({
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 text-[10px] font-semibold transition min-[375px]:flex-row min-[375px]:gap-1.5 min-[375px]:text-xs sm:text-sm ${
+                    className={`relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-3 text-[10px] font-semibold transition min-[375px]:flex-row min-[375px]:gap-1.5 min-[375px]:text-xs sm:text-sm ${
                       isActive
-                        ? 'bg-[#c7dce7] text-cyan-700'
-                        : 'text-slate-500 hover:bg-[#edf2f4] hover:text-slate-700'
+                        ? 'bg-cyan-400/10 text-cyan-300'
+                        : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
                     }`}
                   >
                     <TabIcon size={17} />
@@ -459,10 +451,9 @@ function ChapterPage({
                       {tab.label}
                     </span>
 
-                    {isLeaderTab &&
-                      !hasLeaderAccess && (
-                        <Lock size={11} />
-                      )}
+                    {isLeaderTab && !hasLeaderAccess && (
+                      <Lock size={11} />
+                    )}
                   </button>
                 )
               })}
@@ -470,20 +461,20 @@ function ChapterPage({
           </section>
 
           {notice && (
-            <section className="mt-4 flex items-start gap-3 rounded-2xl border border-cyan-400/30 bg-[#d7e6ec] p-4 text-[#153047]">
+            <section className="mt-4 flex items-start gap-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-4">
               <MessageCircleQuestion
                 size={19}
-                className="mt-0.5 shrink-0 text-cyan-700"
+                className="mt-0.5 shrink-0 text-cyan-300"
               />
 
-              <p className="flex-1 text-sm leading-relaxed text-slate-600">
+              <p className="flex-1 text-sm leading-relaxed text-slate-300">
                 {notice}
               </p>
 
               <button
                 type="button"
                 onClick={() => setNotice('')}
-                className="text-xs font-semibold text-cyan-700"
+                className="text-xs font-semibold text-cyan-300"
               >
                 Close
               </button>
@@ -491,54 +482,52 @@ function ChapterPage({
           )}
 
           {completionMessage && (
-            <section className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-500/25 bg-[#d9e7df] p-4 text-[#153047]">
+            <section className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.06] p-4">
               <CheckCircle2
                 size={20}
-                className="mt-0.5 shrink-0 text-emerald-700"
+                className="mt-0.5 shrink-0 text-emerald-300"
               />
 
-              <p className="text-sm leading-relaxed">
+              <p className="text-sm leading-relaxed text-slate-200">
                 {completionMessage}
               </p>
             </section>
           )}
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-12 lg:gap-6">
+          <div className="mt-5 grid gap-5 lg:grid-cols-12 lg:gap-6 xl:gap-8">
             <div className="space-y-4 lg:col-span-8">
               {activeTab === 'read' && (
                 <BibleReader
                   key={chapter.id}
                   initialBookId={readerLocation.bookId}
-                  initialChapter={
-                    readerLocation.chapterNumber
-                  }
+                  initialChapter={readerLocation.chapterNumber}
                 />
               )}
 
               {activeTab === 'listen' && (
                 <>
-                  <section className="rounded-3xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-xl shadow-black/15 sm:p-5 lg:p-6">
+                  <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#0b2742] to-[#071a2d] p-4 shadow-xl shadow-black/20 sm:p-5 lg:p-6">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-[#b8ccd7] bg-[#c7dce7]">
-                        <span className="text-sm font-semibold">
+                      <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/15 to-orange-400/10">
+                        <span className="text-sm font-bold text-white">
                           {chapter.reference}
                         </span>
 
-                        <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-700">
+                        <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">
                           Audio
                         </span>
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">
                           Listen
                         </p>
 
-                        <h2 className="mt-1 text-base font-semibold sm:text-lg">
+                        <h2 className="mt-1 text-base font-semibold text-white sm:text-lg">
                           {chapter.audio.title}
                         </h2>
 
-                        <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                        <p className="mt-1 text-xs text-slate-400 sm:text-sm">
                           {chapter.title}
                         </p>
                       </div>
@@ -548,7 +537,7 @@ function ChapterPage({
                       <button
                         type="button"
                         onClick={toggleAudio}
-                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-white transition hover:bg-cyan-400 active:scale-90"
+                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-[#041326] transition hover:bg-cyan-300 active:scale-90"
                         aria-label={
                           isPlaying
                             ? 'Pause chapter audio'
@@ -570,7 +559,7 @@ function ChapterPage({
                       </button>
 
                       <div className="min-w-0 flex-1">
-                        <div className="h-2 overflow-hidden rounded-full bg-[#c8d3db]">
+                        <div className="h-2 overflow-hidden rounded-full bg-white/10">
                           <div
                             className="h-full rounded-full bg-cyan-500"
                             style={{
@@ -579,7 +568,7 @@ function ChapterPage({
                           />
                         </div>
 
-                        <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                        <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
                           <span>
                             {formatAudioTime(
                               audioElementRef.current
@@ -587,18 +576,16 @@ function ChapterPage({
                             )}
                           </span>
 
-                          <span>
-                            {chapter.audio.duration}
-                          </span>
+                          <span>{chapter.audio.duration}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-5 flex items-center justify-between border-t border-[#c8d3db] pt-4">
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="mt-5 flex items-center justify-between border-t border-white/5 pt-4">
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
                         <ShieldCheck
                           size={16}
-                          className="text-cyan-700"
+                          className="text-cyan-300"
                         />
 
                         <span>
@@ -608,52 +595,49 @@ function ChapterPage({
 
                       <button
                         type="button"
-                        className="rounded-lg border border-[#c8d3db] bg-[#edf2f4] px-3 py-1.5 text-xs font-semibold text-slate-600"
+                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300"
                       >
                         1.0x
                       </button>
                     </div>
                   </section>
 
-                  <section className="rounded-3xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
+                  <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 sm:p-5">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-300">
                         <Quote size={18} />
                       </div>
 
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">
                           Quote of the Chapter
                         </p>
 
-                        <blockquote className="mt-2 text-sm font-medium leading-relaxed sm:text-base">
+                        <blockquote className="mt-2 text-sm font-medium leading-relaxed text-slate-100 sm:text-base">
                           “{chapter.quote}”
                         </blockquote>
 
-                        <p className="mt-3 text-xs font-semibold text-slate-500">
+                        <p className="mt-3 text-xs font-semibold text-slate-400">
                           — {chapter.quoteAttribution}
                         </p>
                       </div>
                     </div>
                   </section>
 
-                  <section className="rounded-3xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
+                  <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#0b2742] to-[#071a2d] p-4 sm:p-5">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-1 items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/10 text-cyan-300">
                           <BookOpen size={22} />
                         </div>
 
                         <div>
-                          <h2 className="text-sm font-semibold sm:text-base">
+                          <h2 className="text-sm font-semibold text-white sm:text-base">
                             Bible Study Guide
                           </h2>
 
-                          <p className="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">
-                            {
-                              chapter.studyGuide
-                                .description
-                            }
+                          <p className="mt-1 text-xs leading-relaxed text-slate-400 sm:text-sm">
+                            {chapter.studyGuide.description}
                           </p>
                         </div>
                       </div>
@@ -666,7 +650,7 @@ function ChapterPage({
                             'Study Guide',
                           )
                         }
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#b8ccd7] bg-[#c7dce7] px-4 py-2.5 text-sm font-semibold text-cyan-700 transition hover:bg-[#d4e5ed] active:scale-95"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2.5 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/15 active:scale-95"
                       >
                         <Printer size={17} />
                         Open Study PDF
@@ -678,23 +662,23 @@ function ChapterPage({
 
               {activeTab === 'study' && (
                 <>
-                  <section className="rounded-3xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
+                  <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 sm:p-5">
                     <div className="flex items-start gap-3">
                       <Quote
                         size={21}
-                        className="mt-0.5 shrink-0 text-cyan-700"
+                        className="mt-0.5 shrink-0 text-cyan-300"
                       />
 
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">
                           Quote of the Chapter
                         </p>
 
-                        <blockquote className="mt-2 text-sm font-medium leading-relaxed sm:text-base">
+                        <blockquote className="mt-2 text-sm font-medium leading-relaxed text-slate-100 sm:text-base">
                           “{chapter.quote}”
                         </blockquote>
 
-                        <p className="mt-3 text-xs font-semibold text-slate-500">
+                        <p className="mt-3 text-xs font-semibold text-slate-400">
                           — {chapter.quoteAttribution}
                         </p>
                       </div>
@@ -702,62 +686,52 @@ function ChapterPage({
                   </section>
 
                   <section className="space-y-3">
-                    {chapter.studyGuide.sections.map(
-                      (section) => {
-                        const SectionIcon =
-                          sectionIcons[section.id] ||
-                          BookOpen
+                    {chapter.studyGuide.sections.map((section) => {
+                      const SectionIcon =
+                        sectionIcons[section.id] || BookOpen
 
-                        const isOpen =
-                          openSections.includes(
-                            section.id,
-                          )
+                      const isOpen = openSections.includes(
+                        section.id,
+                      )
 
-                        return (
-                          <article
-                            key={section.id}
-                            className="overflow-hidden rounded-2xl border border-[#c8d3db] bg-[#dfe8ee] text-[#153047] shadow-lg shadow-black/10"
+                      return (
+                        <article
+                          key={section.id}
+                          className="overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-[#0b2742] to-[#071a2d]"
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              toggleSection(section.id)
+                            }
+                            className="flex w-full items-center gap-3 p-4 text-left sm:p-5"
                           >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                toggleSection(
-                                  section.id,
-                                )
-                              }
-                              className="flex w-full items-center gap-3 p-4 text-left sm:p-5"
-                            >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
-                                <SectionIcon
-                                  size={20}
-                                />
-                              </div>
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/[0.07] text-cyan-300">
+                              <SectionIcon size={20} />
+                            </div>
 
-                              <h2 className="min-w-0 flex-1 text-sm font-semibold sm:text-base">
-                                {section.title}
-                              </h2>
+                            <h2 className="min-w-0 flex-1 text-sm font-semibold text-white sm:text-base">
+                              {section.title}
+                            </h2>
 
-                              <ChevronDown
-                                size={19}
-                                className={`shrink-0 text-slate-500 transition ${
-                                  isOpen
-                                    ? 'rotate-180'
-                                    : ''
-                                }`}
-                              />
-                            </button>
+                            <ChevronDown
+                              size={19}
+                              className={`shrink-0 text-slate-400 transition ${
+                                isOpen ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
 
-                            {isOpen && (
-                              <div className="border-t border-[#c8d3db] px-4 pb-5 pt-4 sm:px-5">
-                                <p className="whitespace-pre-line text-sm leading-7 text-slate-600">
-                                  {section.content}
-                                </p>
-                              </div>
-                            )}
-                          </article>
-                        )
-                      },
-                    )}
+                          {isOpen && (
+                            <div className="border-t border-white/5 px-4 pb-5 pt-4 sm:px-5">
+                              <p className="whitespace-pre-line text-sm leading-7 text-slate-300">
+                                {section.content}
+                              </p>
+                            </div>
+                          )}
+                        </article>
+                      )
+                    })}
                   </section>
 
                   <button
@@ -768,7 +742,7 @@ function ChapterPage({
                         'Study Guide',
                       )
                     }
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#b8ccd7] bg-[#c7dce7] px-4 py-3.5 text-sm font-semibold text-cyan-700 transition hover:bg-[#d4e5ed] active:scale-[0.98]"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3.5 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/15 active:scale-[0.98]"
                   >
                     <Download size={18} />
                     Open Printable Study Guide PDF
@@ -778,18 +752,18 @@ function ChapterPage({
 
               {activeTab === 'leader' && (
                 <section
-                  className={`rounded-3xl border p-5 text-[#153047] shadow-lg shadow-black/10 sm:p-6 ${
+                  className={`rounded-3xl border p-5 sm:p-6 ${
                     hasLeaderAccess
-                      ? 'border-[#c8d3db] bg-[#dfe8ee]'
-                      : 'border-orange-300/40 bg-[#e8ddd0]'
+                      ? 'border-blue-400/15 bg-blue-400/[0.05]'
+                      : 'border-orange-400/15 bg-orange-400/[0.05]'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div
                       className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
                         hasLeaderAccess
-                          ? 'bg-[#c7dce7] text-cyan-700'
-                          : 'bg-orange-200/70 text-orange-600'
+                          ? 'bg-blue-400/10 text-blue-300'
+                          : 'bg-orange-400/10 text-orange-300'
                       }`}
                     >
                       {hasLeaderAccess ? (
@@ -805,16 +779,13 @@ function ChapterPage({
                           Leader Guide
                         </h2>
 
-                        <span className="rounded-full border border-orange-300/50 bg-orange-200/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-600">
+                        <span className="rounded-full border border-orange-400/20 bg-orange-400/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-300">
                           Leader Plan
                         </span>
                       </div>
 
-                      <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                        {
-                          chapter.leaderGuide
-                            .description
-                        }
+                      <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                        {chapter.leaderGuide.description}
                       </p>
                     </div>
                   </div>
@@ -824,12 +795,11 @@ function ChapterPage({
                       type="button"
                       onClick={() =>
                         handlePdf(
-                          chapter.leaderGuide
-                            .pdfUrl,
+                          chapter.leaderGuide.pdfUrl,
                           'Leader Guide',
                         )
                       }
-                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-400"
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-400 px-4 py-3 text-sm font-bold text-[#0a0a12]"
                     >
                       <Printer size={18} />
                       Open Leader PDF
@@ -837,7 +807,8 @@ function ChapterPage({
                   ) : (
                     <button
                       type="button"
-                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-400"
+                      onClick={onOpenUpgrade}
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-400 px-4 py-3 text-sm font-bold text-[#16120a]"
                     >
                       <Crown size={18} />
                       Upgrade to Leader Plan
@@ -848,9 +819,9 @@ function ChapterPage({
             </div>
 
             <aside className="space-y-4 lg:col-span-4">
-              <section className="rounded-3xl border border-orange-300/40 bg-[#e8ddd0] p-5 text-[#153047] shadow-lg shadow-black/10">
+              <section className="rounded-3xl border border-orange-400/15 bg-gradient-to-br from-orange-400/[0.07] to-[#071a2d] p-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-200/70 text-orange-600">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-400/10 text-orange-300">
                     <Crown size={22} />
                   </div>
 
@@ -863,18 +834,18 @@ function ChapterPage({
                       {!hasLeaderAccess && (
                         <Lock
                           size={14}
-                          className="text-orange-600"
+                          className="text-orange-300"
                         />
                       )}
                     </div>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-400">
                       Premium group resources
                     </p>
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                <p className="mt-4 text-sm leading-relaxed text-slate-400">
                   {chapter.leaderGuide.description}
                 </p>
 
@@ -890,7 +861,7 @@ function ChapterPage({
                       setActiveTab('leader')
                     }
                   }}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-300/50 bg-orange-200/70 px-4 py-3 text-sm font-semibold text-orange-600 transition hover:bg-orange-200"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-sm font-semibold text-orange-300 transition hover:bg-orange-400/15"
                 >
                   {hasLeaderAccess ? (
                     <>
@@ -906,22 +877,22 @@ function ChapterPage({
                 </button>
               </section>
 
-              <section className="rounded-3xl border border-emerald-500/25 bg-[#d9e7df] p-5 text-[#153047] shadow-lg shadow-black/10">
+              <section className="rounded-3xl border border-emerald-400/15 bg-emerald-400/[0.05] p-5">
                 <div className="flex items-start gap-3">
                   <ShieldCheck
                     size={22}
-                    className="mt-0.5 shrink-0 text-emerald-700"
+                    className="mt-0.5 shrink-0 text-emerald-300"
                   />
 
                   <div>
-                    <h2 className="font-semibold text-emerald-800">
+                    <h2 className="font-semibold text-emerald-200">
                       Auto-Completion Enabled
                     </h2>
 
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                      This chapter marks complete when the
-                      audio finishes, when you mark it
-                      manually, or when you continue.
+                    <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                      This chapter marks complete when the audio
+                      finishes, when you mark it manually, or when
+                      you continue.
                     </p>
                   </div>
                 </div>
@@ -931,7 +902,7 @@ function ChapterPage({
         </main>
       </div>
 
-      <div className="fixed inset-x-0 bottom-[76px] z-40 border-t border-white/10 bg-[#041326]/95 p-3 text-white backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-[76px] z-40 border-t border-white/10 bg-[#06182b]/95 p-3 backdrop-blur-xl lg:hidden">
         <div className="mx-auto flex max-w-md gap-2">
           <button
             type="button"
@@ -939,8 +910,8 @@ function ChapterPage({
             disabled={isCompleted || isCompleting}
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition ${
               isCompleted
-                ? 'border-cyan-400/35 bg-[#c7dce7] text-cyan-700'
-                : 'border-white/10 bg-[#0c2138] text-slate-300'
+                ? 'border-cyan-400/20 bg-cyan-400/10 text-cyan-300'
+                : 'border-white/10 bg-white/5 text-slate-300'
             }`}
             aria-label={
               isCompleted
@@ -961,11 +932,10 @@ function ChapterPage({
           <button
             type="button"
             onClick={handleContinue}
-            className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 text-sm font-semibold text-white transition hover:bg-cyan-400 active:scale-[0.98]"
+            className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 text-sm font-bold text-white transition hover:bg-orange-400 active:scale-[0.98]"
           >
             <span className="truncate">
-              Continue to{' '}
-              {chapter.nextChapter.reference}
+              Continue to {chapter.nextChapter.reference}
             </span>
 
             <ArrowRight size={18} />
@@ -973,25 +943,25 @@ function ChapterPage({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-24 right-0 z-40 hidden border-t border-white/10 bg-[#041326]/95 px-8 py-3 text-white backdrop-blur-xl lg:block">
+      <div className="fixed bottom-0 left-24 right-0 z-40 hidden border-t border-white/10 bg-[#06182b]/95 px-8 py-3 backdrop-blur-xl lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#0c2138] px-4 py-3 text-sm font-semibold text-slate-300 transition hover:border-cyan-400/35 hover:text-white"
+            className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10"
           >
             <ArrowLeft size={18} />
-            Home
+            Today
           </button>
 
           <button
             type="button"
             onClick={() => completeChapter('manual')}
             disabled={isCompleted || isCompleting}
-            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition ${
               isCompleted
-                ? 'border border-cyan-400/35 bg-[#c7dce7] text-cyan-700'
-                : 'border border-white/10 bg-[#0c2138] text-slate-200 hover:border-cyan-400/35'
+                ? 'border border-cyan-400/20 bg-cyan-400/10 text-cyan-300'
+                : 'bg-orange-500 text-white hover:bg-orange-400'
             }`}
           >
             {isCompleting ? (
@@ -1011,10 +981,9 @@ function ChapterPage({
           <button
             type="button"
             onClick={handleContinue}
-            className="flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-400"
+            className="flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 text-sm font-bold text-[#041326] transition hover:bg-cyan-300"
           >
-            Continue to{' '}
-            {chapter.nextChapter.reference}
+            Continue to {chapter.nextChapter.reference}
             <ArrowRight size={18} />
           </button>
         </div>
