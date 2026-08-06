@@ -28,7 +28,12 @@ function getGreeting() {
   return 'Good evening'
 }
 
-function DashboardPage({ onOpenChapter, onNavigate }) {
+function DashboardPage({
+  onOpenChapter,
+  onNavigate,
+  onOpenNotifications,
+  onOpenUpgrade,
+}) {
   // Change this to 'leader' to preview an unlocked Leader Guide.
   const userPlan = 'standard'
 
@@ -136,6 +141,7 @@ function DashboardPage({ onOpenChapter, onNavigate }) {
             <button
               type="button"
               className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition duration-150 hover:border-cyan-400/20 hover:bg-white/10 hover:text-white active:scale-90 lg:h-11 lg:w-11"
+              onClick={onOpenNotifications}
               aria-label="Notifications"
             >
               <Bell size={19} strokeWidth={2} />
@@ -281,7 +287,13 @@ function DashboardPage({ onOpenChapter, onNavigate }) {
               <section>
                 <button
                   type="button"
-                  onClick={onOpenChapter}
+                  onClick={() => {
+                    if (hasLeaderAccess) {
+                      onOpenChapter('john-1')
+                    } else {
+                      onOpenUpgrade()
+                    }
+                  }}
                   className={`relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left shadow-lg shadow-black/10 transition duration-150 active:scale-[0.98] lg:px-5 lg:py-5 ${
                     hasLeaderAccess
                       ? 'border-violet-400/15 bg-gradient-to-br from-[#17202f] to-[#121725] hover:border-violet-400/30'

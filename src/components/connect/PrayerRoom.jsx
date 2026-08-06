@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import {
   Check,
+  ChevronDown,
+  EyeOff,
+  Flag,
   Heart,
   MoreHorizontal,
   Plus,
+  Trash2,
   X,
 } from 'lucide-react'
 
@@ -11,6 +15,8 @@ const mockUser = {
   name: 'Brian Cooper',
   initials: 'BC',
 }
+
+const STORAGE_KEY = 'project326-prayer-requests'
 
 const initialPrayers = [
   {
@@ -25,7 +31,15 @@ const initialPrayers = [
     status: 'active',
     praying: 12,
     isPraying: false,
-    replies: 4,
+    encouragements: {
+      prayingWithYou: 6,
+      notAlone: 3,
+      thankYou: 4,
+      praiseGod: 0,
+    },
+    selectedEncouragement: null,
+    reported: false,
+    hidden: false,
   },
   {
     id: 2,
@@ -39,19 +53,47 @@ const initialPrayers = [
     status: 'answered',
     praying: 18,
     isPraying: true,
-    replies: 6,
+    encouragements: {
+      prayingWithYou: 0,
+      notAlone: 0,
+      thankYou: 0,
+      praiseGod: 14,
+    },
+    selectedEncouragement: null,
+    reported: false,
+    hidden: false,
   },
 ]
 
+function normalizePrayer(prayer) {
+  return {
+    ...prayer,
+    encouragements: {
+      prayingWithYou:
+        prayer.encouragements?.prayingWithYou || 0,
+      notAlone:
+        prayer.encouragements?.notAlone || 0,
+      thankYou:
+        prayer.encouragements?.thankYou || 0,
+      praiseGod:
+        prayer.encouragements?.praiseGod || 0,
+    },
+    selectedEncouragement:
+      prayer.selectedEncouragement || null,
+    reported: prayer.reported || false,
+    hidden: prayer.hidden || false,
+  }
+}
+
 function getSavedPrayers() {
   try {
-    const savedPrayers = localStorage.getItem(
-      'project326-prayer-requests',
-    )
+    const savedPrayers = localStorage.getItem(STORAGE_KEY)
 
-    return savedPrayers
+    const prayers = savedPrayers
       ? JSON.parse(savedPrayers)
       : initialPrayers
+
+    return prayers.map(normalizePrayer)
   } catch {
     return initialPrayers
   }
@@ -62,6 +104,14 @@ function PrayerRoom() {
   const [showPrayerForm, setShowPrayerForm] =
     useState(false)
 
+  const [openEncouragementId, setOpenEncouragementId] =
+    useState(null)
+
+  const [openMenuId, setOpenMenuId] = useState(null)
+  const [notice, setNotice] = useState('')
+  const [deletePrayerId, setDeletePrayerId] =
+    useState(null)
+
   const [prayerForm, setPrayerForm] = useState({
     title: '',
     details: '',
@@ -70,10 +120,18 @@ function PrayerRoom() {
 
   useEffect(() => {
     localStorage.setItem(
-      'project326-prayer-requests',
+      STORAGE_KEY,
       JSON.stringify(prayers),
     )
   }, [prayers])
+
+  function showNotice(message) {
+    setNotice(message)
+
+    window.setTimeout(() => {
+      setNotice('')
+    }, 3000)
+  }
 
   function submitPrayer(event) {
     event.preventDefault()
@@ -96,7 +154,15 @@ function PrayerRoom() {
       status: 'active',
       praying: 0,
       isPraying: false,
-      replies: 0,
+      encouragements: {
+        prayingWithYou: 0,
+        notAlone: 0,
+        thankYou: 0,
+        praiseGod: 0,
+      },
+      selectedEncouragement: null,
+      reported: false,
+      hidden: false,
     }
 
     setPrayers((currentPrayers) => [
@@ -131,6 +197,48 @@ function PrayerRoom() {
     )
   }
 
+  function chooseEncouragement(prayerId, optionId) {
+    setPrayers((currentPrayers) =>
+      currentPrayers.map((prayer) => {
+        if (prayer.id !== prayerId) {
+          return prayer
+        }
+
+        const previous =
+          prayer.selectedEncouragement
+
+        const encouragements = {
+          ...prayer.encouragements,
+        }
+
+        if (previous) {
+          encouragements[previous] = Math.max(
+            encouragements[previous] - 1,
+            0,
+          )
+        }
+
+        if (previous === optionId) {
+          return {
+            ...prayer,
+            encouragements,
+            selectedEncouragement: null,
+          }
+        }
+
+        encouragements[optionId] += 1
+
+        return {
+          ...prayer,
+          encouragements,
+          selectedEncouragement: optionId,
+        }
+      }),
+    )
+
+    setOpenEncouragementId(null)
+  }
+
   function markPrayerAnswered(prayerId) {
     setPrayers((currentPrayers) =>
       currentPrayers.map((prayer) => {
@@ -141,10 +249,61 @@ function PrayerRoom() {
         return {
           ...prayer,
           status: 'answered',
+          selectedEncouragement: null,
         }
       }),
     )
   }
+
+  function reportPrayer(prayerId) {
+    setPrayers((currentPrayers) =>
+      currentPrayers.map((prayer) =>
+        prayer.id === prayerId
+          ? {
+              ...prayer,
+              reported: true,
+            }
+          : prayer,
+      ),
+    )
+
+    setOpenMenuId(null)
+    showNotice(
+      'This prayer request has been reported for review.',
+    )
+  }
+
+  function hidePrayer(prayerId) {
+    setPrayers((currentPrayers) =>
+      currentPrayers.map((prayer) =>
+        prayer.id === prayerId
+          ? {
+              ...prayer,
+              hidden: true,
+            }
+          : prayer,
+      ),
+    )
+
+    setOpenMenuId(null)
+    showNotice('Prayer request hidden.')
+  }
+
+  function confirmDeletePrayer() {
+    setPrayers((currentPrayers) =>
+      currentPrayers.filter(
+        (prayer) => prayer.id !== deletePrayerId,
+      ),
+    )
+
+    setDeletePrayerId(null)
+    setOpenMenuId(null)
+    showNotice('Prayer request deleted.')
+  }
+
+  const visiblePrayers = prayers.filter(
+    (prayer) => !prayer.hidden,
+  )
 
   return (
     <div>
@@ -175,7 +334,7 @@ function PrayerRoom() {
           onClick={() =>
             setShowPrayerForm((current) => !current)
           }
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-purple-400 px-4 py-3 text-sm font-bold text-[#170d20] transition hover:bg-purple-300 active:scale-[0.99]"
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-purple-400 px-4 py-3 text-sm font-bold text-[#170d20]"
         >
           {showPrayerForm ? (
             <X size={18} />
@@ -189,14 +348,20 @@ function PrayerRoom() {
         </button>
       </section>
 
+      {notice && (
+        <div className="mt-4 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-4 text-sm text-cyan-200">
+          {notice}
+        </div>
+      )}
+
       {showPrayerForm && (
         <form
           onSubmit={submitPrayer}
-          className="mt-4 rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5 shadow-xl shadow-black/20"
+          className="mt-4 rounded-3xl border border-white/5 bg-[#12202b] p-5"
         >
           <label
             htmlFor="prayer-title"
-            className="text-xs font-bold uppercase tracking-[0.12em] text-purple-300"
+            className="text-xs font-bold uppercase tracking-widest text-purple-300"
           >
             Prayer request
           </label>
@@ -212,12 +377,12 @@ function PrayerRoom() {
             }
             maxLength={100}
             placeholder="Give your request a short title"
-            className="mt-2 w-full rounded-xl border border-white/5 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-purple-400/30"
+            className="mt-2 w-full rounded-xl border border-white/5 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
           />
 
           <label
             htmlFor="prayer-details"
-            className="mt-4 block text-xs font-bold uppercase tracking-[0.12em] text-purple-300"
+            className="mt-4 block text-xs font-bold uppercase tracking-widest text-purple-300"
           >
             Details
           </label>
@@ -234,12 +399,12 @@ function PrayerRoom() {
             rows={4}
             maxLength={500}
             placeholder="Share only what you are comfortable sharing"
-            className="mt-2 w-full resize-none rounded-xl border border-white/5 bg-white/[0.04] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-purple-400/30"
+            className="mt-2 w-full resize-none rounded-xl border border-white/5 bg-white/[0.04] px-4 py-3 text-sm leading-6 text-white outline-none"
           />
 
           <label
             htmlFor="prayer-category"
-            className="mt-4 block text-xs font-bold uppercase tracking-[0.12em] text-purple-300"
+            className="mt-4 block text-xs font-bold uppercase tracking-widest text-purple-300"
           >
             Category
           </label>
@@ -253,7 +418,7 @@ function PrayerRoom() {
                 category: event.target.value,
               }))
             }
-            className="mt-2 w-full rounded-xl border border-white/5 bg-[#101c26] px-4 py-3 text-sm text-white outline-none focus:border-purple-400/30"
+            className="mt-2 w-full rounded-xl border border-white/5 bg-[#101c26] px-4 py-3 text-sm text-white"
           >
             <option>General</option>
             <option>Health</option>
@@ -267,7 +432,7 @@ function PrayerRoom() {
             <button
               type="button"
               onClick={() => setShowPrayerForm(false)}
-              className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-400 transition hover:text-white"
+              className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-400"
             >
               Cancel
             </button>
@@ -278,7 +443,7 @@ function PrayerRoom() {
                 !prayerForm.title.trim() ||
                 !prayerForm.details.trim()
               }
-              className="flex-1 rounded-xl bg-purple-400 px-4 py-3 text-sm font-bold text-[#170d20] transition hover:bg-purple-300 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-xl bg-purple-400 px-4 py-3 text-sm font-bold text-[#170d20] disabled:opacity-40"
             >
               Post Request
             </button>
@@ -287,17 +452,49 @@ function PrayerRoom() {
       )}
 
       <div className="mt-5 space-y-4">
-        {prayers.map((prayer) => {
+        {visiblePrayers.map((prayer) => {
           const isAnswered =
             prayer.status === 'answered'
 
           const isOwner =
             prayer.name === mockUser.name
 
+          const options = isAnswered
+            ? [
+                {
+                  id: 'praiseGod',
+                  label: '🎉 Praise God',
+                },
+              ]
+            : [
+                {
+                  id: 'prayingWithYou',
+                  label: '🙏 Praying with you',
+                },
+                {
+                  id: 'notAlone',
+                  label: '🤍 You’re not alone',
+                },
+                {
+                  id: 'thankYou',
+                  label: '🙌 Thank you for sharing',
+                },
+              ]
+
+          const selectedOption = options.find(
+            (option) =>
+              option.id ===
+              prayer.selectedEncouragement,
+          )
+
+          const totalEncouragements = Object.values(
+            prayer.encouragements,
+          ).reduce((total, count) => total + count, 0)
+
           return (
             <article
               key={prayer.id}
-              className="rounded-3xl border border-purple-400/10 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5 shadow-xl shadow-black/20"
+              className="rounded-3xl border border-purple-400/10 bg-[#12202b] p-5"
             >
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-400/10 text-xs font-bold text-purple-200">
@@ -314,29 +511,82 @@ function PrayerRoom() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white/[0.04] hover:text-white"
-                  aria-label="Prayer request options"
-                >
-                  <MoreHorizontal size={18} />
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenMenuId(
+                        openMenuId === prayer.id
+                          ? null
+                          : prayer.id,
+                      )
+                    }
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white/[0.04] hover:text-white"
+                    aria-label="Prayer request options"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+
+                  {openMenuId === prayer.id && (
+                    <div className="absolute right-0 top-11 z-30 min-w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl">
+                      {isOwner ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeletePrayerId(prayer.id)
+                            setOpenMenuId(null)
+                          }}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-red-300 transition hover:bg-red-400/[0.08]"
+                        >
+                          <Trash2 size={16} />
+                          Delete request
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              reportPrayer(prayer.id)
+                            }
+                            disabled={prayer.reported}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+                          >
+                            <Flag size={16} />
+
+                            {prayer.reported
+                              ? 'Reported'
+                              : 'Report post'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              hidePrayer(prayer.id)
+                            }
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.05]"
+                          >
+                            <EyeOff size={16} />
+                            Hide post
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold text-slate-400">
+              <div className="mt-4 flex gap-2">
+                <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[10px] text-slate-400">
                   {prayer.category}
                 </span>
 
                 <span
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
                     isAnswered
                       ? 'bg-green-400/10 text-green-300'
                       : 'bg-purple-400/10 text-purple-300'
                   }`}
                 >
-                  {isAnswered && <Check size={11} />}
-
                   {isAnswered ? 'Answered' : 'Active'}
                 </span>
               </div>
@@ -349,25 +599,14 @@ function PrayerRoom() {
                 {prayer.details}
               </p>
 
-              <div className="mt-5 rounded-2xl border border-white/5 bg-black/10 p-3">
-                <p className="text-xs text-slate-500">
-                  <span className="font-bold text-purple-300">
-                    {prayer.praying}
-                  </span>{' '}
-                  {isAnswered
-                    ? 'people prayed with this request'
-                    : 'people are praying'}
-                </p>
-              </div>
-
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() => togglePrayer(prayer.id)}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${
                     prayer.isPraying
                       ? 'bg-purple-400 text-[#170d20]'
-                      : 'bg-purple-400/10 text-purple-300 hover:bg-purple-400/15'
+                      : 'bg-purple-400/10 text-purple-300'
                   }`}
                 >
                   <Heart
@@ -379,17 +618,65 @@ function PrayerRoom() {
                     }
                   />
 
-                  {isAnswered
-                    ? 'Praise God'
-                    : 'I’m Praying'}
+                  I’m Praying ({prayer.praying})
                 </button>
 
-                <button
-                  type="button"
-                  className="rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-400 transition hover:text-white"
-                >
-                  Encourage ({prayer.replies})
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenEncouragementId(
+                        openEncouragementId === prayer.id
+                          ? null
+                          : prayer.id,
+                      )
+                    }
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${
+                      selectedOption
+                        ? 'bg-cyan-400 text-[#06111b]'
+                        : 'bg-white/[0.04] text-slate-300'
+                    }`}
+                  >
+                    {selectedOption
+                      ? selectedOption.label
+                      : `Encourage (${totalEncouragements})`}
+
+                    <ChevronDown size={14} />
+                  </button>
+
+                  {openEncouragementId === prayer.id && (
+                    <div className="absolute bottom-full left-0 z-20 mb-2 min-w-56 overflow-hidden rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl">
+                      {options.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() =>
+                            chooseEncouragement(
+                              prayer.id,
+                              option.id,
+                            )
+                          }
+                          className={`w-full rounded-xl px-3 py-3 text-left text-sm transition ${
+                            prayer.selectedEncouragement ===
+                            option.id
+                              ? 'bg-cyan-400/15 text-cyan-300'
+                              : 'text-slate-300 hover:bg-white/[0.05]'
+                          }`}
+                        >
+                          {option.label}
+
+                          <span className="ml-2 text-xs text-slate-500">
+                            {
+                              prayer.encouragements[
+                                option.id
+                              ]
+                            }
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {!isAnswered && isOwner && (
                   <button
@@ -397,8 +684,13 @@ function PrayerRoom() {
                     onClick={() =>
                       markPrayerAnswered(prayer.id)
                     }
-                    className="rounded-xl bg-green-400/10 px-3 py-2 text-xs font-semibold text-green-300 transition hover:bg-green-400/15"
+                    className="rounded-xl bg-green-400/10 px-3 py-2 text-xs font-semibold text-green-300"
                   >
+                    <Check
+                      size={13}
+                      className="mr-1 inline"
+                    />
+
                     Mark Answered
                   </button>
                 )}
@@ -407,6 +699,38 @@ function PrayerRoom() {
           )
         })}
       </div>
+
+      {deletePrayerId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
+          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#12202b] p-6 shadow-2xl">
+            <h2 className="text-xl font-bold">
+              Delete this prayer request?
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-400">
+              This cannot be undone.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletePrayerId(null)}
+                className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-300"
+              >
+                Keep request
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDeletePrayer}
+                className="flex-1 rounded-xl bg-red-400 px-4 py-3 text-sm font-bold text-[#210b0b]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

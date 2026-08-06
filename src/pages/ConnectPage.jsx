@@ -54,9 +54,6 @@ const connectRooms = [
     members: 46,
     unread: 2,
     color: 'orange',
-
-    // Keep false during prototype testing.
-    // Later, church membership can control this.
     locked: false,
   },
 ]
@@ -151,17 +148,16 @@ function ConnectPage({ onNavigate, onOpenRoom }) {
                 </p>
               </div>
 
-              <button
-                type="button"
+              <div
                 className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-400/30 bg-orange-400/10 text-orange-300 shadow-[0_0_18px_rgba(251,146,60,0.15)]"
-                aria-label="Connect notifications"
+                aria-label="6 unread Connect updates"
               >
                 <Bell size={22} />
 
                 <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-[#06111b] bg-orange-500 px-1 text-[10px] font-bold text-white">
                   6
                 </span>
-              </button>
+              </div>
             </div>
           </header>
 
@@ -299,12 +295,10 @@ function ConnectPage({ onNavigate, onOpenRoom }) {
                   and shared discipleship.
                 </p>
 
-                <button
-                  type="button"
-                  className="mt-4 text-sm font-semibold text-orange-300"
-                >
-                  Manage church connection
-                </button>
+                <p className="mt-3 text-xs text-slate-500">
+                  Your church connection is managed from your
+                  Profile.
+                </p>
               </div>
             </div>
           </section>
@@ -324,7 +318,7 @@ function ConnectPage({ onNavigate, onOpenRoom }) {
                   Connect is designed for Scripture-centered
                   conversation, prayer, transformation, and
                   encouragement. Reporting and moderation tools
-                  will help protect that purpose.
+                  help protect that purpose.
                 </p>
               </div>
             </div>

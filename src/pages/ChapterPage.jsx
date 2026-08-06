@@ -25,14 +25,20 @@ import {
   Sparkles,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
+import BibleReader from '../components/BibleReader'
 import {
+  getChapterById,
   getCurrentUser,
-  getTodaysChapter,
   markChapterComplete,
   openChapterPdf,
 } from '../services/api'
 
 const tabs = [
+  {
+    id: 'read',
+    label: 'Read',
+    icon: BookOpen,
+  },
   {
     id: 'listen',
     label: 'Listen',
@@ -41,7 +47,7 @@ const tabs = [
   {
     id: 'study',
     label: 'Study',
-    icon: BookOpen,
+    icon: ScrollText,
   },
   {
     id: 'leader',
@@ -61,10 +67,15 @@ const sectionIcons = {
   'community-connection': Heart,
 }
 
-function ChapterPage({ onBack, onNavigate }) {
+function ChapterPage({
+  chapterId = 'john-1',
+  onBack,
+  onNavigate,
+  onOpenUpgrade,
+}) {
   const [chapter, setChapter] = useState(null)
   const [user, setUser] = useState(null)
-  const [activeTab, setActiveTab] = useState('listen')
+  const [activeTab, setActiveTab] = useState('read')
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [isPlaying, setIsPlaying] = useState(false)
@@ -91,14 +102,48 @@ function ChapterPage({ onBack, onNavigate }) {
     )
   }, [chapter])
 
+  const readerLocation = useMemo(() => {
+    if (!chapter?.id) {
+      return {
+        bookId: 'john',
+        chapterNumber: 1,
+      }
+    }
+
+    const match = chapter.id.match(/^(.*)-(\d+)$/)
+
+    if (!match) {
+      return {
+        bookId: 'john',
+        chapterNumber: 1,
+      }
+    }
+
+    return {
+      bookId: match[1],
+      chapterNumber: Number(match[2]),
+    }
+  }, [chapter])
+
   useEffect(() => {
     async function loadPage() {
       try {
         setIsLoading(true)
         setLoadError('')
+        setChapter(null)
+        setActiveTab('read')
+        setAudioProgress(0)
+        setIsPlaying(false)
+        setCompletionMessage('')
+        setNotice('')
+
+        if (audioElementRef.current) {
+          audioElementRef.current.pause()
+          audioElementRef.current.currentTime = 0
+        }
 
         const [chapterData, userData] = await Promise.all([
-          getTodaysChapter(),
+          getChapterById(chapterId),
           getCurrentUser(),
         ])
 
@@ -116,7 +161,7 @@ function ChapterPage({ onBack, onNavigate }) {
     }
 
     loadPage()
-  }, [])
+  }, [chapterId])
 
   async function completeChapter(completionMethod) {
     if (!chapter || chapter.isCompleted || isCompleting) {
@@ -170,7 +215,9 @@ function ChapterPage({ onBack, onNavigate }) {
 
     if (!audioElement || !chapter?.audio.url) {
       setNotice(
-        'The audio file could not be found. Confirm that john-1.mp3 is inside public/audio.',
+        `The audio file could not be found. Confirm that ${
+          chapter?.audio.url || 'the audio file'
+        } exists inside public.`,
       )
 
       return
@@ -253,7 +300,7 @@ function ChapterPage({ onBack, onNavigate }) {
           />
 
           <p className="mt-4 text-sm text-slate-400">
-            Loading today&apos;s chapter...
+            Loading chapter...
           </p>
         </div>
       </div>
@@ -308,7 +355,6 @@ function ChapterPage({ onBack, onNavigate }) {
 
       <div className="lg:pl-24">
         <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-56 pt-4 min-[375px]:px-4 sm:px-6 lg:px-8 lg:pb-32 lg:pt-8 xl:px-10">
-          {/* Chapter header */}
           <header className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
               <button
@@ -363,7 +409,6 @@ function ChapterPage({ onBack, onNavigate }) {
             </button>
           </header>
 
-          {/* Chapter progress */}
           <section className="mt-6">
             <div className="flex items-center justify-between text-xs text-slate-400 sm:text-sm">
               <span>
@@ -382,9 +427,8 @@ function ChapterPage({ onBack, onNavigate }) {
             </div>
           </section>
 
-          {/* Listen, Study, Leader tabs */}
           <section className="mt-6 rounded-2xl border border-white/5 bg-[#0d1821] p-1.5">
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-4 gap-1">
               {tabs.map((tab) => {
                 const TabIcon = tab.icon
                 const isActive = activeTab === tab.id
@@ -395,18 +439,20 @@ function ChapterPage({ onBack, onNavigate }) {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-xs font-semibold transition min-[375px]:text-sm ${
+                    className={`relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-3 text-[10px] font-semibold transition min-[375px]:flex-row min-[375px]:gap-1.5 min-[375px]:text-xs sm:text-sm ${
                       isActive
                         ? 'bg-cyan-400/10 text-cyan-300'
                         : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
                     }`}
                   >
-                    <TabIcon size={18} />
+                    <TabIcon size={17} />
 
-                    <span>{tab.label}</span>
+                    <span className="truncate">
+                      {tab.label}
+                    </span>
 
                     {isLeaderTab && !hasLeaderAccess && (
-                      <Lock size={12} />
+                      <Lock size={11} />
                     )}
                   </button>
                 )
@@ -449,11 +495,17 @@ function ChapterPage({ onBack, onNavigate }) {
           )}
 
           <div className="mt-5 grid gap-5 lg:grid-cols-12 lg:gap-6 xl:gap-8">
-            {/* Main chapter content */}
             <div className="space-y-4 lg:col-span-8">
+              {activeTab === 'read' && (
+                <BibleReader
+                  key={chapter.id}
+                  initialBookId={readerLocation.bookId}
+                  initialChapter={readerLocation.chapterNumber}
+                />
+              )}
+
               {activeTab === 'listen' && (
                 <>
-                  {/* Audio player */}
                   <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-4 shadow-xl shadow-black/20 sm:p-5 lg:p-6">
                     <div className="flex items-start gap-4">
                       <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/15 to-orange-400/10">
@@ -550,7 +602,6 @@ function ChapterPage({ onBack, onNavigate }) {
                     </div>
                   </section>
 
-                  {/* Quote */}
                   <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 sm:p-5">
                     <div className="flex items-start gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-300">
@@ -573,7 +624,6 @@ function ChapterPage({ onBack, onNavigate }) {
                     </div>
                   </section>
 
-                  {/* Study PDF */}
                   <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-4 sm:p-5">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -612,7 +662,6 @@ function ChapterPage({ onBack, onNavigate }) {
 
               {activeTab === 'study' && (
                 <>
-                  {/* Study quote */}
                   <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 sm:p-5">
                     <div className="flex items-start gap-3">
                       <Quote
@@ -636,7 +685,6 @@ function ChapterPage({ onBack, onNavigate }) {
                     </div>
                   </section>
 
-                  {/* Study sections */}
                   <section className="space-y-3">
                     {chapter.studyGuide.sections.map((section) => {
                       const SectionIcon =
@@ -759,6 +807,7 @@ function ChapterPage({ onBack, onNavigate }) {
                   ) : (
                     <button
                       type="button"
+                      onClick={onOpenUpgrade}
                       className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-[#16120a]"
                     >
                       <Crown size={18} />
@@ -769,7 +818,6 @@ function ChapterPage({ onBack, onNavigate }) {
               )}
             </div>
 
-            {/* Desktop secondary column */}
             <aside className="space-y-4 lg:col-span-4">
               <section className="rounded-3xl border border-amber-400/15 bg-gradient-to-br from-amber-400/[0.07] to-[#0d1821] p-5">
                 <div className="flex items-center gap-3">
@@ -829,42 +877,6 @@ function ChapterPage({ onBack, onNavigate }) {
                 </button>
               </section>
 
-              <section className="rounded-3xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.08] to-[#0d1821] p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
-                    <Compass size={23} />
-                  </div>
-
-                  <div>
-                    <h2 className="font-semibold">
-                      Compass AI
-                    </h2>
-
-                    <p className="mt-1 text-xs text-slate-400">
-                      Ask about {chapter.reference}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-4 text-sm leading-relaxed text-slate-400">
-                  Get context, explanation, and practical
-                  application while you study.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setNotice(
-                      `Compass AI will open with this context: “${chapter.compassPrompt}”`,
-                    )
-                  }
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#45c6d8] px-4 py-3 text-sm font-bold text-[#06111b] transition hover:bg-cyan-300"
-                >
-                  <Compass size={18} />
-                  Ask Compass AI
-                </button>
-              </section>
-
               <section className="rounded-3xl border border-emerald-400/15 bg-emerald-400/[0.05] p-5">
                 <div className="flex items-start gap-3">
                   <ShieldCheck
@@ -890,7 +902,6 @@ function ChapterPage({ onBack, onNavigate }) {
         </main>
       </div>
 
-      {/* Mobile chapter controls sit above mobile navigation */}
       <div className="fixed inset-x-0 bottom-[76px] z-40 border-t border-white/10 bg-[#08131d]/95 p-3 backdrop-blur-xl lg:hidden">
         <div className="mx-auto flex max-w-md gap-2">
           <button
@@ -932,7 +943,6 @@ function ChapterPage({ onBack, onNavigate }) {
         </div>
       </div>
 
-      {/* Desktop chapter controls */}
       <div className="fixed bottom-0 left-24 right-0 z-40 hidden border-t border-white/10 bg-[#08131d]/95 px-8 py-3 backdrop-blur-xl lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <button

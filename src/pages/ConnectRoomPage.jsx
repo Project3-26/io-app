@@ -4,16 +4,15 @@ import {
   Church,
   Heart,
   Lock,
-  MoreHorizontal,
   Sparkles,
   Users,
 } from 'lucide-react'
 
 import AppNavigation from '../components/AppNavigation'
+import ChurchRoom from '../components/connect/ChurchRoom'
 import DiscussionRoom from '../components/connect/DiscussionRoom'
 import PrayerRoom from '../components/connect/PrayerRoom'
 import TransformationBoard from '../components/connect/TransformationBoard'
-import ChurchRoom from '../components/connect/ChurchRoom'
 
 const connectRooms = [
   {
@@ -233,24 +232,24 @@ function ConnectRoomPage({
   }
 
   function renderRoomContent() {
-  if (activeRoom.id === 'john-1') {
-    return <DiscussionRoom />
-  }
+    if (activeRoom.id === 'john-1') {
+      return <DiscussionRoom />
+    }
 
-  if (activeRoom.id === 'prayer') {
-    return <PrayerRoom />
-  }
+    if (activeRoom.id === 'prayer') {
+      return <PrayerRoom />
+    }
 
-  if (activeRoom.id === 'transformation') {
-    return <TransformationBoard />
-  }
+    if (activeRoom.id === 'transformation') {
+      return <TransformationBoard />
+    }
 
-  if (activeRoom.id === 'villas-church') {
-    return <ChurchRoom />
-  }
+    if (activeRoom.id === 'villas-church') {
+      return <ChurchRoom />
+    }
 
-  return <RoomPlaceholder room={activeRoom} />
-}
+    return <RoomPlaceholder room={activeRoom} />
+  }
 
   return (
     <div className="min-h-screen bg-[#06111b] text-white">
@@ -261,24 +260,14 @@ function ConnectRoomPage({
 
       <div className="lg:pl-24">
         <main className="mx-auto min-h-screen w-full max-w-5xl px-3 pb-32 pt-5 min-[375px]:px-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8">
-          <div className="flex items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="flex h-11 items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-3 text-sm font-semibold text-slate-300 transition hover:border-cyan-400/20 hover:text-white active:scale-95"
-            >
-              <ArrowLeft size={18} />
-              Connect
-            </button>
-
-            <button
-              type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/5 bg-white/[0.03] text-slate-400 transition hover:text-white"
-              aria-label="Room options"
-            >
-              <MoreHorizontal size={20} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="flex h-11 items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-3 text-sm font-semibold text-slate-300 transition hover:border-cyan-400/20 hover:text-white active:scale-95"
+          >
+            <ArrowLeft size={18} />
+            Connect
+          </button>
 
           <header className="mt-6">
             <div className="flex items-start gap-4">
@@ -308,6 +297,7 @@ function ConnectRoomPage({
 
                 <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
                   <Users size={14} />
+
                   <span>
                     {activeRoom.members} members
                   </span>

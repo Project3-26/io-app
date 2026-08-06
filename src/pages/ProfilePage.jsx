@@ -41,7 +41,7 @@ const accountSections = [
   },
 ]
 
-function ProfilePage({ onNavigate }) {
+function ProfilePage({ onNavigate, onOpenUpgrade }) {
   const [notifications, setNotifications] = useState({
     dailyChapter: true,
     streakReminders: true,
@@ -258,11 +258,7 @@ function ProfilePage({ onNavigate }) {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      showPlaceholder(
-                        'The Leader Plan upgrade flow will be added after billing is connected.',
-                      )
-                    }
+                    onClick={onOpenUpgrade}
                     className="group flex w-full items-center gap-4 border-b border-white/5 p-5 text-left transition hover:bg-white/[0.03] sm:p-6"
                   >
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-400/15 bg-amber-400/10 text-amber-300">

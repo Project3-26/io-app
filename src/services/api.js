@@ -5,6 +5,41 @@ const wait = (milliseconds) =>
     window.setTimeout(resolve, milliseconds)
   })
 
+const chapterLibrary = {
+  [mockChapter.id]: mockChapter,
+}
+
+export async function getChapterById(chapterId) {
+  /*
+   * FUTURE BACKEND VERSION:
+   *
+   * const response = await fetch(
+   *   `/api/chapters/${chapterId}`,
+   *   {
+   *     credentials: 'include',
+   *   },
+   * )
+   *
+   * if (!response.ok) {
+   *   throw new Error('Unable to load this chapter.')
+   * }
+   *
+   * return response.json()
+   */
+
+  await wait(350)
+
+  const chapter = chapterLibrary[chapterId]
+
+  if (!chapter) {
+    throw new Error(
+      `Chapter "${chapterId}" has not been added yet.`,
+    )
+  }
+
+  return structuredClone(chapter)
+}
+
 export async function getTodaysChapter() {
   /*
    * FUTURE BACKEND VERSION:
@@ -14,15 +49,15 @@ export async function getTodaysChapter() {
    * })
    *
    * if (!response.ok) {
-   *   throw new Error("Unable to load today's chapter.")
+   *   throw new Error(
+   *     "Unable to load today's chapter.",
+   *   )
    * }
    *
    * return response.json()
    */
 
-  await wait(350)
-
-  return structuredClone(mockChapter)
+  return getChapterById(mockChapter.id)
 }
 
 export async function markChapterComplete(
@@ -48,7 +83,9 @@ export async function markChapterComplete(
    * )
    *
    * if (!response.ok) {
-   *   throw new Error('Unable to save chapter completion.')
+   *   throw new Error(
+   *     'Unable to save chapter completion.',
+   *   )
    * }
    *
    * return response.json()
@@ -73,7 +110,9 @@ export async function getCurrentUser() {
    * })
    *
    * if (!response.ok) {
-   *   throw new Error('Unable to load user information.')
+   *   throw new Error(
+   *     'Unable to load user information.',
+   *   )
    * }
    *
    * return response.json()
@@ -98,21 +137,9 @@ export async function getAssignedJourneyChapter() {
    * FUTURE BACKEND RESPONSIBILITY:
    *
    * 1. Read the user's journeyStartDate.
-   * 2. Calculate the current journey day in the user's timezone.
-   * 3. Find that day's chapter in the 1,189-chapter sequence.
-   * 4. Return the chapter and the user's completion status.
-   *
-   * Example:
-   *
-   * const response = await fetch('/api/journey/current', {
-   *   credentials: 'include',
-   * })
-   *
-   * if (!response.ok) {
-   *   throw new Error('Unable to load the journey chapter.')
-   * }
-   *
-   * return response.json()
+   * 2. Calculate the current journey day.
+   * 3. Find that day's chapter.
+   * 4. Return the chapter and completion status.
    */
 
   return getTodaysChapter()

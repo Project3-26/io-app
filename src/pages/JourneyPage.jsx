@@ -105,10 +105,13 @@ function JourneyPage({
 }) {
   const chaptersCompleted = 242
   const totalChapters = 1189
-  const chaptersRemaining = totalChapters - chaptersCompleted
-  const overallProgress = Math.round(
-    (chaptersCompleted / totalChapters) * 1000,
-  ) / 10
+  const chaptersRemaining =
+    totalChapters - chaptersCompleted
+
+  const overallProgress =
+    Math.round(
+      (chaptersCompleted / totalChapters) * 1000,
+    ) / 10
 
   const currentBookProgress = Math.round(
     (currentBook.completed / currentBook.total) * 100,
@@ -123,7 +126,6 @@ function JourneyPage({
 
       <div className="lg:pl-24">
         <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-32 pt-5 min-[375px]:px-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8 xl:px-10">
-          {/* Header */}
           <header className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-bold tracking-[0.18em] text-[#45c6d8]">
@@ -140,27 +142,25 @@ function JourneyPage({
             </div>
 
             <button
-                type="button"
-                className="group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-orange-400/60 bg-orange-400/15 text-orange-300 shadow-[0_0_22px_rgba(251,146,60,0.45)] transition hover:scale-105 hover:bg-orange-400/20 hover:shadow-[0_0_30px_rgba(251,146,60,0.65)] active:scale-95"
-                aria-label="New journey achievement"
-                title="New achievement earned"
+              type="button"
+              className="group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-orange-400/60 bg-orange-400/15 text-orange-300 shadow-[0_0_22px_rgba(251,146,60,0.45)] transition hover:scale-105 hover:bg-orange-400/20 hover:shadow-[0_0_30px_rgba(251,146,60,0.65)] active:scale-95"
+              aria-label="New journey achievement"
+              title="New achievement earned"
             >
-            <span className="absolute inset-0 animate-ping rounded-full border border-orange-400/30 opacity-40" />
+              <span className="absolute inset-0 animate-ping rounded-full border border-orange-400/30 opacity-40" />
 
-            <Rocket
+              <Rocket
                 size={23}
                 className="relative z-10"
-            />
+              />
 
-            <span className="absolute -right-1 -top-1 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-[#06111b] bg-orange-500 px-1 text-[10px] font-bold text-white shadow-lg shadow-orange-500/40">
+              <span className="absolute -right-1 -top-1 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-[#06111b] bg-orange-500 px-1 text-[10px] font-bold text-white shadow-lg shadow-orange-500/40">
                 1
-            </span>
+              </span>
             </button>
           </header>
 
-          {/* Top progress cards */}
           <section className="mt-7 grid gap-4 lg:grid-cols-12 lg:gap-6">
-            {/* Overall progress */}
             <article className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5 shadow-xl shadow-black/20 lg:col-span-7 lg:p-6">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-semibold sm:text-lg">
@@ -257,10 +257,9 @@ function JourneyPage({
               </div>
             </article>
 
-            {/* Current book */}
             <button
               type="button"
-              onClick={onOpenChapter}
+              onClick={() => onOpenChapter('john-1')}
               className="group rounded-3xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.08] to-[#0d1821] p-5 text-left shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:border-cyan-400/30 active:translate-y-0 active:scale-[0.99] lg:col-span-5 lg:p-6"
             >
               <div className="flex items-center justify-between gap-3">
@@ -327,7 +326,6 @@ function JourneyPage({
             </button>
           </section>
 
-          {/* Journey at a glance */}
           <section className="mt-4 rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5 shadow-xl shadow-black/20 lg:mt-6 lg:p-6">
             <h2 className="text-base font-semibold sm:text-lg">
               Journey at a Glance
@@ -387,7 +385,6 @@ function JourneyPage({
             </div>
           </section>
 
-          {/* Timeline */}
           <section className="mt-7">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -409,26 +406,27 @@ function JourneyPage({
               </button>
             </div>
 
-            {/* Filters */}
             <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
-              {['All', 'Completed', 'Current', 'Upcoming'].map(
-                (filter, index) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-                      index === 0
-                        ? 'bg-[#45c6d8] text-[#06111b]'
-                        : 'border border-white/5 bg-white/[0.04] text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                ),
-              )}
+              {[
+                'All',
+                'Completed',
+                'Current',
+                'Upcoming',
+              ].map((filter, index) => (
+                <button
+                  key={filter}
+                  type="button"
+                  className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                    index === 0
+                      ? 'bg-[#45c6d8] text-[#06111b]'
+                      : 'border border-white/5 bg-white/[0.04] text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
             </div>
 
-            {/* Desktop table headings */}
             <div className="mt-3 hidden grid-cols-[1fr_180px_130px_30px] gap-5 px-5 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 lg:grid">
               <span>Book</span>
               <span>Chapters</span>
@@ -436,9 +434,8 @@ function JourneyPage({
               <span />
             </div>
 
-            {/* Books list */}
             <div className="mt-2 overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821]">
-              {journeyBooks.map((book, index) => {
+              {journeyBooks.map((book) => {
                 const progress =
                   book.total > 0
                     ? Math.round(
@@ -448,7 +445,10 @@ function JourneyPage({
 
                 const isCompleted =
                   book.status === 'completed'
-                const isCurrent = book.status === 'current'
+
+                const isCurrent =
+                  book.status === 'current'
+
                 const isLocked =
                   book.status === 'next' ||
                   book.status === 'upcoming'
@@ -458,12 +458,15 @@ function JourneyPage({
                     key={book.id}
                     type="button"
                     onClick={
-                      isCurrent ? onOpenChapter : undefined
+                      isCurrent
+                        ? () => onOpenChapter('john-1')
+                        : undefined
                     }
+                    disabled={!isCurrent}
                     className={`group grid w-full items-center gap-3 border-b border-white/5 p-4 text-left transition last:border-b-0 sm:grid-cols-[44px_1fr_auto] lg:grid-cols-[44px_1fr_180px_130px_30px] lg:gap-5 lg:px-5 ${
                       isCurrent
                         ? 'bg-orange-400/[0.06] ring-1 ring-inset ring-orange-400/40'
-                        : 'hover:bg-white/[0.03]'
+                        : 'cursor-default'
                     }`}
                   >
                     <div
@@ -555,7 +558,6 @@ function JourneyPage({
             </div>
           </section>
 
-          {/* Encouragement */}
           <section className="mt-6 overflow-hidden rounded-3xl border border-cyan-400/10 bg-gradient-to-br from-cyan-400/[0.08] via-[#15222d] to-orange-400/[0.05] p-5 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-cyan-400/15 bg-cyan-400/10 text-cyan-300">

@@ -145,23 +145,33 @@ const libraryResources = [
 
 const resourceTypes = [
   {
+    id: 'bible',
+    label: 'Bible',
+    description: 'NASB 1995',
+    icon: BookOpen,
+  },
+  {
     id: 'audio',
     label: 'Audio',
+    description: 'Listen',
     icon: Headphones,
   },
   {
     id: 'study',
     label: 'Study Guides',
+    description: 'Study',
     icon: FileText,
   },
   {
     id: 'leader',
     label: 'Leader Guides',
+    description: 'Lead',
     icon: BookOpen,
   },
   {
     id: 'favorites',
     label: 'Favorites',
+    description: 'Saved',
     icon: Bookmark,
   },
 ]
@@ -250,14 +260,25 @@ function LibraryPage({
     (resource) => !resource.isUnlocked,
   )
 
+  function handleResourceType(resourceTypeId) {
+    if (resourceTypeId === 'bible') {
+      onOpenChapter('john-1')
+      return
+    }
+
+    setActiveFilter((currentFilter) =>
+      currentFilter === resourceTypeId
+        ? 'all'
+        : resourceTypeId,
+    )
+  }
+
   function handleResourceClick(resource) {
     if (!resource.isUnlocked) {
       return
     }
 
-    if (resource.chapterId === 'john-1') {
-      onOpenChapter()
-    }
+    onOpenChapter(resource.chapterId)
   }
 
   return (
@@ -269,7 +290,6 @@ function LibraryPage({
 
       <div className="lg:pl-24">
         <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-32 pt-5 min-[375px]:px-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8 xl:px-10">
-          {/* Header */}
           <header>
             <p className="text-sm font-bold tracking-[0.18em] text-[#45c6d8]">
               PROJECT 3|26
@@ -282,7 +302,8 @@ function LibraryPage({
                 </h1>
 
                 <p className="mt-2 text-sm text-slate-400 sm:text-base">
-                  Find audio, studies, guides, and saved resources.
+                  Read the Bible and access your audio,
+                  studies, leader guides, and saved resources.
                 </p>
               </div>
 
@@ -292,7 +313,6 @@ function LibraryPage({
             </div>
           </header>
 
-          {/* Search */}
           <section className="mt-7">
             <div className="relative">
               <Search
@@ -312,12 +332,14 @@ function LibraryPage({
             </div>
           </section>
 
-          {/* Resource categories */}
           <section className="mt-5">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {resourceTypes.map((resourceType) => {
                 const ResourceTypeIcon =
                   resourceType.icon
+
+                const isBible =
+                  resourceType.id === 'bible'
 
                 const isActive =
                   activeFilter === resourceType.id
@@ -327,45 +349,61 @@ function LibraryPage({
                     key={resourceType.id}
                     type="button"
                     onClick={() =>
-                      setActiveFilter(
-                        isActive
-                          ? 'all'
-                          : resourceType.id,
+                      handleResourceType(
+                        resourceType.id,
                       )
                     }
-                    className={`rounded-2xl border p-4 text-left transition active:scale-[0.98] ${
-                      isActive
-                        ? 'border-cyan-400/30 bg-cyan-400/10'
-                        : 'border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] hover:border-white/10'
+                    className={`group rounded-2xl border p-4 text-left transition active:scale-[0.98] ${
+                      isBible
+                        ? 'border-cyan-400/25 bg-gradient-to-br from-cyan-400/[0.15] to-[#0d1821] hover:border-cyan-400/40'
+                        : isActive
+                          ? 'border-cyan-400/30 bg-cyan-400/10'
+                          : 'border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] hover:border-white/10'
                     }`}
                   >
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        isActive
-                          ? 'bg-cyan-400/15 text-cyan-300'
-                          : 'bg-white/5 text-slate-300'
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                        isBible
+                          ? 'bg-cyan-400/15 text-cyan-200'
+                          : isActive
+                            ? 'bg-cyan-400/15 text-cyan-300'
+                            : 'bg-white/5 text-slate-300'
                       }`}
                     >
-                      <ResourceTypeIcon size={20} />
+                      <ResourceTypeIcon size={21} />
                     </div>
 
                     <p className="mt-3 text-sm font-semibold">
                       {resourceType.label}
                     </p>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      {resourceType.description}
+                    </p>
+
+                    {isBible && (
+                      <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-cyan-300">
+                        Open
+                        <ArrowRight
+                          size={14}
+                          className="transition group-hover:translate-x-1"
+                        />
+                      </div>
+                    )}
                   </button>
                 )
               })}
             </div>
           </section>
 
-          {/* Additional filters */}
           <section className="mt-4 flex gap-2 overflow-x-auto pb-2">
             {[
               ['all', 'All'],
               ['unlocked', 'Unlocked'],
               ['locked', 'Locked'],
               ['audio', 'Audio'],
-              ['study', 'PDFs'],
+              ['study', 'Study Guides'],
+              ['leader', 'Leader Guides'],
             ].map(([filterId, filterLabel]) => (
               <button
                 key={filterId}
@@ -384,26 +422,24 @@ function LibraryPage({
             ))}
           </section>
 
-          {/* Desktop content grid */}
           <div className="mt-6 grid gap-6 lg:grid-cols-12">
             <div className="space-y-6 lg:col-span-8">
-              {/* Continue */}
               <section>
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold">
-                      Continue
-                    </h2>
+                <div>
+                  <h2 className="text-xl font-bold">
+                    Continue
+                  </h2>
 
-                    <p className="mt-1 text-sm text-slate-400">
-                      Pick up where you left off.
-                    </p>
-                  </div>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Return to your current Project 3|26 chapter.
+                  </p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={onOpenChapter}
+                  onClick={() =>
+                    onOpenChapter('john-1')
+                  }
                   className="group mt-4 w-full rounded-3xl border border-cyan-400/15 bg-gradient-to-br from-cyan-400/[0.08] to-[#0d1821] p-5 text-left shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:border-cyan-400/30 active:translate-y-0 active:scale-[0.99]"
                 >
                   <div className="flex items-start gap-4">
@@ -435,78 +471,73 @@ function LibraryPage({
                 </button>
               </section>
 
-              {/* Results */}
               <section>
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold">
-                      {searchTerm
-                        ? 'Search Results'
-                        : 'Available Resources'}
-                    </h2>
+                <div>
+                  <h2 className="text-xl font-bold">
+                    {searchTerm
+                      ? 'Search Results'
+                      : 'Available Resources'}
+                  </h2>
 
-                    <p className="mt-1 text-sm text-slate-400">
-                      {filteredResources.length} resources found
-                    </p>
-                  </div>
+                  <p className="mt-1 text-sm text-slate-400">
+                    {filteredResources.length} resources found
+                  </p>
                 </div>
 
                 <div className="mt-4 space-y-3">
-                  {unlockedResources.map(
-                    (resource) => {
-                      const ResourceIcon =
-                        getResourceIcon(resource.type)
+                  {unlockedResources.map((resource) => {
+                    const ResourceIcon =
+                      getResourceIcon(resource.type)
 
-                      return (
-                        <button
-                          key={resource.id}
-                          type="button"
-                          onClick={() =>
-                            handleResourceClick(resource)
-                          }
-                          className="group flex w-full items-center gap-4 rounded-2xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-4 text-left transition hover:border-cyan-400/20 hover:bg-white/[0.04] active:scale-[0.99]"
-                        >
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/[0.07] text-cyan-300">
-                            <ResourceIcon size={21} />
-                          </div>
+                    return (
+                      <button
+                        key={resource.id}
+                        type="button"
+                        onClick={() =>
+                          handleResourceClick(resource)
+                        }
+                        className="group flex w-full items-center gap-4 rounded-2xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-4 text-left transition hover:border-cyan-400/20 hover:bg-white/[0.04] active:scale-[0.99]"
+                      >
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/[0.07] text-cyan-300">
+                          <ResourceIcon size={21} />
+                        </div>
 
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-semibold">
-                                {resource.reference}
-                              </p>
-
-                              <span className="rounded-full border border-white/5 bg-white/[0.04] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                                {resource.label}
-                              </span>
-                            </div>
-
-                            <p className="mt-1 truncate text-sm text-slate-400">
-                              {resource.title}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold">
+                              {resource.reference}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-500">
-                              {resource.duration ||
-                                resource.detail}
-                            </p>
+                            <span className="rounded-full border border-white/5 bg-white/[0.04] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                              {resource.label}
+                            </span>
                           </div>
 
-                          {resource.isFavorite && (
-                            <Bookmark
-                              size={17}
-                              fill="currentColor"
-                              className="shrink-0 text-orange-400"
-                            />
-                          )}
+                          <p className="mt-1 truncate text-sm text-slate-400">
+                            {resource.title}
+                          </p>
 
-                          <ChevronRight
-                            size={19}
-                            className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-300"
+                          <p className="mt-1 text-xs text-slate-500">
+                            {resource.duration ||
+                              resource.detail}
+                          </p>
+                        </div>
+
+                        {resource.isFavorite && (
+                          <Bookmark
+                            size={17}
+                            fill="currentColor"
+                            className="shrink-0 text-orange-400"
                           />
-                        </button>
-                      )
-                    },
-                  )}
+                        )}
+
+                        <ChevronRight
+                          size={19}
+                          className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-300"
+                        />
+                      </button>
+                    )
+                  })}
 
                   {lockedResources.map((resource) => {
                     const ResourceIcon =
@@ -562,7 +593,8 @@ function LibraryPage({
                       </h3>
 
                       <p className="mt-2 text-sm text-slate-500">
-                        Try another book, chapter, topic, or resource type.
+                        Try another chapter, topic, or
+                        resource type.
                       </p>
                     </div>
                   )}
@@ -570,9 +602,7 @@ function LibraryPage({
               </section>
             </div>
 
-            {/* Right column */}
             <aside className="space-y-4 lg:col-span-4">
-              {/* Recent */}
               <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
@@ -619,7 +649,6 @@ function LibraryPage({
                 </div>
               </section>
 
-              {/* Saved */}
               <section className="rounded-3xl border border-orange-400/10 bg-gradient-to-br from-orange-400/[0.06] to-[#0d1821] p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-400/10 text-orange-300">
@@ -649,7 +678,6 @@ function LibraryPage({
                 </button>
               </section>
 
-              {/* Downloads */}
               <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#15222d] to-[#0d1821] p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-300">
@@ -668,11 +696,11 @@ function LibraryPage({
                 </div>
 
                 <p className="mt-4 text-sm leading-relaxed text-slate-400">
-                  Offline downloads will appear here once that feature is connected.
+                  Offline downloads will appear here once
+                  that feature is connected.
                 </p>
               </section>
 
-              {/* Challenges */}
               <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.05] p-5">
                 <div className="flex items-start gap-3">
                   <Sparkles
@@ -686,7 +714,8 @@ function LibraryPage({
                     </h2>
 
                     <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                      Five-day challenges and special studies will live in the Library too.
+                      Five-day challenges and special studies
+                      will live in the Library too.
                     </p>
                   </div>
                 </div>
