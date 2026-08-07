@@ -4,9 +4,7 @@ import {
   BookOpen,
   Crown,
   Flame,
-  Headphones,
   MessageCircle,
-  Sparkles,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
 
@@ -24,24 +22,6 @@ function DashboardPage({
   onOpenNotifications,
   onOpenUpgrade,
 }) {
-  const actions = [
-    {
-      title: 'Read',
-      detail: 'Explore the Word',
-      icon: BookOpen,
-    },
-    {
-      title: 'Listen',
-      detail: 'Hear the Word',
-      icon: Headphones,
-    },
-    {
-      title: 'Study',
-      detail: 'Dig deeper',
-      icon: Sparkles,
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation
@@ -102,8 +82,7 @@ function DashboardPage({
                 </p>
 
                 <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-                  Begin with Scripture and choose the way you want to engage
-                  with today&apos;s chapter.
+                  Begin with Scripture and continue today&apos;s journey.
                 </p>
               </div>
 
@@ -138,92 +117,60 @@ function DashboardPage({
             </div>
           </section>
 
-          <section className="mt-4 grid grid-cols-3 gap-3 sm:gap-4">
-            {actions.map((action) => {
-              const ActionIcon = action.icon
+          <button
+            type="button"
+            onClick={() => onNavigate('connect')}
+            className="group mt-4 flex w-full items-center gap-4 rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-cyan-400/50 hover:bg-[#e7eef2] active:translate-y-0 active:scale-[0.99] sm:p-6"
+          >
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">
+              <MessageCircle size={25} strokeWidth={2.2} />
+            </div>
 
-              return (
-                <button
-                  key={action.title}
-                  type="button"
-                  onClick={() => onOpenChapter('john-1')}
-                  className="group flex min-h-28 flex-col items-center justify-center rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] px-2 py-4 text-center text-[#153047] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-cyan-400/40 hover:bg-[#e7eef2] active:translate-y-0 active:scale-[0.97] sm:min-h-32"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700 transition group-hover:bg-cyan-500 group-hover:text-white">
-                    <ActionIcon size={24} strokeWidth={2.3} />
-                  </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
+                Connect
+              </p>
 
-                  <span className="mt-3 text-sm font-semibold sm:text-base">
-                    {action.title}
-                  </span>
+              <h2 className="mt-1 text-lg font-semibold sm:text-xl">
+                Join the conversation
+              </h2>
 
-                  <span className="mt-1 hidden text-xs font-medium text-slate-500 min-[390px]:block">
-                    {action.detail}
-                  </span>
-                </button>
-              )
-            })}
-          </section>
+              <p className="mt-1 text-sm text-slate-500">
+                Discuss today&apos;s chapter, share prayer requests, and connect
+                with your church community.
+              </p>
+            </div>
 
-          <section className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4">
-            <button
-              type="button"
-              onClick={onOpenUpgrade}
-              className="flex items-center gap-4 rounded-[22px] border border-orange-300/40 bg-[#e8ddd0] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-orange-400/60 hover:bg-[#eee1d4] active:scale-[0.98]"
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-200/70 text-orange-600">
-                <Crown size={23} strokeWidth={2.2} />
-              </div>
+            <ArrowRight
+              size={21}
+              className="shrink-0 text-cyan-700 transition group-hover:translate-x-1"
+            />
+          </button>
 
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">
-                  Leader Guide
-                </p>
+          <button
+            type="button"
+            onClick={onOpenUpgrade}
+            className="mt-4 flex w-full items-center gap-4 rounded-[22px] border border-orange-300/40 bg-[#e8ddd0] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-orange-400/60 hover:bg-[#eee1d4] active:scale-[0.98]"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-200/70 text-orange-600">
+              <Crown size={21} strokeWidth={2.2} />
+            </div>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Unlock group resources.
-                </p>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                Leader Guide
+              </p>
 
-                <p className="mt-2 text-xs font-semibold text-orange-600">
-                  Upgrade to access
-                </p>
-              </div>
+              <p className="mt-1 text-sm text-slate-500">
+                Unlock group resources for today&apos;s chapter.
+              </p>
+            </div>
 
-              <ArrowRight
-                className="shrink-0 text-orange-600"
-                size={19}
-              />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('connect')}
-              className="flex items-center gap-4 rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] active:scale-[0.98]"
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
-                <MessageCircle size={23} strokeWidth={2.2} />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">
-                  Connect
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Join today&apos;s discussion.
-                </p>
-
-                <p className="mt-2 text-xs font-semibold text-cyan-700">
-                  Open discussion
-                </p>
-              </div>
-
-              <ArrowRight
-                className="shrink-0 text-cyan-700"
-                size={19}
-              />
-            </button>
-          </section>
+            <ArrowRight
+              className="shrink-0 text-orange-600"
+              size={19}
+            />
+          </button>
         </main>
       </div>
     </div>

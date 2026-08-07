@@ -104,7 +104,7 @@ function ConnectPage({
 
             <div
               className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-white shadow-lg shadow-black/20"
-              aria-label="6 unread Connect updates"
+              aria-label="Connect updates"
             >
               <Bell size={20} strokeWidth={2.1} />
 
@@ -114,44 +114,19 @@ function ConnectPage({
             </div>
           </header>
 
-          <section className="mt-5 rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
-                <BookOpen size={19} strokeWidth={2.2} />
-              </div>
+          <section className="mt-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
+              Community spaces
+            </p>
 
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-700">
-                  A shared response to Scripture
-                </p>
-
-                <p className="mt-1.5 text-sm leading-5 text-slate-600">
-                  Scripture is the center. These spaces help you
-                  express what you are learning, share what is
-                  changing, and walk with others.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
-                Community spaces
-              </p>
-
-              <h2 className="mt-1.5 text-2xl font-semibold">
-                Choose a space
-              </h2>
-            </div>
+            <h2 className="mt-1.5 text-2xl font-semibold">
+              Choose a space
+            </h2>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {connectRooms.map((room) => {
                 const RoomIcon = getRoomIcon(room.type)
-                const isChurch =
-                  room.type === 'church'
-                const isPrayer =
-                  room.type === 'prayer'
+                const isPrayer = room.type === 'prayer'
 
                 return (
                   <button
@@ -159,11 +134,7 @@ function ConnectPage({
                     type="button"
                     onClick={() => handleOpenRoom(room)}
                     disabled={room.locked}
-                    className={`group rounded-[20px] border p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] ${
-                      isChurch
-                        ? 'border-orange-300/45 bg-[#e8ddd0] hover:border-orange-400/60 hover:bg-[#eee1d4]'
-                        : 'border-[#c8d3db] bg-[#dfe8ee] hover:border-cyan-400/40 hover:bg-[#e7eef2]'
-                    } ${
+                    className={`group rounded-[20px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-cyan-400/40 hover:bg-[#e7eef2] active:translate-y-0 active:scale-[0.99] ${
                       room.locked
                         ? 'cursor-not-allowed opacity-60'
                         : ''
@@ -172,11 +143,9 @@ function ConnectPage({
                     <div className="flex items-start gap-3">
                       <div
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                          isChurch
-                            ? 'bg-orange-200/70 text-orange-600'
-                            : isPrayer
-                              ? 'bg-[#d5dce6] text-[#48617b]'
-                              : 'bg-[#c7dce7] text-cyan-700'
+                          isPrayer
+                            ? 'bg-[#d5dce6] text-[#48617b]'
+                            : 'bg-[#c7dce7] text-cyan-700'
                         }`}
                       >
                         {room.locked ? (
@@ -195,10 +164,10 @@ function ConnectPage({
                             {room.name}
                           </h3>
 
-                          {isChurch && (
+                          {room.type === 'church' && (
                             <Lock
                               size={12}
-                              className="shrink-0 text-orange-600"
+                              className="shrink-0 text-cyan-700"
                             />
                           )}
                         </div>
@@ -228,11 +197,7 @@ function ConnectPage({
 
                             <ChevronRight
                               size={17}
-                              className={`transition group-hover:translate-x-1 ${
-                                isChurch
-                                  ? 'text-orange-600'
-                                  : 'text-cyan-700'
-                              }`}
+                              className="text-cyan-700 transition group-hover:translate-x-1"
                             />
                           </div>
                         </div>

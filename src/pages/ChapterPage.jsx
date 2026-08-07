@@ -19,6 +19,8 @@ import {
   Play,
   Printer,
   Quote,
+  RotateCcw,
+  RotateCw,
   ScrollText,
   Search,
   ShieldCheck,
@@ -78,11 +80,21 @@ function ChapterPage({
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [isPlaying, setIsPlaying] = useState(false)
-  const [audioProgress, setAudioProgress] = useState(0)
-  const [isCompleting, setIsCompleting] = useState(false)
+
+  const [audioCurrentTime, setAudioCurrentTime] =
+    useState(0)
+
+  const [audioDuration, setAudioDuration] =
+    useState(0)
+
+  const [isCompleting, setIsCompleting] =
+    useState(false)
+
   const [completionMessage, setCompletionMessage] =
     useState('')
+
   const [notice, setNotice] = useState('')
+
   const [openSections, setOpenSections] = useState([
     'before-you-read',
   ])
@@ -98,9 +110,20 @@ function ChapterPage({
     }
 
     return Math.round(
-      (chapter.lessonNumber / chapter.totalLessons) * 100,
+      (chapter.lessonNumber / chapter.totalLessons) *
+        100,
     )
   }, [chapter])
+
+  const audioProgress = useMemo(() => {
+    if (!audioDuration) {
+      return 0
+    }
+
+    return (
+      (audioCurrentTime / audioDuration) * 100
+    )
+  }, [audioCurrentTime, audioDuration])
 
   const readerLocation = useMemo(() => {
     if (!chapter?.id) {
@@ -132,7 +155,8 @@ function ChapterPage({
         setLoadError('')
         setChapter(null)
         setActiveTab('read')
-        setAudioProgress(0)
+        setAudioCurrentTime(0)
+        setAudioDuration(0)
         setIsPlaying(false)
         setCompletionMessage('')
         setNotice('')
@@ -142,10 +166,11 @@ function ChapterPage({
           audioElementRef.current.currentTime = 0
         }
 
-        const [chapterData, userData] = await Promise.all([
-          getChapterById(chapterId),
-          getCurrentUser(),
-        ])
+        const [chapterData, userData] =
+          await Promise.all([
+            getChapterById(chapterId),
+            getCurrentUser(),
+          ])
 
         setChapter(chapterData)
         setUser(userData)
@@ -163,8 +188,14 @@ function ChapterPage({
     loadPage()
   }, [chapterId])
 
-  async function completeChapter(completionMethod) {
-    if (!chapter || chapter.isCompleted || isCompleting) {
+  async function completeChapter(
+    completionMethod,
+  ) {
+    if (
+      !chapter ||
+      chapter.isCompleted ||
+      isCompleting
+    ) {
       return
     }
 
@@ -178,7 +209,9 @@ function ChapterPage({
       )
 
       if (!result.success) {
-        throw new Error('Completion could not be saved.')
+        throw new Error(
+          'Completion could not be saved.',
+        )
       }
 
       setChapter((currentChapter) => ({
@@ -190,7 +223,9 @@ function ChapterPage({
         setCompletionMessage(
           `${chapter.reference} was marked complete because the audio finished.`,
         )
-      } else if (completionMethod === 'continue') {
+      } else if (
+        completionMethod === 'continue'
+      ) {
         setCompletionMessage(
           `${chapter.reference} was completed. You are ready for ${chapter.nextChapter.reference}.`,
         )
@@ -211,7 +246,8 @@ function ChapterPage({
   }
 
   function toggleAudio() {
-    const audioElement = audioElementRef.current
+    const audioElement =
+      audioElementRef.current
 
     if (!audioElement || !chapter?.audio.url) {
       setNotice(
@@ -225,24 +261,78 @@ function ChapterPage({
 
     if (audioElement.paused) {
       audioElement.play().catch(() => {
-        setNotice('The audio could not be played.')
+        setNotice(
+          'The audio could not be played.',
+        )
       })
     } else {
       audioElement.pause()
     }
   }
 
+  function handleLoadedMetadata(event) {
+    const audioElement = event.currentTarget
+
+    setAudioDuration(
+      Number.isFinite(audioElement.duration)
+        ? audioElement.duration
+        : 0,
+    )
+  }
+
   function handleAudioTimeUpdate(event) {
     const audioElement = event.currentTarget
 
-    if (!audioElement.duration) {
+    setAudioCurrentTime(
+      audioElement.currentTime || 0,
+    )
+
+    if (
+      Number.isFinite(audioElement.duration)
+    ) {
+      setAudioDuration(audioElement.duration)
+    }
+  }
+
+  function handleSeek(event) {
+    const audioElement =
+      audioElementRef.current
+
+    if (!audioElement) {
       return
     }
 
-    setAudioProgress(
-      (audioElement.currentTime / audioElement.duration) *
-        100,
+    const newTime = Number(
+      event.target.value,
     )
+
+    audioElement.currentTime = newTime
+    setAudioCurrentTime(newTime)
+  }
+
+  function skipAudio(seconds) {
+    const audioElement =
+      audioElementRef.current
+
+    if (!audioElement) {
+      return
+    }
+
+    const duration =
+      Number.isFinite(audioElement.duration)
+        ? audioElement.duration
+        : 0
+
+    const newTime = Math.min(
+      Math.max(
+        audioElement.currentTime + seconds,
+        0,
+      ),
+      duration || Infinity,
+    )
+
+    audioElement.currentTime = newTime
+    setAudioCurrentTime(newTime)
   }
 
   function formatAudioTime(seconds) {
@@ -251,7 +341,9 @@ function ChapterPage({
     }
 
     const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = Math.floor(seconds % 60)
+    const remainingSeconds = Math.floor(
+      seconds % 60,
+    )
 
     return `${minutes}:${remainingSeconds
       .toString()
@@ -260,13 +352,19 @@ function ChapterPage({
 
   async function handleAudioEnded() {
     setIsPlaying(false)
-    setAudioProgress(100)
+
+    if (audioDuration) {
+      setAudioCurrentTime(audioDuration)
+    }
 
     await completeChapter('audio-ended')
   }
 
   async function handlePdf(pdfUrl, pdfType) {
-    const result = await openChapterPdf(pdfUrl, pdfType)
+    const result = await openChapterPdf(
+      pdfUrl,
+      pdfType,
+    )
 
     if (!result.success) {
       setNotice(result.message)
@@ -275,13 +373,18 @@ function ChapterPage({
 
   function toggleSection(sectionId) {
     setOpenSections((currentSections) => {
-      if (currentSections.includes(sectionId)) {
+      if (
+        currentSections.includes(sectionId)
+      ) {
         return currentSections.filter(
           (id) => id !== sectionId,
         )
       }
 
-      return [...currentSections, sectionId]
+      return [
+        ...currentSections,
+        sectionId,
+      ]
     })
   }
 
@@ -351,9 +454,16 @@ function ChapterPage({
         ref={audioElementRef}
         src={chapter.audio.url}
         preload="metadata"
+        onLoadedMetadata={
+          handleLoadedMetadata
+        }
         onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onTimeUpdate={handleAudioTimeUpdate}
+        onPause={() =>
+          setIsPlaying(false)
+        }
+        onTimeUpdate={
+          handleAudioTimeUpdate
+        }
         onEnded={handleAudioEnded}
       />
 
@@ -392,8 +502,12 @@ function ChapterPage({
 
             <button
               type="button"
-              onClick={() => completeChapter('manual')}
-              disabled={isCompleted || isCompleting}
+              onClick={() =>
+                completeChapter('manual')
+              }
+              disabled={
+                isCompleted || isCompleting
+              }
               className={`hidden shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex ${
                 isCompleted
                   ? 'border border-cyan-400/35 bg-[#c7dce7] text-cyan-700'
@@ -422,7 +536,9 @@ function ChapterPage({
                 {chapter.totalLessons}
               </span>
 
-              <span>{chapterProgress}%</span>
+              <span>
+                {chapterProgress}%
+              </span>
             </div>
 
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#23384b]">
@@ -439,14 +555,19 @@ function ChapterPage({
             <div className="grid grid-cols-4 gap-1">
               {tabs.map((tab) => {
                 const TabIcon = tab.icon
-                const isActive = activeTab === tab.id
-                const isLeaderTab = tab.id === 'leader'
+                const isActive =
+                  activeTab === tab.id
+
+                const isLeaderTab =
+                  tab.id === 'leader'
 
                 return (
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() =>
+                      setActiveTab(tab.id)
+                    }
                     className={`relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 text-[10px] font-semibold transition min-[375px]:flex-row min-[375px]:gap-1.5 min-[375px]:text-xs sm:text-sm ${
                       isActive
                         ? 'bg-[#c7dce7] text-cyan-700'
@@ -482,7 +603,9 @@ function ChapterPage({
 
               <button
                 type="button"
-                onClick={() => setNotice('')}
+                onClick={() =>
+                  setNotice('')
+                }
                 className="text-xs font-semibold text-cyan-700"
               >
                 Close
@@ -508,7 +631,9 @@ function ChapterPage({
               {activeTab === 'read' && (
                 <BibleReader
                   key={chapter.id}
-                  initialBookId={readerLocation.bookId}
+                  initialBookId={
+                    readerLocation.bookId
+                  }
                   initialChapter={
                     readerLocation.chapterNumber
                   }
@@ -544,11 +669,69 @@ function ChapterPage({
                       </div>
                     </div>
 
-                    <div className="mt-6 flex items-center gap-4">
+                    {/* Seekable progress bar */}
+                    <div className="mt-6">
+                      <input
+                        type="range"
+                        min="0"
+                        max={
+                          audioDuration || 0
+                        }
+                        step="0.1"
+                        value={
+                          audioCurrentTime
+                        }
+                        onChange={handleSeek}
+                        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[#bccbd4] accent-cyan-600"
+                        aria-label="Audio progress"
+                      />
+
+                      <div className="mt-2 flex items-center justify-between text-xs font-medium text-slate-500">
+                        <span>
+                          {formatAudioTime(
+                            audioCurrentTime,
+                          )}
+                        </span>
+
+                        <span>
+                          {formatAudioTime(
+                            audioDuration,
+                          ) ||
+                            chapter.audio
+                              .duration}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Playback controls */}
+                    <div className="mt-5 flex items-center justify-center gap-5">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          skipAudio(-15)
+                        }
+                        className="group flex flex-col items-center gap-1 text-slate-600 transition hover:text-cyan-700 active:scale-95"
+                        aria-label="Go back 15 seconds"
+                      >
+                        <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#b8ccd7] bg-[#edf2f4] transition group-hover:bg-[#c7dce7]">
+                          <RotateCcw
+                            size={21}
+                          />
+
+                          <span className="absolute text-[9px] font-bold">
+                            15
+                          </span>
+                        </div>
+
+                        <span className="text-[10px] font-semibold">
+                          Back
+                        </span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={toggleAudio}
-                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-white transition hover:bg-cyan-400 active:scale-90"
+                        className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 active:scale-90"
                         aria-label={
                           isPlaying
                             ? 'Pause chapter audio'
@@ -557,41 +740,40 @@ function ChapterPage({
                       >
                         {isPlaying ? (
                           <Pause
-                            size={24}
+                            size={27}
                             fill="currentColor"
                           />
                         ) : (
                           <Play
-                            size={24}
+                            size={27}
                             fill="currentColor"
                             className="ml-1"
                           />
                         )}
                       </button>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="h-2 overflow-hidden rounded-full bg-[#c8d3db]">
-                          <div
-                            className="h-full rounded-full bg-cyan-500"
-                            style={{
-                              width: `${audioProgress}%`,
-                            }}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          skipAudio(15)
+                        }
+                        className="group flex flex-col items-center gap-1 text-slate-600 transition hover:text-cyan-700 active:scale-95"
+                        aria-label="Go forward 15 seconds"
+                      >
+                        <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#b8ccd7] bg-[#edf2f4] transition group-hover:bg-[#c7dce7]">
+                          <RotateCw
+                            size={21}
                           />
-                        </div>
 
-                        <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-                          <span>
-                            {formatAudioTime(
-                              audioElementRef.current
-                                ?.currentTime || 0,
-                            )}
-                          </span>
-
-                          <span>
-                            {chapter.audio.duration}
+                          <span className="absolute text-[9px] font-bold">
+                            15
                           </span>
                         </div>
-                      </div>
+
+                        <span className="text-[10px] font-semibold">
+                          Forward
+                        </span>
+                      </button>
                     </div>
 
                     <div className="mt-5 flex items-center justify-between border-t border-[#c8d3db] pt-4">
@@ -662,7 +844,9 @@ function ChapterPage({
                         type="button"
                         onClick={() =>
                           handlePdf(
-                            chapter.studyGuide.pdfUrl,
+                            chapter
+                              .studyGuide
+                              .pdfUrl,
                             'Study Guide',
                           )
                         }
@@ -705,8 +889,9 @@ function ChapterPage({
                     {chapter.studyGuide.sections.map(
                       (section) => {
                         const SectionIcon =
-                          sectionIcons[section.id] ||
-                          BookOpen
+                          sectionIcons[
+                            section.id
+                          ] || BookOpen
 
                         const isOpen =
                           openSections.includes(
@@ -750,7 +935,9 @@ function ChapterPage({
                             {isOpen && (
                               <div className="border-t border-[#c8d3db] px-4 pb-5 pt-4 sm:px-5">
                                 <p className="whitespace-pre-line text-sm leading-7 text-slate-600">
-                                  {section.content}
+                                  {
+                                    section.content
+                                  }
                                 </p>
                               </div>
                             )}
@@ -764,7 +951,8 @@ function ChapterPage({
                     type="button"
                     onClick={() =>
                       handlePdf(
-                        chapter.studyGuide.pdfUrl,
+                        chapter.studyGuide
+                          .pdfUrl,
                         'Study Guide',
                       )
                     }
@@ -824,7 +1012,8 @@ function ChapterPage({
                       type="button"
                       onClick={() =>
                         handlePdf(
-                          chapter.leaderGuide
+                          chapter
+                            .leaderGuide
                             .pdfUrl,
                           'Leader Guide',
                         )
@@ -875,7 +1064,10 @@ function ChapterPage({
                 </div>
 
                 <p className="mt-4 text-sm leading-relaxed text-slate-600">
-                  {chapter.leaderGuide.description}
+                  {
+                    chapter.leaderGuide
+                      .description
+                  }
                 </p>
 
                 <button
@@ -883,7 +1075,8 @@ function ChapterPage({
                   onClick={() => {
                     if (hasLeaderAccess) {
                       handlePdf(
-                        chapter.leaderGuide.pdfUrl,
+                        chapter.leaderGuide
+                          .pdfUrl,
                         'Leader Guide',
                       )
                     } else {
@@ -919,9 +1112,10 @@ function ChapterPage({
                     </h2>
 
                     <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                      This chapter marks complete when the
-                      audio finishes, when you mark it
-                      manually, or when you continue.
+                      This chapter marks complete
+                      when the audio finishes, when
+                      you mark it manually, or when
+                      you continue.
                     </p>
                   </div>
                 </div>
@@ -935,8 +1129,12 @@ function ChapterPage({
         <div className="mx-auto flex max-w-md gap-2">
           <button
             type="button"
-            onClick={() => completeChapter('manual')}
-            disabled={isCompleted || isCompleting}
+            onClick={() =>
+              completeChapter('manual')
+            }
+            disabled={
+              isCompleted || isCompleting
+            }
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition ${
               isCompleted
                 ? 'border-cyan-400/35 bg-[#c7dce7] text-cyan-700'
@@ -965,7 +1163,10 @@ function ChapterPage({
           >
             <span className="truncate">
               Continue to{' '}
-              {chapter.nextChapter.reference}
+              {
+                chapter.nextChapter
+                  .reference
+              }
             </span>
 
             <ArrowRight size={18} />
@@ -986,8 +1187,12 @@ function ChapterPage({
 
           <button
             type="button"
-            onClick={() => completeChapter('manual')}
-            disabled={isCompleted || isCompleting}
+            onClick={() =>
+              completeChapter('manual')
+            }
+            disabled={
+              isCompleted || isCompleting
+            }
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
               isCompleted
                 ? 'border border-cyan-400/35 bg-[#c7dce7] text-cyan-700'
