@@ -103,9 +103,9 @@ function RoomSwitcher({ activeRoomId, onSelectRoom }) {
               key={room.id}
               type="button"
               onClick={() => onSelectRoom(room.id)}
-              className={`flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold shadow-sm transition active:scale-95 ${styles.button}`}
+              className={`flex h-9 items-center gap-2 rounded-xl border px-3 text-xs font-semibold shadow-sm transition active:scale-95 ${styles.button}`}
             >
-              {room.locked ? <Lock size={14} /> : <RoomIcon size={15} />}
+              {room.locked ? <Lock size={13} /> : <RoomIcon size={14} />}
               {room.shortName}
             </button>
           )
@@ -149,54 +149,45 @@ function ConnectRoomPage({
     return null
   }
 
+  const ActiveRoomIcon = getRoomIcon(activeRoom.type)
+
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation activePage="connect" onNavigate={onNavigate} />
 
       <div className="lg:pl-24">
-        <main className="mx-auto min-h-screen w-full max-w-5xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
-          <header className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-xl shadow-black/10 sm:p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
-                  Connect
-                </p>
-
-                <h1 className="mt-1.5 text-2xl font-semibold sm:text-3xl">
+        <main className="mx-auto min-h-screen w-full max-w-5xl px-4 pb-32 pt-3 sm:px-6 lg:px-8 lg:pb-10 lg:pt-5">
+          <header className="rounded-[18px] border border-[#c8d3db] bg-[#dfe8ee] px-3.5 py-3 text-[#153047] shadow-lg shadow-black/10 sm:px-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-semibold sm:text-lg">
                   {activeRoom.id === 'today'
                     ? `${sharedJourney.reference} — Today’s Conversation`
                     : activeRoom.name}
                 </h1>
 
-                <p className="mt-1.5 text-sm leading-5 text-slate-600">
-                  {activeRoom.id === 'today'
-                    ? 'Join the conversation already happening around today’s chapter.'
-                    : activeRoom.description}
-                </p>
-
-                <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500">
-                  <Users size={13} />
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500 sm:text-xs">
+                  <Users size={12} />
                   <span>{activeRoom.members} people here</span>
                 </div>
               </div>
 
-              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${getRoomStyle(activeRoom.type).icon}`}>
-                {(() => {
-                  const RoomIcon = getRoomIcon(activeRoom.type)
-                  return <RoomIcon size={21} />
-                })()}
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${getRoomStyle(activeRoom.type).icon}`}
+              >
+                <ActiveRoomIcon size={16} />
               </div>
             </div>
           </header>
 
-          <section className="mt-4">
+          <section className="mt-2.5">
             <RoomSwitcher
               activeRoomId={activeRoom.id}
               onSelectRoom={handleSelectRoom}
             />
           </section>
 
-          <div className="mt-4">{renderRoomContent()}</div>
+          <div className="mt-2.5">{renderRoomContent()}</div>
         </main>
       </div>
     </div>
