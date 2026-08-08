@@ -133,8 +133,8 @@ function ChurchRoom() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex h-9 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition ${
                 active
-                  ? 'border-cyan-400/50 bg-cyan-400/15 text-cyan-200'
-                  : 'border-white/10 bg-[#0c2138] text-slate-400 hover:text-white'
+                  ? 'border-amber-300/50 bg-amber-300/15 text-amber-100'
+                  : 'border-white/10 bg-[#151713] text-stone-400 hover:text-amber-50'
               }`}
             >
               <Icon size={14} />
@@ -151,19 +151,20 @@ function ChurchRoom() {
           contextLabel="Villas Church chat"
           contextPrompts={['Share life', 'Encourage someone', 'Stay connected']}
           startingPosts={churchDiscussionPosts}
+          theme="church"
         />
       )}
 
       {activeTab === 'announcements' && (
         <div className="pb-8">
-          <section className="rounded-[24px] border border-orange-300/25 bg-[#e8ddd0] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
+          <section className="rounded-[24px] border border-amber-300/25 bg-[#e8ddd0] p-4 text-[#3f2d1d] shadow-lg shadow-black/10 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-200/70 text-orange-600">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-200/70 text-[#9a5f2e]">
                   <Bell size={19} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-orange-600">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#9a5f2e]">
                     Villas Church
                   </p>
                   <h2 className="mt-1 text-lg font-semibold">Announcements</h2>
@@ -174,7 +175,7 @@ function ChurchRoom() {
                 <button
                   type="button"
                   onClick={() => setShowAnnouncementForm((current) => !current)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#b86f42] text-white"
                   aria-label="Create announcement"
                 >
                   {showAnnouncementForm ? <X size={17} /> : <Plus size={17} />}
@@ -184,20 +185,20 @@ function ChurchRoom() {
           </section>
 
           {showAnnouncementForm && isChurchAdmin && (
-            <form onSubmit={submitAnnouncement} className="mt-3 rounded-[24px] border border-white/10 bg-[#0c2138] p-4 sm:p-5">
+            <form onSubmit={submitAnnouncement} className="mt-3 rounded-[24px] border border-amber-200/10 bg-[#151713] p-4 sm:p-5">
               <input
                 value={announcementForm.title}
                 onChange={(event) => setAnnouncementForm((current) => ({ ...current, title: event.target.value }))}
                 maxLength={100}
                 placeholder="Announcement title"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none"
+                className="w-full rounded-xl border border-amber-100/10 bg-white/[0.05] px-4 py-3 text-sm text-amber-50 outline-none focus:border-amber-300/35"
               />
               <input
                 value={announcementForm.date}
                 onChange={(event) => setAnnouncementForm((current) => ({ ...current, date: event.target.value }))}
                 maxLength={100}
                 placeholder="Date or time"
-                className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none"
+                className="mt-3 w-full rounded-xl border border-amber-100/10 bg-white/[0.05] px-4 py-3 text-sm text-amber-50 outline-none focus:border-amber-300/35"
               />
               <textarea
                 value={announcementForm.message}
@@ -205,13 +206,13 @@ function ChurchRoom() {
                 rows={4}
                 maxLength={500}
                 placeholder="Share the important details"
-                className="mt-3 w-full resize-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm leading-6 text-white outline-none"
+                className="mt-3 w-full resize-none rounded-xl border border-amber-100/10 bg-white/[0.05] px-4 py-3 text-sm leading-6 text-amber-50 outline-none focus:border-amber-300/35"
               />
               <div className="mt-3 flex gap-3">
-                <button type="button" onClick={() => setShowAnnouncementForm(false)} className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-300">
+                <button type="button" onClick={() => setShowAnnouncementForm(false)} className="flex-1 rounded-xl border border-amber-100/10 px-4 py-3 text-sm font-semibold text-stone-300">
                   Cancel
                 </button>
-                <button type="submit" className="flex-1 rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white">
+                <button type="submit" className="flex-1 rounded-xl bg-[#b86f42] px-4 py-3 text-sm font-bold text-white">
                   Publish
                 </button>
               </div>
@@ -220,19 +221,19 @@ function ChurchRoom() {
 
           <div className="mt-4 space-y-3">
             {announcements.map((announcement) => (
-              <article key={announcement.id} className="rounded-[22px] border border-white/10 bg-[#0c2138] p-4">
+              <article key={announcement.id} className="rounded-[22px] border border-amber-100/10 bg-[#151713] p-4">
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-xs text-orange-300">
+                    <div className="flex items-center gap-2 text-xs text-amber-300">
                       <Calendar size={13} />
                       {announcement.date}
                     </div>
-                    <h3 className="mt-2 font-semibold">{announcement.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">{announcement.message}</p>
-                    <p className="mt-3 text-xs text-slate-600">Posted by {announcement.author}</p>
+                    <h3 className="mt-2 font-semibold text-amber-50">{announcement.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-stone-400">{announcement.message}</p>
+                    <p className="mt-3 text-xs text-stone-600">Posted by {announcement.author}</p>
                   </div>
                   {isChurchAdmin && (
-                    <button type="button" onClick={() => setDeleteAnnouncementId(announcement.id)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:text-red-300" aria-label="Delete announcement">
+                    <button type="button" onClick={() => setDeleteAnnouncementId(announcement.id)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:text-red-300" aria-label="Delete announcement">
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -247,11 +248,11 @@ function ChurchRoom() {
 
       {deleteAnnouncementId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#12202b] p-6 shadow-2xl">
-            <h2 className="text-xl font-bold">Delete this announcement?</h2>
-            <p className="mt-3 text-sm text-slate-400">This cannot be undone.</p>
+          <div className="w-full max-w-sm rounded-3xl border border-amber-100/10 bg-[#1b1d18] p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-amber-50">Delete this announcement?</h2>
+            <p className="mt-3 text-sm text-stone-400">This cannot be undone.</p>
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setDeleteAnnouncementId(null)} className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-300">Keep</button>
+              <button type="button" onClick={() => setDeleteAnnouncementId(null)} className="flex-1 rounded-xl border border-amber-100/10 px-4 py-3 text-sm font-semibold text-stone-300">Keep</button>
               <button type="button" onClick={confirmDeleteAnnouncement} className="flex-1 rounded-xl bg-red-400 px-4 py-3 text-sm font-bold text-[#210b0b]">Delete</button>
             </div>
           </div>
