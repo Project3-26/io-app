@@ -435,45 +435,47 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
             </button>
           </header>
 
-          <section className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <article className="col-span-2 rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047] shadow-xl shadow-black/10 lg:col-span-2 sm:p-6">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-700 sm:text-xs">
-                Bible Progress
-              </p>
-              <div className="mt-2 flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-4xl font-bold tracking-tight">{overallProgress}%</p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {chaptersCompleted} of {TOTAL_BIBLE_CHAPTERS} chapters
-                  </p>
-                </div>
-                <p className="text-xs font-semibold text-slate-500">
-                  {chaptersRemaining} remaining
+          <section className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-4 rounded-[26px] border border-orange-300/35 bg-[#e8ddd0] px-5 py-4 text-[#153047] shadow-lg shadow-black/10">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-200/70 text-orange-600">
+                <Flame size={25} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-orange-600">
+                  Hot Streak
+                </p>
+                <p className="mt-1 text-xl font-bold text-orange-600">
+                  {currentStreak} {currentStreak === 1 ? 'day' : 'days'} strong
+                </p>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Keep showing up. Today counts.
                 </p>
               </div>
-              <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#c8d3db]">
-                <div
-                  className="h-full rounded-full bg-cyan-500"
-                  style={{ width: `${overallProgress}%` }}
-                />
-              </div>
-            </article>
-
-            <div className="flex min-h-36 flex-col justify-between rounded-[26px] border border-white/10 bg-[#0c2138] p-4 shadow-lg shadow-black/10 sm:min-h-40 sm:p-5">
-              <BookOpen size={29} className="text-cyan-400" />
-              <div>
-                <p className="text-2xl font-bold">{booksStarted}</p>
-                <p className="mt-1 text-xs text-slate-400 sm:text-sm">Books started</p>
-              </div>
             </div>
 
-            <div className="flex min-h-36 flex-col justify-between rounded-[26px] border border-orange-300/35 bg-[#e8ddd0] p-4 text-[#153047] shadow-lg shadow-black/10 sm:min-h-40 sm:p-5">
-              <Flame size={29} className="text-orange-600" />
-              <div>
-                <p className="text-2xl font-bold text-orange-600">{currentStreak}</p>
-                <p className="mt-1 text-xs text-slate-500 sm:text-sm">Day streak</p>
+            <button
+              type="button"
+              onClick={openAchievements}
+              className="flex items-center gap-4 rounded-[26px] border border-white/10 bg-[#0c2138] px-5 py-4 text-left shadow-lg shadow-black/10 transition hover:border-orange-300/30"
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-500/10 text-orange-400">
+                <Trophy size={24} />
               </div>
-            </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-orange-400">
+                  Achievements
+                </p>
+                <p className="mt-1 text-xl font-bold">
+                  {earnedAchievements.length} earned
+                </p>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  {nextAchievement
+                    ? `Next: ${nextAchievement.achievement.title}`
+                    : 'Every milestone unlocked'}
+                </p>
+              </div>
+              <ArrowRight size={18} className="shrink-0 text-orange-400" />
+            </button>
           </section>
 
           <section className="mt-4 grid grid-cols-[88px_1fr] gap-4 sm:grid-cols-[104px_1fr]">
@@ -508,26 +510,37 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
             </button>
           </section>
 
-          <button
-            type="button"
-            onClick={openAchievements}
-            className="mt-4 flex w-full items-center justify-between gap-4 rounded-[24px] border border-white/10 bg-[#0c2138] px-4 py-4 text-left shadow-lg shadow-black/10 transition hover:border-orange-300/30"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400">
-                <Trophy size={18} />
-              </div>
+          <section className="mt-6 rounded-[24px] border border-white/10 bg-[#0c2138] px-5 py-4 shadow-lg shadow-black/10">
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">Achievements</p>
-                <p className="mt-0.5 text-xs text-slate-400">
-                  {earnedAchievements.length} earned · {lockedAchievements.length} remaining
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">
+                  Your Progress
+                </p>
+                <p className="mt-1 text-xl font-bold">
+                  {chaptersCompleted} chapters completed
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {booksStarted} books started · {completedBooks} finished
                 </p>
               </div>
+              <p className="text-sm font-semibold text-cyan-400">
+                {overallProgress}%
+              </p>
             </div>
-            <ArrowRight size={17} className="text-orange-400" />
-          </button>
 
-          <section className="mt-7">
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#23384b]">
+              <div
+                className="h-full rounded-full bg-cyan-500"
+                style={{ width: `${overallProgress}%` }}
+              />
+            </div>
+
+            <p className="mt-2 text-[11px] text-slate-500">
+              One chapter at a time. No rush to the finish line.
+            </p>
+          </section>
+
+          <section className="mt-8">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
