@@ -186,7 +186,7 @@ function DiscussionRoom() {
   const visiblePosts = posts.filter((post) => !post.hidden)
 
   return (
-    <div>
+    <div className="pb-24 lg:pb-28">
       <section className="rounded-[22px] border border-white/10 bg-[#0c2138] px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
           <span className="rounded-full bg-cyan-400/10 px-2.5 py-1 font-semibold text-cyan-300">
@@ -357,33 +357,40 @@ function DiscussionRoom() {
 
           <div ref={bottomRef} />
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 border-t border-white/8 pt-4">
-          <div className="flex items-end gap-2">
-            <textarea
-              id="discussion-message"
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              rows={1}
-              maxLength={280}
-              placeholder={`Share something about ${sharedJourney.reference}…`}
-              className="min-h-11 max-h-28 flex-1 resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/35"
-            />
+      <div className="fixed inset-x-0 bottom-[calc(4.9rem+env(safe-area-inset-bottom))] z-40 px-4 lg:bottom-4 lg:left-24 lg:px-8">
+        <div className="mx-auto w-full max-w-5xl">
+          <form
+            onSubmit={handleSubmit}
+            className="rounded-[20px] border border-white/10 bg-[#081b2d]/95 p-2.5 shadow-[0_-10px_35px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-3"
+          >
+            <div className="flex items-end gap-2">
+              <textarea
+                id="discussion-message"
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                rows={1}
+                maxLength={280}
+                placeholder={`Share something about ${sharedJourney.reference}…`}
+                className="min-h-11 max-h-28 flex-1 resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/35"
+              />
 
-            <button
-              type="submit"
-              disabled={!message.trim()}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-400 text-[#06111b] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Send message"
-            >
-              <Send size={18} />
-            </button>
-          </div>
+              <button
+                type="submit"
+                disabled={!message.trim()}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-400 text-[#06111b] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Send message"
+              >
+                <Send size={18} />
+              </button>
+            </div>
 
-          <div className="mt-1.5 px-1 text-right text-[10px] text-slate-600">
-            {message.length}/280
-          </div>
-        </form>
+            <div className="mt-1 px-1 text-right text-[10px] text-slate-600">
+              {message.length}/280
+            </div>
+          </form>
+        </div>
       </div>
 
       {deletePostId && (
