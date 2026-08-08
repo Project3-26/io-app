@@ -1,7 +1,6 @@
 import {
   BookCheck,
   BookOpen,
-  Books,
   CheckCircle2,
   Church,
   Compass,
@@ -49,7 +48,7 @@ const artworkIcons = {
   lamp: Lamp,
   'radiant-torch': Sparkles,
   'book-check': BookCheck,
-  'book-stack': Books,
+  'book-stack': Library,
   compass: Compass,
   bookshelf: Library,
   'half-library': Library,
