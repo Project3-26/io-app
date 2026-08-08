@@ -1,22 +1,17 @@
 import {
-  ArrowLeft,
   ArrowRight,
-  Award,
   BookOpen,
   Check,
-  CheckCircle2,
   Flame,
-  Gem,
   Lock,
-  Medal,
   Rocket,
-  Shield,
-  Star,
   Trophy,
   Wrench,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import AchievementsGallery from '../components/AchievementsGallery'
 import AppNavigation from '../components/AppNavigation'
+import BadgeMedallion from '../components/BadgeMedallion'
 import { bibleBooks } from '../data/bibleBooks'
 import { getBookAvailability } from '../data/contentAvailability'
 import {
@@ -37,52 +32,6 @@ import { calculateCurrentStreak } from '../utils/streak'
 
 const COMPLETED_CHAPTERS_KEY = 'project326-completed-chapters'
 const TOTAL_BIBLE_CHAPTERS = 1189
-
-const achievementIcons = {
-  'first-step': Star,
-  'seven-chapters': Award,
-  'thirty-chapters': Rocket,
-  'hundred-chapters': Medal,
-  'first-book': BookOpen,
-  'five-books': Shield,
-  'ten-books': Trophy,
-  'three-day-streak': Flame,
-  'seven-day-streak': Flame,
-  'thirty-day-streak': Flame,
-  halfway: Medal,
-  'finish-bible': Gem,
-}
-
-const tierStyles = {
-  bronze: {
-    label: 'Bronze',
-    badge: 'border-orange-700/40 bg-[#b86f42] text-white',
-    ring: 'border-[#d99a71] bg-[#c67b4c]',
-    text: 'text-[#9a552e]',
-    chip: 'border-[#d3a081] bg-[#ead4c6] text-[#8c4e2c]',
-  },
-  silver: {
-    label: 'Silver',
-    badge: 'border-slate-400 bg-[#9aa7b0] text-white',
-    ring: 'border-[#cbd5db] bg-[#aebac2]',
-    text: 'text-slate-600',
-    chip: 'border-slate-300 bg-[#dce3e7] text-slate-600',
-  },
-  gold: {
-    label: 'Gold',
-    badge: 'border-amber-500/50 bg-[#d79b2e] text-white',
-    ring: 'border-[#f0c96b] bg-[#e0aa3e]',
-    text: 'text-amber-700',
-    chip: 'border-amber-300 bg-[#efe1bb] text-amber-700',
-  },
-  legendary: {
-    label: 'Legendary',
-    badge: 'border-orange-300 bg-gradient-to-br from-orange-500 via-amber-400 to-cyan-500 text-white',
-    ring: 'border-orange-300 bg-gradient-to-br from-orange-400 to-cyan-500',
-    text: 'text-orange-600',
-    chip: 'border-orange-300 bg-[#f0dcc6] text-orange-600',
-  },
-}
 
 function readCompletedChapters() {
   try {
@@ -113,22 +62,6 @@ function buildBookProgress(books, completedChapterIds) {
       availability,
     }
   })
-}
-
-function AchievementBadge({ achievement, earned, compact = false }) {
-  const AchievementIcon = achievementIcons[achievement.id] || Award
-  const tier = tierStyles[achievement.tier] || tierStyles.bronze
-  const outer = compact ? 'h-14 w-14' : 'h-[70px] w-[70px]'
-  const inner = compact ? 'h-10 w-10' : 'h-[52px] w-[52px]'
-
-  return (
-    <div className={`relative flex ${outer} shrink-0 items-center justify-center`}>
-      <div className={`absolute inset-0 rounded-full border-4 ${earned ? tier.ring : 'border-[#33485b] bg-[#1a3044]'}`} />
-      <div className={`relative flex ${inner} items-center justify-center rounded-full border-2 ${earned ? tier.badge : 'border-[#40566a] bg-[#23384b] text-slate-500'}`}>
-        {earned ? <AchievementIcon size={compact ? 18 : 23} /> : <Lock size={compact ? 16 : 20} />}
-      </div>
-    </div>
-  )
 }
 
 function TrailArtwork() {
@@ -196,11 +129,15 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
 
   const chaptersCompleted = Math.min(completedChapterIds.length, TOTAL_BIBLE_CHAPTERS)
   const overallProgress = Math.round((chaptersCompleted / TOTAL_BIBLE_CHAPTERS) * 1000) / 10
-  const completedBooks = allBookProgress.filter((book) => book.isComplete).length
+  const completedBookIds = useMemo(
+    () => allBookProgress.filter((book) => book.isComplete).map((book) => book.id),
+    [allBookProgress],
+  )
+  const completedBooks = completedBookIds.length
 
   const achievementMetrics = useMemo(
-    () => ({ chaptersCompleted, completedBooks, currentStreak }),
-    [chaptersCompleted, completedBooks, currentStreak],
+    () => ({ chaptersCompleted, completedBooks, completedBookIds, currentStreak }),
+    [chaptersCompleted, completedBooks, completedBookIds, currentStreak],
   )
 
   useEffect(() => {
@@ -241,83 +178,25 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
     onNavigate(pageId)
   }
 
-  function renderAchievementCards() {
-    return (
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {achievements.map((achievement) => {
-          const earned = earnedAchievementIds.includes(achievement.id)
-          const progress = getAchievementProgress(achievement, achievementMetrics)
-          const tier = tierStyles[achievement.tier] || tierStyles.bronze
-
-          return (
-            <article key={achievement.id} className={`rounded-[24px] border p-4 ${earned ? 'border-[#c8d3db] bg-[#dfe8ee] text-[#153047]' : 'border-white/10 bg-[#0c2138] text-slate-300'}`}>
-              <div className="flex items-center gap-3">
-                <AchievementBadge achievement={achievement} earned={earned} />
-                <div className="min-w-0 flex-1">
-                  <span className={`inline-flex rounded-full border px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${earned ? tier.chip : 'border-white/10 bg-[#1a3044] text-slate-500'}`}>
-                    {tier.label}
-                  </span>
-                  <h3 className="mt-2 font-semibold">{achievement.title}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{achievement.description}</p>
-                </div>
-              </div>
-
-              {earned ? (
-                <div className="mt-3 flex items-center gap-2 border-t border-black/10 pt-3">
-                  <CheckCircle2 size={15} className={tier.text} />
-                  <span className={`text-[10px] font-bold uppercase tracking-[0.12em] ${tier.text}`}>Earned</span>
-                </div>
-              ) : (
-                <>
-                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#23384b]">
-                    <div className="h-full rounded-full bg-cyan-600" style={{ width: `${progress.percentage}%` }} />
-                  </div>
-                  <p className="mt-2 text-[10px] font-semibold text-slate-500">{progress.current} / {progress.target}</p>
-                </>
-              )}
-            </article>
-          )
-        })}
-      </div>
-    )
-  }
-
   if (showAchievementsOnly) {
     return (
       <div className="min-h-screen bg-[#041326] text-white">
         <AppNavigation activePage="journey" onNavigate={handleNavigation} />
         <div className="lg:pl-24">
-          <main className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setShowAchievementsOnly(false)} className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-slate-300" aria-label="Back to Journey">
-                <ArrowLeft size={18} />
-              </button>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-orange-400">PROJECT 3|26</p>
-                <h1 className="text-2xl font-bold">Achievements</h1>
-              </div>
-              <Trophy size={24} className="text-orange-400" />
-            </div>
-
-            {nextAchievement && (
-              <section className="mt-5 rounded-[26px] border border-orange-300/35 bg-[#e8ddd0] p-5 text-[#153047]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-orange-600">Next Achievement</p>
-                <h2 className="mt-1 text-lg font-semibold">{nextAchievement.achievement.title}</h2>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-orange-200">
-                  <div className="h-full rounded-full bg-orange-500" style={{ width: `${nextAchievement.progress.percentage}%` }} />
-                </div>
-                <p className="mt-2 text-xs font-semibold text-orange-600">{nextAchievement.progress.current} / {nextAchievement.progress.target}</p>
-              </section>
-            )}
-
-            <section className="mt-6">{renderAchievementCards()}</section>
-          </main>
+          <AchievementsGallery
+            earnedAchievementIds={earnedAchievementIds}
+            achievementMetrics={achievementMetrics}
+            currentStreak={currentStreak}
+            onBack={() => setShowAchievementsOnly(false)}
+          />
         </div>
       </div>
     )
   }
 
-  const milestonePreview = earnedAchievements.length > 0 ? earnedAchievements.slice(-4).reverse() : achievements.slice(0, 4)
+  const milestonePreview = earnedAchievements.length > 0
+    ? earnedAchievements.slice(-4).reverse()
+    : achievements.slice(0, 4)
 
   return (
     <div className="min-h-screen bg-[#041326] text-white">
@@ -330,7 +209,16 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
               <p className="text-xs font-semibold tracking-[0.2em] text-cyan-400">PROJECT 3|26</p>
               <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Your Journey</h1>
             </div>
-            <button type="button" onClick={openAchievements} className={`relative flex h-11 w-11 items-center justify-center rounded-2xl border text-orange-400 ${unseenAchievementIds.length > 0 ? 'animate-pulse border-orange-300 bg-orange-500/30 shadow-[0_0_28px_rgba(249,115,22,0.75)]' : 'border-white/10 bg-[#0c2138]'}`} aria-label="Achievements">
+            <button
+              type="button"
+              onClick={openAchievements}
+              className={`relative flex h-11 w-11 items-center justify-center rounded-2xl border text-orange-400 ${
+                unseenAchievementIds.length > 0
+                  ? 'animate-pulse border-orange-300 bg-orange-500/30 shadow-[0_0_28px_rgba(249,115,22,0.75)]'
+                  : 'border-white/10 bg-[#0c2138]'
+              }`}
+              aria-label="Achievements"
+            >
               <Rocket size={21} />
             </button>
           </header>
@@ -351,7 +239,11 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
                 <p className="mt-2 text-sm text-slate-200 sm:text-base">Keep moving. One faithful day at a time.</p>
 
                 {nextAchievement && (
-                  <button type="button" onClick={openAchievements} className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-left backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={openAchievements}
+                    className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-left backdrop-blur-sm"
+                  >
                     <Trophy size={18} className="text-orange-300" />
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-orange-200">Next milestone</p>
@@ -365,7 +257,11 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
 
           <section className="mt-7">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">Today on the Journey</p>
-            <button type="button" onClick={openChapterOfDay} className="group mt-3 flex w-full items-center gap-4 rounded-[26px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] sm:p-5">
+            <button
+              type="button"
+              onClick={openChapterOfDay}
+              className="group mt-3 flex w-full items-center gap-4 rounded-[26px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] sm:p-5"
+            >
               <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-800">
                 <span className="text-[9px] font-bold uppercase tracking-[0.14em]">Day</span>
                 <span className="text-2xl font-bold leading-none">{sharedJourney.cycleDay}</span>
@@ -383,7 +279,7 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-400">Milestones</p>
-                <h2 className="mt-1 text-xl font-semibold">What you’ve earned</h2>
+                <h2 className="mt-1 text-xl font-semibold">Your badge collection</h2>
               </div>
               <button type="button" onClick={openAchievements} className="text-xs font-semibold text-orange-300">View all →</button>
             </div>
@@ -392,8 +288,13 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
               {milestonePreview.map((achievement) => {
                 const earned = earnedAchievementIds.includes(achievement.id)
                 return (
-                  <button key={achievement.id} type="button" onClick={openAchievements} className="flex min-w-28 flex-col items-center rounded-[22px] border border-white/10 bg-[#0c2138] p-3 text-center">
-                    <AchievementBadge achievement={achievement} earned={earned} compact />
+                  <button
+                    key={achievement.id}
+                    type="button"
+                    onClick={openAchievements}
+                    className="flex min-w-32 flex-col items-center rounded-[22px] border border-white/10 bg-[#0c2138] p-3 text-center"
+                  >
+                    <BadgeMedallion achievement={achievement} earned={earned} size="sm" showCheck />
                     <span className="mt-2 text-xs font-semibold text-slate-200">{achievement.title}</span>
                   </button>
                 )
@@ -421,7 +322,16 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
                 ['completed', 'Completed'],
                 ['development', 'Development'],
               ].map(([id, label]) => (
-                <button key={id} type="button" onClick={() => setBookFilter(id)} className={`shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${bookFilter === id ? 'border-cyan-500 bg-cyan-500 text-[#041326]' : 'border-white/10 bg-[#0c2138] text-slate-300'}`}>
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setBookFilter(id)}
+                  className={`shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                    bookFilter === id
+                      ? 'border-cyan-500 bg-cyan-500 text-[#041326]'
+                      : 'border-white/10 bg-[#0c2138] text-slate-300'
+                  }`}
+                >
                   {label}
                 </button>
               ))}
@@ -436,12 +346,24 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
 
                 return (
                   <article key={book.id} className="relative pl-12">
-                    {index < filteredBooks.length - 1 && <div className="absolute left-[19px] top-10 h-[calc(100%+12px)] w-px bg-white/10" />}
-                    <div className={`absolute left-0 top-3 flex h-10 w-10 items-center justify-center rounded-full border-2 ${book.isComplete ? 'border-cyan-300 bg-cyan-500 text-white' : book.hasProgress ? 'border-cyan-400 bg-[#0c2138] text-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.25)]' : 'border-white/10 bg-[#0c2138] text-slate-600'}`}>
+                    {index < filteredBooks.length - 1 && (
+                      <div className="absolute left-[19px] top-10 h-[calc(100%+12px)] w-px bg-white/10" />
+                    )}
+                    <div className={`absolute left-0 top-3 flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                      book.isComplete
+                        ? 'border-cyan-300 bg-cyan-500 text-white'
+                        : book.hasProgress
+                          ? 'border-cyan-400 bg-[#0c2138] text-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.25)]'
+                          : 'border-white/10 bg-[#0c2138] text-slate-600'
+                    }`}>
                       {book.isComplete ? <Check size={17} /> : isDevelopment ? <Lock size={15} /> : <BookOpen size={15} />}
                     </div>
 
-                    <div className={`rounded-[22px] border p-4 ${isDevelopment ? 'border-white/5 bg-[#0c2138]/60 text-slate-500' : 'border-white/10 bg-[#0c2138] text-white'}`}>
+                    <div className={`rounded-[22px] border p-4 ${
+                      isDevelopment
+                        ? 'border-white/5 bg-[#0c2138]/60 text-slate-500'
+                        : 'border-white/10 bg-[#0c2138] text-white'
+                    }`}>
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className="font-semibold">{book.name}</p>
