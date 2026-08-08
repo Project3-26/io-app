@@ -7,492 +7,22 @@ import {
   Minus,
   Plus,
 } from 'lucide-react'
-
-const bibleBooks = [
-  {
-    id: 'genesis',
-    name: 'Genesis',
-    abbreviation: 'Gen',
-    chapters: 50,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'exodus',
-    name: 'Exodus',
-    abbreviation: 'Ex',
-    chapters: 40,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'leviticus',
-    name: 'Leviticus',
-    abbreviation: 'Lev',
-    chapters: 27,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'numbers',
-    name: 'Numbers',
-    abbreviation: 'Num',
-    chapters: 36,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'deuteronomy',
-    name: 'Deuteronomy',
-    abbreviation: 'Deut',
-    chapters: 34,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'joshua',
-    name: 'Joshua',
-    abbreviation: 'Josh',
-    chapters: 24,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'judges',
-    name: 'Judges',
-    abbreviation: 'Judg',
-    chapters: 21,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'ruth',
-    name: 'Ruth',
-    abbreviation: 'Ruth',
-    chapters: 4,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'first-samuel',
-    name: '1 Samuel',
-    abbreviation: '1 Sam',
-    chapters: 31,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'second-samuel',
-    name: '2 Samuel',
-    abbreviation: '2 Sam',
-    chapters: 24,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'first-kings',
-    name: '1 Kings',
-    abbreviation: '1 Kings',
-    chapters: 22,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'second-kings',
-    name: '2 Kings',
-    abbreviation: '2 Kings',
-    chapters: 25,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'first-chronicles',
-    name: '1 Chronicles',
-    abbreviation: '1 Chron',
-    chapters: 29,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'second-chronicles',
-    name: '2 Chronicles',
-    abbreviation: '2 Chron',
-    chapters: 36,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'ezra',
-    name: 'Ezra',
-    abbreviation: 'Ezra',
-    chapters: 10,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'nehemiah',
-    name: 'Nehemiah',
-    abbreviation: 'Neh',
-    chapters: 13,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'esther',
-    name: 'Esther',
-    abbreviation: 'Esth',
-    chapters: 10,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'job',
-    name: 'Job',
-    abbreviation: 'Job',
-    chapters: 42,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'psalms',
-    name: 'Psalms',
-    abbreviation: 'Ps',
-    chapters: 150,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'proverbs',
-    name: 'Proverbs',
-    abbreviation: 'Prov',
-    chapters: 31,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'ecclesiastes',
-    name: 'Ecclesiastes',
-    abbreviation: 'Eccl',
-    chapters: 12,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'song-of-solomon',
-    name: 'Song of Solomon',
-    abbreviation: 'Song',
-    chapters: 8,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'isaiah',
-    name: 'Isaiah',
-    abbreviation: 'Isa',
-    chapters: 66,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'jeremiah',
-    name: 'Jeremiah',
-    abbreviation: 'Jer',
-    chapters: 52,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'lamentations',
-    name: 'Lamentations',
-    abbreviation: 'Lam',
-    chapters: 5,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'ezekiel',
-    name: 'Ezekiel',
-    abbreviation: 'Ezek',
-    chapters: 48,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'daniel',
-    name: 'Daniel',
-    abbreviation: 'Dan',
-    chapters: 12,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'hosea',
-    name: 'Hosea',
-    abbreviation: 'Hos',
-    chapters: 14,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'joel',
-    name: 'Joel',
-    abbreviation: 'Joel',
-    chapters: 3,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'amos',
-    name: 'Amos',
-    abbreviation: 'Amos',
-    chapters: 9,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'obadiah',
-    name: 'Obadiah',
-    abbreviation: 'Obad',
-    chapters: 1,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'jonah',
-    name: 'Jonah',
-    abbreviation: 'Jonah',
-    chapters: 4,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'micah',
-    name: 'Micah',
-    abbreviation: 'Mic',
-    chapters: 7,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'nahum',
-    name: 'Nahum',
-    abbreviation: 'Nah',
-    chapters: 3,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'habakkuk',
-    name: 'Habakkuk',
-    abbreviation: 'Hab',
-    chapters: 3,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'zephaniah',
-    name: 'Zephaniah',
-    abbreviation: 'Zeph',
-    chapters: 3,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'haggai',
-    name: 'Haggai',
-    abbreviation: 'Hag',
-    chapters: 2,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'zechariah',
-    name: 'Zechariah',
-    abbreviation: 'Zech',
-    chapters: 14,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'malachi',
-    name: 'Malachi',
-    abbreviation: 'Mal',
-    chapters: 4,
-    testament: 'Old Testament',
-  },
-  {
-    id: 'matthew',
-    name: 'Matthew',
-    abbreviation: 'Matt',
-    chapters: 28,
-    testament: 'New Testament',
-  },
-  {
-    id: 'mark',
-    name: 'Mark',
-    abbreviation: 'Mark',
-    chapters: 16,
-    testament: 'New Testament',
-  },
-  {
-    id: 'luke',
-    name: 'Luke',
-    abbreviation: 'Luke',
-    chapters: 24,
-    testament: 'New Testament',
-  },
-  {
-    id: 'john',
-    name: 'John',
-    abbreviation: 'John',
-    chapters: 21,
-    testament: 'New Testament',
-  },
-  {
-    id: 'acts',
-    name: 'Acts',
-    abbreviation: 'Acts',
-    chapters: 28,
-    testament: 'New Testament',
-  },
-  {
-    id: 'romans',
-    name: 'Romans',
-    abbreviation: 'Rom',
-    chapters: 16,
-    testament: 'New Testament',
-  },
-  {
-    id: 'first-corinthians',
-    name: '1 Corinthians',
-    abbreviation: '1 Cor',
-    chapters: 16,
-    testament: 'New Testament',
-  },
-  {
-    id: 'second-corinthians',
-    name: '2 Corinthians',
-    abbreviation: '2 Cor',
-    chapters: 13,
-    testament: 'New Testament',
-  },
-  {
-    id: 'galatians',
-    name: 'Galatians',
-    abbreviation: 'Gal',
-    chapters: 6,
-    testament: 'New Testament',
-  },
-  {
-    id: 'ephesians',
-    name: 'Ephesians',
-    abbreviation: 'Eph',
-    chapters: 6,
-    testament: 'New Testament',
-  },
-  {
-    id: 'philippians',
-    name: 'Philippians',
-    abbreviation: 'Phil',
-    chapters: 4,
-    testament: 'New Testament',
-  },
-  {
-    id: 'colossians',
-    name: 'Colossians',
-    abbreviation: 'Col',
-    chapters: 4,
-    testament: 'New Testament',
-  },
-  {
-    id: 'first-thessalonians',
-    name: '1 Thessalonians',
-    abbreviation: '1 Thess',
-    chapters: 5,
-    testament: 'New Testament',
-  },
-  {
-    id: 'second-thessalonians',
-    name: '2 Thessalonians',
-    abbreviation: '2 Thess',
-    chapters: 3,
-    testament: 'New Testament',
-  },
-  {
-    id: 'first-timothy',
-    name: '1 Timothy',
-    abbreviation: '1 Tim',
-    chapters: 6,
-    testament: 'New Testament',
-  },
-  {
-    id: 'second-timothy',
-    name: '2 Timothy',
-    abbreviation: '2 Tim',
-    chapters: 4,
-    testament: 'New Testament',
-  },
-  {
-    id: 'titus',
-    name: 'Titus',
-    abbreviation: 'Titus',
-    chapters: 3,
-    testament: 'New Testament',
-  },
-  {
-    id: 'philemon',
-    name: 'Philemon',
-    abbreviation: 'Philem',
-    chapters: 1,
-    testament: 'New Testament',
-  },
-  {
-    id: 'hebrews',
-    name: 'Hebrews',
-    abbreviation: 'Heb',
-    chapters: 13,
-    testament: 'New Testament',
-  },
-  {
-    id: 'james',
-    name: 'James',
-    abbreviation: 'James',
-    chapters: 5,
-    testament: 'New Testament',
-  },
-  {
-    id: 'first-peter',
-    name: '1 Peter',
-    abbreviation: '1 Pet',
-    chapters: 5,
-    testament: 'New Testament',
-  },
-  {
-    id: 'second-peter',
-    name: '2 Peter',
-    abbreviation: '2 Pet',
-    chapters: 3,
-    testament: 'New Testament',
-  },
-  {
-    id: 'first-john',
-    name: '1 John',
-    abbreviation: '1 John',
-    chapters: 5,
-    testament: 'New Testament',
-  },
-  {
-    id: 'second-john',
-    name: '2 John',
-    abbreviation: '2 John',
-    chapters: 1,
-    testament: 'New Testament',
-  },
-  {
-    id: 'third-john',
-    name: '3 John',
-    abbreviation: '3 John',
-    chapters: 1,
-    testament: 'New Testament',
-  },
-  {
-    id: 'jude',
-    name: 'Jude',
-    abbreviation: 'Jude',
-    chapters: 1,
-    testament: 'New Testament',
-  },
-  {
-    id: 'revelation',
-    name: 'Revelation',
-    abbreviation: 'Rev',
-    chapters: 22,
-    testament: 'New Testament',
-  },
-]
+import { bibleBooks } from '../data/bibleBooks'
+import { john1Scripture } from '../data/john1Scripture'
 
 function BibleReader({
   initialBookId = 'john',
   initialChapter = 1,
 }) {
-  const [selectedBookId, setSelectedBookId] =
-    useState(initialBookId)
-
-  const [selectedChapter, setSelectedChapter] =
-    useState(initialChapter)
-
+  const [selectedBookId, setSelectedBookId] = useState(initialBookId)
+  const [selectedChapter, setSelectedChapter] = useState(initialChapter)
   const [currentView, setCurrentView] = useState(() => {
     const requestedView = sessionStorage.getItem(
       'project326-bible-start-view',
     )
 
-    return requestedView === 'books'
-      ? 'books'
-      : 'reader'
+    return requestedView === 'books' ? 'books' : 'reader'
   })
-
   const [fontSize, setFontSize] = useState(18)
 
   useEffect(() => {
@@ -502,36 +32,23 @@ function BibleReader({
 
     if (requestedView === 'books') {
       setCurrentView('books')
-
-      sessionStorage.removeItem(
-        'project326-bible-start-view',
-      )
+      sessionStorage.removeItem('project326-bible-start-view')
     }
   }, [])
 
   const selectedBook = useMemo(
     () =>
-      bibleBooks.find(
-        (book) => book.id === selectedBookId,
-      ) || bibleBooks[0],
+      bibleBooks.find((book) => book.id === selectedBookId) || bibleBooks[0],
     [selectedBookId],
   )
 
   const oldTestamentBooks = useMemo(
-    () =>
-      bibleBooks.filter(
-        (book) =>
-          book.testament === 'Old Testament',
-      ),
+    () => bibleBooks.filter((book) => book.testament === 'Old Testament'),
     [],
   )
 
   const newTestamentBooks = useMemo(
-    () =>
-      bibleBooks.filter(
-        (book) =>
-          book.testament === 'New Testament',
-      ),
+    () => bibleBooks.filter((book) => book.testament === 'New Testament'),
     [],
   )
 
@@ -544,6 +61,10 @@ function BibleReader({
     [selectedBook],
   )
 
+  const hasLocalScripture =
+    selectedBookId === john1Scripture.bookId &&
+    selectedChapter === john1Scripture.chapterNumber
+
   function selectBook(bookId) {
     setSelectedBookId(bookId)
     setSelectedChapter(1)
@@ -554,81 +75,49 @@ function BibleReader({
     setSelectedChapter(chapterNumber)
     setCurrentView('reader')
 
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth',
-    })
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
   }
 
   function goToPreviousChapter() {
     if (selectedChapter > 1) {
-      setSelectedChapter(
-        (current) => current - 1,
-      )
+      setSelectedChapter((current) => current - 1)
       return
     }
 
-    const currentBookIndex =
-      bibleBooks.findIndex(
-        (book) =>
-          book.id === selectedBook.id,
-      )
-
-    if (currentBookIndex <= 0) {
-      return
-    }
-
-    const previousBook =
-      bibleBooks[currentBookIndex - 1]
-
-    setSelectedBookId(previousBook.id)
-    setSelectedChapter(
-      previousBook.chapters,
+    const currentBookIndex = bibleBooks.findIndex(
+      (book) => book.id === selectedBook.id,
     )
+
+    if (currentBookIndex <= 0) return
+
+    const previousBook = bibleBooks[currentBookIndex - 1]
+    setSelectedBookId(previousBook.id)
+    setSelectedChapter(previousBook.chapters)
   }
 
   function goToNextChapter() {
-    if (
-      selectedChapter <
-      selectedBook.chapters
-    ) {
-      setSelectedChapter(
-        (current) => current + 1,
-      )
+    if (selectedChapter < selectedBook.chapters) {
+      setSelectedChapter((current) => current + 1)
       return
     }
 
-    const currentBookIndex =
-      bibleBooks.findIndex(
-        (book) =>
-          book.id === selectedBook.id,
-      )
+    const currentBookIndex = bibleBooks.findIndex(
+      (book) => book.id === selectedBook.id,
+    )
 
-    if (
-      currentBookIndex >=
-      bibleBooks.length - 1
-    ) {
-      return
-    }
+    if (currentBookIndex >= bibleBooks.length - 1) return
 
-    const nextBook =
-      bibleBooks[currentBookIndex + 1]
-
+    const nextBook = bibleBooks[currentBookIndex + 1]
     setSelectedBookId(nextBook.id)
     setSelectedChapter(1)
   }
 
   function decreaseFontSize() {
-    setFontSize((current) =>
-      Math.max(current - 2, 14),
-    )
+    setFontSize((current) => Math.max(current - 2, 14))
   }
 
   function increaseFontSize() {
-    setFontSize((current) =>
-      Math.min(current + 2, 28),
-    )
+    setFontSize((current) => Math.min(current + 2, 28))
   }
 
   function renderBookButtons(books) {
@@ -638,24 +127,16 @@ function BibleReader({
           <button
             key={book.id}
             type="button"
-            onClick={() =>
-              selectBook(book.id)
-            }
+            onClick={() => selectBook(book.id)}
             className={`min-h-14 rounded-xl border px-3 py-3 text-left transition active:scale-[0.97] ${
               selectedBookId === book.id
                 ? 'border-cyan-400/40 bg-[#c7dce7] text-cyan-700'
                 : 'border-[#c8d3db] bg-[#edf2f4] text-[#153047] hover:border-cyan-400/40 hover:bg-[#e7eef2]'
             }`}
           >
-            <span className="block text-sm font-semibold">
-              {book.name}
-            </span>
-
+            <span className="block text-sm font-semibold">{book.name}</span>
             <span className="mt-1 block text-[11px] text-slate-500">
-              {book.chapters}{' '}
-              {book.chapters === 1
-                ? 'chapter'
-                : 'chapters'}
+              {book.chapters} {book.chapters === 1 ? 'chapter' : 'chapters'}
             </span>
           </button>
         ))}
@@ -671,16 +152,11 @@ function BibleReader({
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
               <BookOpen size={21} />
             </div>
-
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
                 NASB 1995
               </p>
-
-              <h2 className="mt-1.5 text-xl font-semibold">
-                Choose a Book
-              </h2>
-
+              <h2 className="mt-1.5 text-xl font-semibold">Choose a Book</h2>
               <p className="mt-1.5 text-sm text-slate-500">
                 Select the book you want to read.
               </p>
@@ -692,7 +168,6 @@ function BibleReader({
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
             Old Testament
           </h3>
-
           {renderBookButtons(oldTestamentBooks)}
         </section>
 
@@ -700,7 +175,6 @@ function BibleReader({
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
             New Testament
           </h3>
-
           {renderBookButtons(newTestamentBooks)}
         </section>
       </div>
@@ -713,9 +187,7 @@ function BibleReader({
         <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047] shadow-lg shadow-black/10">
           <button
             type="button"
-            onClick={() =>
-              setCurrentView('books')
-            }
+            onClick={() => setCurrentView('books')}
             className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700"
           >
             <ArrowLeft size={17} />
@@ -726,16 +198,11 @@ function BibleReader({
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
               <BookOpen size={21} />
             </div>
-
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
                 NASB 1995
               </p>
-
-              <h2 className="mt-1.5 text-xl font-semibold">
-                {selectedBook.name}
-              </h2>
-
+              <h2 className="mt-1.5 text-xl font-semibold">{selectedBook.name}</h2>
               <p className="mt-1.5 text-sm text-slate-500">
                 Choose a chapter to begin reading.
               </p>
@@ -745,28 +212,21 @@ function BibleReader({
 
         <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
           <div className="grid grid-cols-5 gap-2 min-[420px]:grid-cols-6 sm:grid-cols-8">
-            {chapterOptions.map(
-              (chapterNumber) => (
-                <button
-                  key={chapterNumber}
-                  type="button"
-                  onClick={() =>
-                    selectChapter(
-                      chapterNumber,
-                    )
-                  }
-                  className={`flex aspect-square items-center justify-center rounded-xl border text-sm font-semibold transition active:scale-90 ${
-                    selectedChapter ===
-                    chapterNumber
-                      ? 'border-cyan-400/50 bg-cyan-500 text-white'
-                      : 'border-[#c8d3db] bg-[#edf2f4] text-[#153047] hover:border-cyan-400/40 hover:bg-[#e7eef2]'
-                  }`}
-                  aria-label={`${selectedBook.name} chapter ${chapterNumber}`}
-                >
-                  {chapterNumber}
-                </button>
-              ),
-            )}
+            {chapterOptions.map((chapterNumber) => (
+              <button
+                key={chapterNumber}
+                type="button"
+                onClick={() => selectChapter(chapterNumber)}
+                className={`flex aspect-square items-center justify-center rounded-xl border text-sm font-semibold transition active:scale-90 ${
+                  selectedChapter === chapterNumber
+                    ? 'border-cyan-400/50 bg-cyan-500 text-white'
+                    : 'border-[#c8d3db] bg-[#edf2f4] text-[#153047] hover:border-cyan-400/40 hover:bg-[#e7eef2]'
+                }`}
+                aria-label={`${selectedBook.name} chapter ${chapterNumber}`}
+              >
+                {chapterNumber}
+              </button>
+            ))}
           </div>
         </section>
       </div>
@@ -779,33 +239,23 @@ function BibleReader({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
-            onClick={() =>
-              setCurrentView('books')
-            }
+            onClick={() => setCurrentView('books')}
             className="flex items-center gap-3 rounded-xl border border-[#c8d3db] bg-[#edf2f4] px-4 py-3 text-left transition hover:border-cyan-400/40 hover:bg-[#e7eef2]"
           >
-            <BookOpen
-              size={20}
-              className="shrink-0 text-cyan-700"
-            />
-
+            <BookOpen size={20} className="shrink-0 text-cyan-700" />
             <div>
               <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-cyan-700">
                 Change Passage
               </span>
-
               <span className="mt-1 block text-base font-semibold">
-                {selectedBook.name}{' '}
-                {selectedChapter}
+                {selectedBook.name} {selectedChapter}
               </span>
             </div>
           </button>
 
           <button
             type="button"
-            onClick={() =>
-              setCurrentView('chapters')
-            }
+            onClick={() => setCurrentView('chapters')}
             className="rounded-xl border border-[#c8d3db] bg-[#edf2f4] px-4 py-3 text-sm font-semibold text-[#153047] transition hover:border-cyan-400/40 hover:bg-[#e7eef2]"
           >
             Choose Chapter
@@ -819,10 +269,8 @@ function BibleReader({
             <p className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
               New American Standard Bible 1995
             </p>
-
             <h2 className="mt-1 text-2xl font-semibold">
-              {selectedBook.name}{' '}
-              {selectedChapter}
+              {selectedBook.name} {selectedChapter}
             </h2>
           </div>
 
@@ -835,7 +283,6 @@ function BibleReader({
             >
               <Minus size={17} />
             </button>
-
             <button
               type="button"
               onClick={increaseFontSize}
@@ -847,25 +294,42 @@ function BibleReader({
           </div>
         </div>
 
-        <div
-          className="py-10 text-center leading-8 text-slate-600"
-          style={{
-            fontSize: `${fontSize}px`,
-          }}
-        >
-          <BookOpen
-            size={36}
-            className="mx-auto text-cyan-700"
-          />
-
-          <p className="mx-auto mt-4 max-w-lg">
-            NASB 1995 Scripture text for{' '}
-            {selectedBook.name}{' '}
-            {selectedChapter} will appear here after the licensed
-            electronic files from The Lockman Foundation are
-            imported.
-          </p>
-        </div>
+        {hasLocalScripture ? (
+          <div
+            className="py-2 leading-[1.85] text-[#243b50]"
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            {john1Scripture.sections.map((section) => (
+              <section key={section.heading} className="mt-7 first:mt-3">
+                <h3 className="mb-3 text-base font-bold text-[#153047] sm:text-lg">
+                  {section.heading}
+                </h3>
+                <p>
+                  {section.verses.map((verse) => (
+                    <span key={verse.number}>
+                      <sup className="mr-1 font-bold text-cyan-700">
+                        {verse.number}
+                      </sup>
+                      {verse.text}{' '}
+                    </span>
+                  ))}
+                </p>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="py-10 text-center leading-8 text-slate-600"
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            <BookOpen size={36} className="mx-auto text-cyan-700" />
+            <p className="mx-auto mt-4 max-w-lg">
+              NASB 1995 Scripture text for {selectedBook.name}{' '}
+              {selectedChapter} will appear here after the licensed electronic
+              files from The Lockman Foundation are imported.
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-3 border-t border-[#c8d3db] pt-4">
           <button
@@ -879,9 +343,7 @@ function BibleReader({
 
           <button
             type="button"
-            onClick={() =>
-              setCurrentView('chapters')
-            }
+            onClick={() => setCurrentView('chapters')}
             className="rounded-xl px-3 py-2.5 text-sm font-semibold text-cyan-700 transition hover:bg-[#edf2f4]"
           >
             Chapters
@@ -900,9 +362,9 @@ function BibleReader({
 
       <section className="rounded-2xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047]">
         <p className="text-xs leading-5 text-slate-500">
-          New American Standard Bible - NASB 1995. Copyright ©
-          1960, 1962, 1963, 1968, 1971, 1972, 1973, 1975, 1977,
-          1995 by The Lockman Foundation. All rights reserved.
+          New American Standard Bible - NASB 1995. Copyright © 1960, 1962,
+          1963, 1968, 1971, 1972, 1973, 1975, 1977, 1995 by The Lockman
+          Foundation. All rights reserved.
         </p>
       </section>
     </div>
