@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
 import ChapterPage from './pages/ChapterPage'
-import ConnectPage from './pages/ConnectPage'
 import ConnectRoomPage from './pages/ConnectRoomPage'
 import DashboardPage from './pages/DashboardPage'
 import JourneyPage from './pages/JourneyPage'
@@ -39,7 +38,7 @@ function App() {
     useState('john-1')
 
   const [selectedConnectRoomId, setSelectedConnectRoomId] =
-    useState('john-1')
+    useState('today')
 
   useEffect(() => {
     window.scrollTo({
@@ -47,14 +46,16 @@ function App() {
       left: 0,
       behavior: 'auto',
     })
-  }, [
-    currentPage,
-    selectedChapterId,
-    selectedConnectRoomId,
-  ])
+  }, [currentPage, selectedChapterId])
 
   function handleNavigate(pageId) {
     if (!NAVIGATION_PAGES.includes(pageId)) {
+      return
+    }
+
+    if (pageId === PAGE_IDS.connect) {
+      setSelectedConnectRoomId('today')
+      setCurrentPage(PAGE_IDS.connectRoom)
       return
     }
 
@@ -80,17 +81,8 @@ function App() {
     setCurrentPage(PAGE_IDS.dashboard)
   }
 
-  function handleOpenConnectRoom(roomId) {
-    setSelectedConnectRoomId(roomId)
-    setCurrentPage(PAGE_IDS.connectRoom)
-  }
-
   function handleSelectConnectRoom(roomId) {
     setSelectedConnectRoomId(roomId)
-  }
-
-  function handleBackToConnect() {
-    setCurrentPage(PAGE_IDS.connect)
   }
 
   function handleOpenNotifications() {
@@ -130,22 +122,15 @@ function App() {
     )
   }
 
-  if (currentPage === PAGE_IDS.connectRoom) {
+  if (
+    currentPage === PAGE_IDS.connect ||
+    currentPage === PAGE_IDS.connectRoom
+  ) {
     return (
       <ConnectRoomPage
         selectedRoomId={selectedConnectRoomId}
         onSelectRoom={handleSelectConnectRoom}
-        onBack={handleBackToConnect}
         onNavigate={handleNavigate}
-      />
-    )
-  }
-
-  if (currentPage === PAGE_IDS.connect) {
-    return (
-      <ConnectPage
-        onNavigate={handleNavigate}
-        onOpenRoom={handleOpenConnectRoom}
       />
     )
   }
