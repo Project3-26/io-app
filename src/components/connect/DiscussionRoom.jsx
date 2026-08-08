@@ -46,6 +46,33 @@ const defaultStartingPosts = [
   },
 ]
 
+const themes = {
+  connect: {
+    contextBadge: 'bg-cyan-400/10 text-cyan-300',
+    notice: 'border-cyan-400/15 bg-cyan-400/[0.06] text-cyan-200',
+    chatPanel: 'bg-[#071a2d]',
+    avatar: 'bg-[#c7dce7] text-cyan-800',
+    ownerBubble: 'bg-cyan-600 text-white',
+    ownerTime: 'text-cyan-100/75',
+    reactionMine: 'border-cyan-400/40 bg-cyan-400/15 text-cyan-200',
+    composer: 'bg-[#081b2d]/95',
+    inputFocus: 'focus:border-cyan-400/35',
+    sendButton: 'bg-cyan-400 text-[#06111b]',
+  },
+  church: {
+    contextBadge: 'bg-amber-300/15 text-amber-200',
+    notice: 'border-amber-300/20 bg-amber-300/[0.08] text-amber-100',
+    chatPanel: 'bg-[#151713]',
+    avatar: 'bg-[#ead8bd] text-[#7a4d1d]',
+    ownerBubble: 'bg-[#b86f42] text-white',
+    ownerTime: 'text-orange-100/80',
+    reactionMine: 'border-amber-300/40 bg-amber-300/15 text-amber-100',
+    composer: 'bg-[#171914]/95',
+    inputFocus: 'focus:border-amber-300/40',
+    sendButton: 'bg-[#d89a62] text-[#24180d]',
+  },
+}
+
 function normalizePosts(posts) {
   return posts.map((post) => ({
     ...post,
@@ -63,7 +90,9 @@ function DiscussionRoom({
   contextLabel = 'Live conversation',
   contextPrompts = ['What stood out?', 'What confused you?', 'How might you live this?'],
   startingPosts = defaultStartingPosts,
+  theme = 'connect',
 }) {
+  const palette = themes[theme] || themes.connect
   const [posts, setPosts] = useState(() => {
     try {
       const savedPosts = localStorage.getItem(storageKey)
@@ -181,7 +210,7 @@ function DiscussionRoom({
     <div className="pb-24 lg:pb-28">
       <section className="rounded-[22px] border border-white/10 bg-[#0c2138] px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          <span className="rounded-full bg-cyan-400/10 px-2.5 py-1 font-semibold text-cyan-300">
+          <span className={`rounded-full px-2.5 py-1 font-semibold ${palette.contextBadge}`}>
             {contextLabel}
           </span>
           {contextPrompts.map((item, index) => (
@@ -194,12 +223,12 @@ function DiscussionRoom({
       </section>
 
       {notice && (
-        <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-3 text-sm text-cyan-200">
+        <div className={`mt-3 rounded-2xl border p-3 text-sm ${palette.notice}`}>
           {notice}
         </div>
       )}
 
-      <div className="mt-4 rounded-[24px] border border-white/10 bg-[#071a2d] p-3 sm:p-4">
+      <div className={`mt-4 rounded-[24px] border border-white/10 p-3 sm:p-4 ${palette.chatPanel}`}>
         <div className="max-h-[58vh] space-y-4 overflow-y-auto pr-1">
           {visiblePosts.map((post) => {
             const isOwner = post.name === CURRENT_USER
@@ -210,16 +239,16 @@ function DiscussionRoom({
                 <div className={`relative max-w-[84%] sm:max-w-[72%] ${isOwner ? 'text-right' : 'text-left'}`}>
                   {!isOwner && (
                     <div className="mb-1.5 flex items-center gap-2 px-1">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#c7dce7] text-[10px] font-bold text-cyan-800">
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${palette.avatar}`}>
                         {post.name.split(' ').map((part) => part[0]).join('').slice(0, 2)}
                       </div>
                       <span className="text-xs font-semibold text-slate-300">{post.name}</span>
                     </div>
                   )}
 
-                  <div className={`relative rounded-2xl px-4 py-3 shadow-md ${isOwner ? 'rounded-br-md bg-cyan-600 text-white' : 'rounded-bl-md border border-white/10 bg-[#12283d] text-slate-100'}`}>
+                  <div className={`relative rounded-2xl px-4 py-3 shadow-md ${isOwner ? `rounded-br-md ${palette.ownerBubble}` : 'rounded-bl-md border border-white/10 bg-[#12283d] text-slate-100'}`}>
                     <p className="text-sm leading-6">{post.message}</p>
-                    <div className={`mt-1.5 text-[10px] ${isOwner ? 'text-cyan-100/75' : 'text-slate-500'}`}>
+                    <div className={`mt-1.5 text-[10px] ${isOwner ? palette.ownerTime : 'text-slate-500'}`}>
                       {post.timestamp}
                     </div>
 
@@ -253,7 +282,7 @@ function DiscussionRoom({
                     {visibleReactions.map(([emoji, count]) => {
                       const mine = post.myReactions.includes(emoji)
                       return (
-                        <button key={emoji} type="button" onClick={() => toggleReaction(post.id, emoji)} className={`flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition ${mine ? 'border-cyan-400/40 bg-cyan-400/15 text-cyan-200' : 'border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.07]'}`}>
+                        <button key={emoji} type="button" onClick={() => toggleReaction(post.id, emoji)} className={`flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition ${mine ? palette.reactionMine : 'border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.07]'}`}>
                           <span>{emoji}</span><span>{count}</span>
                         </button>
                       )
@@ -284,10 +313,10 @@ function DiscussionRoom({
 
       <div className="fixed inset-x-0 bottom-[calc(4.9rem+env(safe-area-inset-bottom))] z-40 px-4 lg:bottom-4 lg:left-24 lg:px-8">
         <div className="mx-auto w-full max-w-5xl">
-          <form onSubmit={handleSubmit} className="rounded-[20px] border border-white/10 bg-[#081b2d]/95 p-2.5 shadow-[0_-10px_35px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-3">
+          <form onSubmit={handleSubmit} className={`rounded-[20px] border border-white/10 p-2.5 shadow-[0_-10px_35px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-3 ${palette.composer}`}>
             <div className="flex items-end gap-2">
-              <textarea id="discussion-message" value={message} onChange={(event) => setMessage(event.target.value)} rows={1} maxLength={280} placeholder={prompt} className="min-h-11 max-h-28 flex-1 resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/35" />
-              <button type="submit" disabled={!message.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-400 text-[#06111b] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Send message">
+              <textarea id="discussion-message" value={message} onChange={(event) => setMessage(event.target.value)} rows={1} maxLength={280} placeholder={prompt} className={`min-h-11 max-h-28 flex-1 resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 ${palette.inputFocus}`} />
+              <button type="submit" disabled={!message.trim()} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 ${palette.sendButton}`} aria-label="Send message">
                 <Send size={18} />
               </button>
             </div>
