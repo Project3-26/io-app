@@ -205,7 +205,7 @@ export function openSharedJourneyChapter(
         sharedJourney.chapterId,
       tab,
       createdAt: Date.now(),
-    }),
+    }),  
   )
 
   onOpenChapter(
