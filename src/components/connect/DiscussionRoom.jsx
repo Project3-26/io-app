@@ -1,35 +1,46 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   EyeOff,
   Flag,
-  Heart,
   MoreHorizontal,
   Send,
+  SmilePlus,
   Trash2,
 } from 'lucide-react'
-import { mockChapter } from '../../data/mockChapter'
+import { sharedJourney } from '../../data/sharedJourney'
 
-const STORAGE_KEY = `project326-discussion-${mockChapter.id}`
+const STORAGE_KEY = `project326-discussion-${sharedJourney.chapterId || 'today'}`
 const CURRENT_USER = 'Brian Cooper'
+const REACTIONS = ['👍', '❤️', '🙏', '🔥', '👀']
 
 const startingPosts = [
   {
     id: 1,
     name: 'Sarah M.',
-    message:
-      'God did not remain distant. The Word became flesh and came near.',
-    likes: 8,
-    isLiked: false,
+    message: 'God did not remain distant. The Word became flesh and came near.',
+    timestamp: '9:14 AM',
+    reactions: { '❤️': 4, '🙏': 3 },
+    myReactions: [],
     reported: false,
     hidden: false,
   },
   {
     id: 2,
     name: 'Marcus T.',
-    message:
-      'Jesus is where heaven and earth meet.',
-    likes: 5,
-    isLiked: false,
+    message: 'Jesus is where heaven and earth meet. That really stood out to me today.',
+    timestamp: '9:22 AM',
+    reactions: { '🔥': 3, '👍': 2 },
+    myReactions: [],
+    reported: false,
+    hidden: false,
+  },
+  {
+    id: 3,
+    name: 'Elena R.',
+    message: 'The phrase “full of grace and truth” keeps pulling me back in.',
+    timestamp: '9:37 AM',
+    reactions: { '👀': 2, '❤️': 1 },
+    myReactions: [],
     reported: false,
     hidden: false,
   },
@@ -38,13 +49,13 @@ const startingPosts = [
 function getSavedPosts() {
   try {
     const savedPosts = localStorage.getItem(STORAGE_KEY)
-
-    const posts = savedPosts
-      ? JSON.parse(savedPosts)
-      : startingPosts
+    const posts = savedPosts ? JSON.parse(savedPosts) : startingPosts
 
     return posts.map((post) => ({
       ...post,
+      timestamp: post.timestamp || 'Just now',
+      reactions: post.reactions || {},
+      myReactions: post.myReactions || [],
       reported: post.reported || false,
       hidden: post.hidden || false,
     }))
@@ -57,15 +68,18 @@ function DiscussionRoom() {
   const [posts, setPosts] = useState(getSavedPosts)
   const [message, setMessage] = useState('')
   const [openMenuId, setOpenMenuId] = useState(null)
+  const [reactionPickerId, setReactionPickerId] = useState(null)
   const [notice, setNotice] = useState('')
   const [deletePostId, setDeletePostId] = useState(null)
+  const bottomRef = useRef(null)
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(posts),
-    )
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
   }, [posts])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [posts.length])
 
   function showNotice(text) {
     setNotice(text)
@@ -79,10 +93,12 @@ function DiscussionRoom() {
     event.preventDefault()
 
     const newMessage = message.trim()
+    if (!newMessage) return
 
-    if (!newMessage) {
-      return
-    }
+    const time = new Intl.DateTimeFormat([], {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date())
 
     setPosts((currentPosts) => [
       ...currentPosts,
@@ -90,8 +106,9 @@ function DiscussionRoom() {
         id: Date.now(),
         name: CURRENT_USER,
         message: newMessage,
-        likes: 0,
-        isLiked: false,
+        timestamp: time,
+        reactions: {},
+        myReactions: [],
         reported: false,
         hidden: false,
       },
@@ -100,246 +117,279 @@ function DiscussionRoom() {
     setMessage('')
   }
 
-  function toggleAmen(postId) {
+  function toggleReaction(postId, emoji) {
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
-        if (post.id !== postId) {
-          return post
+        if (post.id !== postId) return post
+
+        const hasReacted = post.myReactions.includes(emoji)
+        const currentCount = post.reactions[emoji] || 0
+        const nextReactions = { ...post.reactions }
+
+        if (hasReacted) {
+          const nextCount = Math.max(currentCount - 1, 0)
+
+          if (nextCount === 0) {
+            delete nextReactions[emoji]
+          } else {
+            nextReactions[emoji] = nextCount
+          }
+        } else {
+          nextReactions[emoji] = currentCount + 1
         }
 
         return {
           ...post,
-          isLiked: !post.isLiked,
-          likes: post.isLiked
-            ? Math.max(post.likes - 1, 0)
-            : post.likes + 1,
+          reactions: nextReactions,
+          myReactions: hasReacted
+            ? post.myReactions.filter((reaction) => reaction !== emoji)
+            : [...post.myReactions, emoji],
         }
       }),
     )
+
+    setReactionPickerId(null)
   }
 
   function reportPost(postId) {
     setPosts((currentPosts) =>
       currentPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              reported: true,
-            }
-          : post,
+        post.id === postId ? { ...post, reported: true } : post,
       ),
     )
 
     setOpenMenuId(null)
-    showNotice('This post has been reported for review.')
+    showNotice('This message has been reported for review.')
   }
 
   function hidePost(postId) {
     setPosts((currentPosts) =>
       currentPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              hidden: true,
-            }
-          : post,
+        post.id === postId ? { ...post, hidden: true } : post,
       ),
     )
 
     setOpenMenuId(null)
-    showNotice('Post hidden.')
+    showNotice('Message hidden.')
   }
 
   function confirmDeletePost() {
     setPosts((currentPosts) =>
-      currentPosts.filter(
-        (post) => post.id !== deletePostId,
-      ),
+      currentPosts.filter((post) => post.id !== deletePostId),
     )
 
     setDeletePostId(null)
     setOpenMenuId(null)
-    showNotice('Post deleted.')
+    showNotice('Message deleted.')
   }
 
-  const visiblePosts = posts.filter(
-    (post) => !post.hidden,
-  )
+  const visiblePosts = posts.filter((post) => !post.hidden)
 
   return (
     <div>
-      <section className="rounded-3xl border border-cyan-400/15 bg-cyan-400/[0.06] p-5">
-        <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">
-          Today’s Discussion
-        </p>
-
-        <h2 className="mt-2 text-xl font-bold">
-          What stood out to you?
-        </h2>
-
-        <p className="mt-2 text-sm text-slate-400">
-          Share one short thought from {mockChapter.reference}.
-        </p>
+      <section className="rounded-[22px] border border-white/10 bg-[#0c2138] px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <span className="rounded-full bg-cyan-400/10 px-2.5 py-1 font-semibold text-cyan-300">
+            Live conversation
+          </span>
+          <span>What stood out?</span>
+          <span>•</span>
+          <span>What confused you?</span>
+          <span>•</span>
+          <span>How might you live this?</span>
+        </div>
       </section>
 
       {notice && (
-        <div className="mt-4 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-4 text-sm text-cyan-200">
+        <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-3 text-sm text-cyan-200">
           {notice}
         </div>
       )}
 
-      <div className="mt-5 space-y-4">
-        {visiblePosts.map((post) => {
-          const isOwner = post.name === CURRENT_USER
+      <div className="mt-4 rounded-[24px] border border-white/8 bg-[#071a2d] p-3 sm:p-4">
+        <div className="max-h-[58vh] space-y-4 overflow-y-auto pr-1">
+          {visiblePosts.map((post) => {
+            const isOwner = post.name === CURRENT_USER
+            const visibleReactions = Object.entries(post.reactions).filter(
+              ([, count]) => count > 0,
+            )
 
-          return (
-            <article
-              key={post.id}
-              className="rounded-3xl border border-white/5 bg-[#12202b] p-5"
-            >
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold">
-                    {post.name}
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenMenuId(
-                        openMenuId === post.id
-                          ? null
-                          : post.id,
-                      )
-                    }
-                    className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white/[0.04] hover:text-white"
-                    aria-label="Discussion post options"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
-
-                  {openMenuId === post.id && (
-                    <div className="absolute right-0 top-11 z-30 min-w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl">
-                      {isOwner ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDeletePostId(post.id)
-                            setOpenMenuId(null)
-                          }}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-red-300 transition hover:bg-red-400/[0.08]"
-                        >
-                          <Trash2 size={16} />
-                          Delete post
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              reportPost(post.id)
-                            }
-                            disabled={post.reported}
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
-                          >
-                            <Flag size={16} />
-
-                            {post.reported
-                              ? 'Reported'
-                              : 'Report post'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              hidePost(post.id)
-                            }
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.05]"
-                          >
-                            <EyeOff size={16} />
-                            Hide post
-                          </button>
-                        </>
-                      )}
+            return (
+              <div
+                key={post.id}
+                className={`flex ${isOwner ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`relative max-w-[84%] sm:max-w-[72%] ${isOwner ? 'text-right' : 'text-left'}`}>
+                  {!isOwner && (
+                    <div className="mb-1.5 flex items-center gap-2 px-1">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#c7dce7] text-[10px] font-bold text-cyan-800">
+                        {post.name
+                          .split(' ')
+                          .map((part) => part[0])
+                          .join('')
+                          .slice(0, 2)}
+                      </div>
+                      <span className="text-xs font-semibold text-slate-300">{post.name}</span>
                     </div>
                   )}
+
+                  <div
+                    className={`relative rounded-2xl px-4 py-3 shadow-md ${
+                      isOwner
+                        ? 'rounded-br-md bg-cyan-600 text-white'
+                        : 'rounded-bl-md border border-white/8 bg-[#12283d] text-slate-100'
+                    }`}
+                  >
+                    <p className="text-sm leading-6">{post.message}</p>
+
+                    <div className={`mt-1.5 text-[10px] ${isOwner ? 'text-cyan-100/75' : 'text-slate-500'}`}>
+                      {post.timestamp}
+                    </div>
+
+                    <div className={`absolute top-1 ${isOwner ? '-left-10' : '-right-10'}`}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenMenuId(openMenuId === post.id ? null : post.id)
+                        }
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
+                        aria-label="Message options"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+
+                      {openMenuId === post.id && (
+                        <div className={`absolute top-9 z-30 min-w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl ${isOwner ? 'left-0' : 'right-0'}`}>
+                          {isOwner ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeletePostId(post.id)
+                                setOpenMenuId(null)
+                              }}
+                              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-red-300 transition hover:bg-red-400/[0.08]"
+                            >
+                              <Trash2 size={16} />
+                              Delete message
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => reportPost(post.id)}
+                                disabled={post.reported}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+                              >
+                                <Flag size={16} />
+                                {post.reported ? 'Reported' : 'Report message'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => hidePost(post.id)}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-slate-300 transition hover:bg-white/[0.05]"
+                              >
+                                <EyeOff size={16} />
+                                Hide message
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={`mt-1.5 flex flex-wrap items-center gap-1.5 ${isOwner ? 'justify-end' : 'justify-start'}`}>
+                    {visibleReactions.map(([emoji, count]) => {
+                      const mine = post.myReactions.includes(emoji)
+
+                      return (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => toggleReaction(post.id, emoji)}
+                          className={`flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition ${
+                            mine
+                              ? 'border-cyan-400/40 bg-cyan-400/15 text-cyan-200'
+                              : 'border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.07]'
+                          }`}
+                        >
+                          <span>{emoji}</span>
+                          <span>{count}</span>
+                        </button>
+                      )
+                    })}
+
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setReactionPickerId(
+                            reactionPickerId === post.id ? null : post.id,
+                          )
+                        }
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
+                        aria-label="React to message"
+                      >
+                        <SmilePlus size={14} />
+                      </button>
+
+                      {reactionPickerId === post.id && (
+                        <div className={`absolute bottom-9 z-30 flex gap-1 rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl ${isOwner ? 'right-0' : 'left-0'}`}>
+                          {REACTIONS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => toggleReaction(post.id, emoji)}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl text-lg transition hover:bg-white/[0.08] active:scale-95"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
+            )
+          })}
 
-              <p className="mt-3 text-sm leading-6 text-slate-200">
-                {post.message}
-              </p>
-
-              <button
-                type="button"
-                onClick={() => toggleAmen(post.id)}
-                className={`mt-4 flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                  post.isLiked
-                    ? 'bg-orange-400 text-[#181007]'
-                    : 'bg-orange-400/10 text-orange-300'
-                }`}
-              >
-                <Heart
-                  size={14}
-                  fill={
-                    post.isLiked
-                      ? 'currentColor'
-                      : 'none'
-                  }
-                />
-
-                Amen ({post.likes})
-              </button>
-            </article>
-          )
-        })}
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="mt-5 rounded-3xl border border-white/5 bg-[#12202b] p-5"
-      >
-        <label
-          htmlFor="discussion-message"
-          className="text-sm font-semibold"
-        >
-          What stood out?
-        </label>
-
-        <textarea
-          id="discussion-message"
-          value={message}
-          onChange={(event) =>
-            setMessage(event.target.value)
-          }
-          rows={3}
-          maxLength={280}
-          placeholder={`Share one short thought from ${mockChapter.reference}`}
-          className="mt-3 w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
-        />
-
-        <div className="mt-2 text-right text-xs text-slate-600">
-          {message.length}/280
+          <div ref={bottomRef} />
         </div>
 
-        <button
-          type="submit"
-          disabled={!message.trim()}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-[#06111b] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <Send size={18} />
-          Share
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="mt-4 border-t border-white/8 pt-4">
+          <div className="flex items-end gap-2">
+            <textarea
+              id="discussion-message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              rows={1}
+              maxLength={280}
+              placeholder={`Share something about ${sharedJourney.reference}…`}
+              className="min-h-11 max-h-28 flex-1 resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/35"
+            />
+
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-400 text-[#06111b] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Send message"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+
+          <div className="mt-1.5 px-1 text-right text-[10px] text-slate-600">
+            {message.length}/280
+          </div>
+        </form>
+      </div>
 
       {deletePostId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
           <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#12202b] p-6 shadow-2xl">
-            <h2 className="text-xl font-bold">
-              Delete this post?
-            </h2>
+            <h2 className="text-xl font-bold">Delete this message?</h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
               This cannot be undone.
@@ -351,7 +401,7 @@ function DiscussionRoom() {
                 onClick={() => setDeletePostId(null)}
                 className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-300"
               >
-                Keep post
+                Keep message
               </button>
 
               <button
