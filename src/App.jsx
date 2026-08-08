@@ -48,13 +48,13 @@ function App() {
     })
   }, [currentPage, selectedChapterId])
 
-  function handleNavigate(pageId) {
+  function handleNavigate(pageId, connectRoomId = 'today') {
     if (!NAVIGATION_PAGES.includes(pageId)) {
       return
     }
 
     if (pageId === PAGE_IDS.connect) {
-      setSelectedConnectRoomId('today')
+      setSelectedConnectRoomId(connectRoomId)
       setCurrentPage(PAGE_IDS.connectRoom)
       return
     }
