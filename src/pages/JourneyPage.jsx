@@ -20,6 +20,7 @@ import AppNavigation from '../components/AppNavigation'
 import { bibleBooks } from '../data/bibleBooks'
 import { getBookAvailability } from '../data/contentAvailability'
 import {
+  journeyBookOrder,
   openSharedJourneyChapter,
   sharedJourney,
   TOTAL_CYCLE_DAYS,
@@ -99,6 +100,21 @@ function getCompletedCountForBook(book, completedChapterIds) {
   ).filter((chapterId) => completedChapterIds.includes(chapterId)).length
 }
 
+function buildBookProgress(books, completedChapterIds) {
+  return books.map((book) => {
+    const completed = getCompletedCountForBook(book, completedChapterIds)
+    const availability = getBookAvailability(book.id, book.chapters)
+
+    return {
+      ...book,
+      completed,
+      isComplete: completed >= book.chapters,
+      hasProgress: completed > 0,
+      availability,
+    }
+  })
+}
+
 function AchievementBadge({ achievement, earned, compact = false }) {
   const AchievementIcon = achievementIcons[achievement.id] || Award
   const tier = tierStyles[achievement.tier] || tierStyles.bronze
@@ -169,24 +185,18 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
   }, [])
 
   const bookProgress = useMemo(
-    () =>
-      bibleBooks.map((book) => {
-        const completed = getCompletedCountForBook(book, completedChapterIds)
-        const availability = getBookAvailability(book.id, book.chapters)
-        return {
-          ...book,
-          completed,
-          isComplete: completed >= book.chapters,
-          hasProgress: completed > 0,
-          availability,
-        }
-      }),
+    () => buildBookProgress(journeyBookOrder, completedChapterIds),
+    [completedChapterIds],
+  )
+
+  const allBookProgress = useMemo(
+    () => buildBookProgress(bibleBooks, completedChapterIds),
     [completedChapterIds],
   )
 
   const chaptersCompleted = Math.min(completedChapterIds.length, TOTAL_BIBLE_CHAPTERS)
   const overallProgress = Math.round((chaptersCompleted / TOTAL_BIBLE_CHAPTERS) * 1000) / 10
-  const completedBooks = bookProgress.filter((book) => book.isComplete).length
+  const completedBooks = allBookProgress.filter((book) => book.isComplete).length
 
   const achievementMetrics = useMemo(
     () => ({ chaptersCompleted, completedBooks, currentStreak }),
