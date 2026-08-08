@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
-  ArrowRight,
   Bell,
   BookOpen,
-  CalendarDays,
   Church,
   Crown,
   Flame,
@@ -15,7 +13,6 @@ import { mockChapter } from '../data/mockChapter'
 import {
   openSharedJourneyChapter,
   sharedJourney,
-  TOTAL_CYCLE_DAYS,
 } from '../data/sharedJourney'
 
 function getGreeting() {
@@ -39,14 +36,6 @@ function formatLongDate(date) {
     month: 'long',
     day: 'numeric',
   }).format(date)
-}
-
-function formatMonth(date) {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-  })
-    .format(date)
-    .toUpperCase()
 }
 
 function CrossHillArtwork() {
@@ -154,7 +143,7 @@ function DashboardPage({
             </button>
           </header>
 
-          <section className="mt-5 grid grid-cols-[1fr_88px] gap-3 sm:grid-cols-[1fr_104px] lg:mt-6">
+          <section className="mt-6 grid grid-cols-[1fr_92px] gap-4 sm:grid-cols-[1fr_112px] sm:gap-5 lg:mt-7">
             <div className="relative min-h-36 overflow-hidden rounded-[28px] border border-white/10 shadow-xl shadow-black/20 sm:min-h-40">
               <CrossHillArtwork />
               <div className="absolute inset-0 bg-gradient-to-r from-[#041326]/90 via-[#041326]/48 to-transparent" />
@@ -174,46 +163,26 @@ function DashboardPage({
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center rounded-[26px] border border-[#c8d3db] bg-[#dfe8ee] text-[#153047] shadow-lg shadow-black/10">
-              <CalendarDays size={20} className="text-cyan-700" />
-              <span className="mt-2 text-[10px] font-bold tracking-[0.18em] text-cyan-700">
-                {formatMonth(now)}
+            <button
+              type="button"
+              onClick={openToday}
+              className="group flex flex-col items-center justify-center rounded-[26px] border border-[#c8d3db] bg-[#dfe8ee] px-2 text-center text-[#153047] shadow-lg shadow-black/10 transition hover:border-cyan-400/45 hover:bg-[#e7eef2] active:scale-[0.97]"
+              aria-label={`Open ${sharedJourney.reference}, Journey Day ${sharedJourney.cycleDay}`}
+            >
+              <BookOpen size={20} className="text-cyan-700" />
+              <span className="mt-2 text-[9px] font-bold uppercase tracking-[0.14em] text-cyan-700 sm:text-[10px]">
+                Journey Day
               </span>
-              <span className="text-2xl font-bold leading-none">{now.getDate()}</span>
-            </div>
+              <span className="mt-0.5 text-3xl font-bold leading-none">
+                {sharedJourney.cycleDay}
+              </span>
+              <span className="mt-2 max-w-full truncate text-[10px] font-semibold text-slate-500 sm:text-xs">
+                {sharedJourney.reference}
+              </span>
+            </button>
           </section>
 
-          <button
-            type="button"
-            onClick={openToday}
-            className="group mt-3 w-full rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-left text-[#153047] shadow-xl shadow-black/15 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] active:scale-[0.995] sm:p-6"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-[#c7dce7] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-700 sm:text-xs">
-                    Chapter of the Day
-                  </span>
-                  <span className="text-xs font-semibold text-slate-500">
-                    Day {sharedJourney.cycleDay} of {TOTAL_CYCLE_DAYS}
-                  </span>
-                </div>
-
-                <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                  {sharedJourney.reference}
-                </h2>
-                <p className="mt-1.5 text-sm font-semibold text-cyan-700 sm:text-base">
-                  {sharedJourney.title}
-                </p>
-              </div>
-
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white transition group-hover:translate-x-0.5">
-                <ArrowRight size={19} />
-              </div>
-            </div>
-          </button>
-
-          <section className="mt-4 grid grid-cols-2 gap-4 sm:gap-5">
+          <section className="mt-7 grid grid-cols-2 gap-5 sm:mt-8 sm:gap-6">
             <button
               type="button"
               onClick={() => onNavigate('connect')}
@@ -267,7 +236,7 @@ function DashboardPage({
             </button>
           </section>
 
-          <section className="relative mt-4 overflow-hidden rounded-[24px] border border-white/10 bg-[#0c2138] px-4 py-4 shadow-lg shadow-black/10 sm:px-5">
+          <section className="relative mt-7 overflow-hidden rounded-[24px] border border-white/10 bg-[#0c2138] px-4 py-4 shadow-lg shadow-black/10 sm:mt-8 sm:px-5 sm:py-5">
             <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-cyan-500/10 to-transparent" />
             <div className="relative z-10 flex items-start gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
