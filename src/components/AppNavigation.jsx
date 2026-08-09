@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Flame,
   Home,
@@ -7,6 +8,7 @@ import {
   User,
 } from 'lucide-react'
 import LiveNotificationToast from './LiveNotificationToast'
+import { getMemberNotifications } from '../services/notifications'
 
 const navigationItems = [
   {
@@ -40,6 +42,29 @@ function AppNavigation({
   activePage = 'dashboard',
   onNavigate,
 }) {
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadUnreadNotifications() {
+      try {
+        const payload = await getMemberNotifications()
+        if (mounted) setUnreadNotifications(payload?.unreadCount || 0)
+      } catch {
+        if (mounted) setUnreadNotifications(0)
+      }
+    }
+
+    loadUnreadNotifications()
+    window.addEventListener('project326-notifications-change', loadUnreadNotifications)
+
+    return () => {
+      mounted = false
+      window.removeEventListener('project326-notifications-change', loadUnreadNotifications)
+    }
+  }, [])
+
   function handleNavigation(pageId) {
     if (typeof onNavigate === 'function') {
       onNavigate(pageId)
@@ -55,10 +80,16 @@ function AppNavigation({
           <button
             type="button"
             onClick={() => handleNavigation('dashboard')}
-            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-300/30 bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 active:scale-95"
-            aria-label="Go to Home"
+            className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-300/30 bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 active:scale-95"
+            aria-label={unreadNotifications > 0 ? `Go to Home, ${unreadNotifications} unread notifications` : 'Go to Home'}
           >
             <Flame size={25} strokeWidth={2.2} />
+            {unreadNotifications > 0 && (
+              <span
+                className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-[#08131d] bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.16)]"
+                aria-hidden="true"
+              />
+            )}
           </button>
         </div>
 
@@ -66,6 +97,7 @@ function AppNavigation({
           {navigationItems.map((item) => {
             const NavigationIcon = item.icon
             const isActive = activePage === item.id
+            const showUnreadDot = item.id === 'dashboard' && unreadNotifications > 0
 
             return (
               <button
@@ -78,11 +110,20 @@ function AppNavigation({
                     : 'border-transparent text-slate-500 hover:border-white/10 hover:bg-white/5 hover:text-slate-200'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={showUnreadDot ? `Home, ${unreadNotifications} unread notifications` : item.label}
               >
-                <NavigationIcon
-                  size={22}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
+                <div className="relative">
+                  <NavigationIcon
+                    size={22}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  {showUnreadDot && (
+                    <span
+                      className={`absolute -right-1.5 -top-1 h-2.5 w-2.5 rounded-full border ${isActive ? 'border-cyan-400' : 'border-[#08131d]'} bg-red-500`}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
 
                 <span className="text-[11px] font-semibold">
                   {item.label}
@@ -99,6 +140,7 @@ function AppNavigation({
             {navigationItems.map((item) => {
               const NavigationIcon = item.icon
               const isActive = activePage === item.id
+              const showUnreadDot = item.id === 'dashboard' && unreadNotifications > 0
 
               return (
                 <button
@@ -110,14 +152,20 @@ function AppNavigation({
                       ? 'border-cyan-300/25 bg-cyan-400 text-[#06111b] shadow-lg shadow-cyan-400/10'
                       : 'border-transparent text-slate-500 hover:bg-white/5 hover:text-slate-300'
                   }`}
-                  aria-label={item.label}
+                  aria-label={showUnreadDot ? `Home, ${unreadNotifications} unread notifications` : item.label}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl">
+                  <div className="relative flex h-9 w-9 items-center justify-center rounded-xl">
                     <NavigationIcon
                       size={21}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
+                    {showUnreadDot && (
+                      <span
+                        className={`absolute right-0 top-0 h-2.5 w-2.5 rounded-full border ${isActive ? 'border-cyan-400' : 'border-[#08131d]'} bg-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.12)]`}
+                        aria-hidden="true"
+                      />
+                    )}
                   </div>
 
                   <span className="truncate text-[10px] font-semibold min-[375px]:text-[11px]">
