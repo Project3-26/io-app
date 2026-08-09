@@ -11,6 +11,7 @@ import {
   Lock,
   Pause,
   Play,
+  RefreshCw,
   ScrollText,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
@@ -24,6 +25,7 @@ import {
 import { prefetchBibleChapter } from '../services/backend'
 
 const COMPLETED_CHAPTERS_KEY = 'project326-completed-chapters'
+const LAST_OPENED_CHAPTER_KEY = 'project326-last-opened-chapter'
 
 const tabs = [
   { id: 'read', label: 'Read', icon: BookOpen },
@@ -74,6 +76,22 @@ function rememberCompleted(chapterId) {
   )
 }
 
+function rememberLastOpened(chapter, activeTab) {
+  if (!chapter?.id) return
+
+  localStorage.setItem(
+    LAST_OPENED_CHAPTER_KEY,
+    JSON.stringify({
+      id: chapter.id,
+      reference: chapter.reference,
+      title: chapter.title,
+      tab: activeTab,
+      openedAt: Date.now(),
+    }),
+  )
+  window.dispatchEvent(new CustomEvent('project326-last-opened-change'))
+}
+
 function ChapterPage({
   chapterId = 'john-1',
   onBack,
@@ -87,6 +105,7 @@ function ChapterPage({
   const [notice, setNotice] = useState('')
   const [isCompleting, setIsCompleting] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [loadVersion, setLoadVersion] = useState(0)
   const audioRef = useRef(null)
 
   const readerLocation = useMemo(
@@ -136,7 +155,12 @@ function ChapterPage({
     return () => {
       mounted = false
     }
-  }, [chapterId])
+  }, [chapterId, loadVersion])
+
+  useEffect(() => {
+    if (!chapter?.id) return
+    rememberLastOpened(chapter, activeTab)
+  }, [chapter, activeTab])
 
   async function completeChapter(method) {
     if (!chapter || isCompleting) return false
@@ -153,11 +177,7 @@ function ChapterPage({
         rememberCompleted(chapter.id)
         setChapter((current) => ({ ...current, isCompleted: true }))
       } else if (method === 'continue' && chapter.nextChapter?.id) {
-        window.dispatchEvent(
-          new CustomEvent('project326-open-chapter', {
-            detail: { chapterId: chapter.nextChapter.id, source: 'continue' },
-          }),
-        )
+        openChapter(chapter.nextChapter.id, 'read')
       }
 
       return true
@@ -169,10 +189,23 @@ function ChapterPage({
     }
   }
 
+  function openChapter(nextChapterId, tab = 'read') {
+    if (!nextChapterId) return
+    const location = parseChapterLocation(nextChapterId)
+    prefetchBibleChapter(location.bookId, location.chapterNumber)
+    sessionStorage.setItem(
+      'project326-chapter-request',
+      JSON.stringify({ chapterId: nextChapterId, tab, createdAt: Date.now() }),
+    )
+    window.dispatchEvent(
+      new CustomEvent('project326-open-chapter', {
+        detail: { chapterId: nextChapterId, source: 'reader-navigation' },
+      }),
+    )
+  }
+
   async function handleContinue() {
     if (!chapter?.nextChapter?.id) return
-    const nextLocation = parseChapterLocation(chapter.nextChapter.id)
-    prefetchBibleChapter(nextLocation.bookId, nextLocation.chapterNumber)
     await completeChapter('continue')
   }
 
@@ -194,26 +227,48 @@ function ChapterPage({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#041326] text-white">
-        <LoaderCircle size={34} className="animate-spin text-cyan-400" />
+      <div className="min-h-screen bg-[#041326] text-white">
+        <AppNavigation activePage="dashboard" onNavigate={onNavigate} />
+        <div className="flex min-h-screen items-center justify-center lg:pl-24">
+          <div className="text-center">
+            <LoaderCircle size={34} className="mx-auto animate-spin text-cyan-400" />
+            <p className="mt-3 text-sm text-slate-400">Opening {chapterId.replace('-', ' ')}…</p>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (loadError || !chapter || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#041326] px-6">
-        <div className="max-w-md rounded-3xl border border-red-300/40 bg-[#ead9d9] p-6 text-center text-[#153047]">
-          <CircleAlert size={34} className="mx-auto text-red-700" />
-          <h1 className="mt-4 text-xl font-semibold">Chapter unavailable</h1>
-          <p className="mt-2 text-sm text-slate-600">{loadError}</p>
-          <button type="button" onClick={onBack} className="mt-5 bg-[#c8d3db] px-4 py-2 text-sm font-semibold">
-            Return to Home
-          </button>
+      <div className="min-h-screen bg-[#041326] px-6 text-white">
+        <AppNavigation activePage="dashboard" onNavigate={onNavigate} />
+        <div className="flex min-h-screen items-center justify-center lg:pl-24">
+          <div className="w-full max-w-md rounded-3xl border border-red-300/40 bg-[#ead9d9] p-6 text-center text-[#153047]">
+            <CircleAlert size={34} className="mx-auto text-red-700" />
+            <h1 className="mt-4 text-xl font-semibold">Chapter unavailable</h1>
+            <p className="mt-2 text-sm text-slate-600">{loadError || 'We could not load this chapter.'}</p>
+            <div className="mt-5 flex justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setLoadVersion((value) => value + 1)}
+                className="inline-flex items-center gap-2 bg-cyan-600 px-4 py-2 text-sm font-semibold text-white"
+              >
+                <RefreshCw size={15} /> Retry
+              </button>
+              <button type="button" onClick={onBack} className="bg-[#c8d3db] px-4 py-2 text-sm font-semibold">
+                Home
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
+
+  const audioExists = chapter.contentAvailability?.audio
+  const studyExists = chapter.contentAvailability?.study
+  const leaderExists = chapter.contentAvailability?.leaderGuide
 
   return (
     <div className="min-h-screen bg-[#041326] text-white">
@@ -312,28 +367,42 @@ function ChapterPage({
             )}
 
             {activeTab === 'listen' && (
-              chapter.audio?.url ? (
+              chapter.audio?.locked ? (
+                <UnavailablePanel title="Audio is available with Bible Study access" description="This chapter has audio ready, but your current access does not include it." locked />
+              ) : chapter.audio?.url ? (
                 <section className="bg-[#dfe8ee] p-5 text-[#153047]">
                   <h2 className="font-semibold">{chapter.audio.title}</h2>
+                  {chapter.audio.body && <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{chapter.audio.body}</p>}
                   <button
                     type="button"
                     onClick={toggleAudio}
                     className="mx-auto mt-6 flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500 text-white"
+                    aria-label={isPlaying ? 'Pause chapter audio' : 'Play chapter audio'}
                   >
                     {isPlaying ? <Pause size={27} /> : <Play size={27} />}
                   </button>
                 </section>
               ) : (
-                <UnavailablePanel title="Audio isn’t loaded for this chapter yet" description="Scripture is fully available. Audio will appear here automatically when it is added." />
+                <UnavailablePanel
+                  title={audioExists ? 'Audio is temporarily unavailable' : 'Audio isn’t loaded for this chapter yet'}
+                  description={audioExists ? 'The resource exists, but its file could not be opened. Try again shortly.' : 'Scripture is fully available. Audio will appear here automatically when it is published from Admin.'}
+                />
               )
             )}
 
             {activeTab === 'study' && (
-              chapter.studyGuide?.pdfUrl || chapter.studyGuide?.sections?.length ? (
+              chapter.studyGuide?.locked ? (
+                <UnavailablePanel title="Study content is available with Bible Study access" description="This chapter has study content ready, but your current access does not include it." locked />
+              ) : chapter.studyGuide?.pdfUrl || chapter.studyGuide?.body || chapter.studyGuide?.sections?.length ? (
                 <section className="bg-[#dfe8ee] p-5 text-[#153047]">
                   <h2 className="font-semibold">{chapter.studyGuide.title || 'Study'}</h2>
                   {chapter.studyGuide.description && (
                     <p className="mt-2 text-sm text-slate-600">{chapter.studyGuide.description}</p>
+                  )}
+                  {chapter.studyGuide.body && (
+                    <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                      {chapter.studyGuide.body}
+                    </div>
                   )}
                   {chapter.studyGuide.pdfUrl && (
                     <button
@@ -346,60 +415,98 @@ function ChapterPage({
                   )}
                 </section>
               ) : (
-                <UnavailablePanel title="Study content isn’t loaded yet" description="You can still read the complete NASB 1995 chapter now." />
+                <UnavailablePanel
+                  title={studyExists ? 'Study content is temporarily unavailable' : 'Study content isn’t loaded yet'}
+                  description={studyExists ? 'The resource exists, but its content could not be opened. Try again shortly.' : 'You can still read the complete chapter now. Published study content will appear here automatically.'}
+                />
               )
             )}
 
             {activeTab === 'leader' && (
-              !hasLeaderAccess ? (
-                <UnavailablePanel title="Leader Guides are a separate plan" description="Switch to Leader in Founder View or upgrade to access pastor and small-group leader resources." accent="orange" />
-              ) : chapter.leaderGuide?.pdfUrl ? (
+              !hasLeaderAccess || chapter.leaderGuide?.locked ? (
+                <UnavailablePanel title="Leader Guides are a separate plan" description={leaderExists ? 'A Leader Guide is ready for this chapter. Leader access unlocks it.' : 'Leader access unlocks pastor and small-group leader resources as they are published.'} accent="orange" locked />
+              ) : chapter.leaderGuide?.pdfUrl || chapter.leaderGuide?.body ? (
                 <section className="bg-[#dfe8ee] p-5 text-[#153047]">
-                  <h2 className="font-semibold">Leader Guide</h2>
-                  <button
-                    type="button"
-                    onClick={() => handlePdf(chapter.leaderGuide.pdfUrl, 'Leader Guide')}
-                    className="mt-5 bg-orange-500 px-4 py-3 text-sm font-semibold text-white"
-                  >
-                    Open Leader Guide
-                  </button>
+                  <h2 className="font-semibold">{chapter.leaderGuide.title || 'Leader Guide'}</h2>
+                  {chapter.leaderGuide.body && (
+                    <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                      {chapter.leaderGuide.body}
+                    </div>
+                  )}
+                  {chapter.leaderGuide.pdfUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handlePdf(chapter.leaderGuide.pdfUrl, 'Leader Guide')}
+                      className="mt-5 bg-orange-500 px-4 py-3 text-sm font-semibold text-white"
+                    >
+                      Open Leader Guide
+                    </button>
+                  )}
                 </section>
               ) : (
-                <UnavailablePanel title="Leader Guide isn’t loaded for this chapter yet" description="Your Leader access is active. The guide will appear here when it is added." accent="orange" />
+                <UnavailablePanel title="Leader Guide isn’t loaded for this chapter yet" description="Your Leader access is active. The guide will appear here automatically when it is published." accent="orange" />
               )
             )}
           </div>
         </main>
       </div>
 
-      {chapter.nextChapter?.id && (
-        <div className="fixed inset-x-0 bottom-[76px] z-40 border-t border-white/10 bg-[#041326]/95 p-3 backdrop-blur-xl lg:bottom-0 lg:left-24">
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={isCompleting}
-            className="mx-auto flex h-12 w-full max-w-md items-center justify-center gap-2 bg-cyan-500 px-4 text-sm font-semibold disabled:opacity-60"
-          >
-            {isCompleting ? (
-              <LoaderCircle size={18} className="animate-spin" />
-            ) : (
-              <>
-                Continue to {chapter.nextChapter.reference}
-                <ArrowRight size={18} />
-              </>
-            )}
-          </button>
+      <div className="fixed inset-x-0 bottom-[76px] z-40 border-t border-white/10 bg-[#041326]/95 p-3 backdrop-blur-xl lg:bottom-0 lg:left-24">
+        <div className="mx-auto flex w-full max-w-xl gap-2">
+          {chapter.previousChapter?.id && (
+            <button
+              type="button"
+              onClick={() => openChapter(chapter.previousChapter.id, 'read')}
+              className="flex h-12 shrink-0 items-center justify-center gap-2 border border-white/10 bg-[#0c2138] px-4 text-sm font-semibold text-slate-200"
+              aria-label={`Previous chapter, ${chapter.previousChapter.reference}`}
+            >
+              <ArrowLeft size={18} />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+          )}
+
+          {chapter.nextChapter?.id ? (
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={isCompleting}
+              className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 bg-cyan-500 px-4 text-sm font-semibold disabled:opacity-60"
+            >
+              {isCompleting ? (
+                <LoaderCircle size={18} className="animate-spin" />
+              ) : (
+                <>
+                  <span className="truncate">Continue to {chapter.nextChapter.reference}</span>
+                  <ArrowRight size={18} className="shrink-0" />
+                </>
+              )}
+            </button>
+          ) : !isCompleted ? (
+            <button
+              type="button"
+              onClick={() => completeChapter('manual')}
+              disabled={isCompleting}
+              className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 bg-cyan-500 px-4 text-sm font-semibold disabled:opacity-60"
+            >
+              <Check size={18} /> Finish Bible Journey
+            </button>
+          ) : null}
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
-function UnavailablePanel({ title, description, accent = 'cyan' }) {
+function UnavailablePanel({ title, description, accent = 'cyan', locked = false }) {
   return (
     <section className={`border p-6 text-[#153047] ${accent === 'orange' ? 'border-orange-300/40 bg-[#e8ddd0]' : 'border-[#c8d3db] bg-[#dfe8ee]'}`}>
-      <h2 className="font-semibold">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+      <div className="flex items-start gap-3">
+        {locked && <Lock size={18} className={accent === 'orange' ? 'mt-0.5 shrink-0 text-orange-600' : 'mt-0.5 shrink-0 text-cyan-700'} />}
+        <div>
+          <h2 className="font-semibold">{title}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+        </div>
+      </div>
     </section>
   )
 }
