@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Flame,
   Home,
@@ -6,6 +7,11 @@ import {
   MessageCircle,
   User,
 } from 'lucide-react'
+import {
+  getMemberSnapshot,
+  readFounderTestPlan,
+  setFounderTestPlan,
+} from '../services/backend'
 
 const navigationItems = [
   {
@@ -35,18 +41,92 @@ const navigationItems = [
   },
 ]
 
+const testingPlans = [
+  { id: 'free', label: 'Free John' },
+  { id: 'standard', label: 'Standard' },
+  { id: 'leader', label: 'Leader' },
+]
+
 function AppNavigation({
   activePage = 'dashboard',
   onNavigate,
 }) {
+  const [showTestingSwitch, setShowTestingSwitch] = useState(false)
+  const [testingPlan, setTestingPlan] = useState(
+    () => readFounderTestPlan() || 'leader',
+  )
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadTestingAccess() {
+      try {
+        const snapshot = await getMemberSnapshot()
+
+        if (!isMounted) {
+          return
+        }
+
+        setShowTestingSwitch(
+          Boolean(snapshot?.access?.canSwitchTestingPlan),
+        )
+
+        if (snapshot?.access?.testingPlan) {
+          setTestingPlan(snapshot.access.testingPlan)
+        }
+      } catch {
+        if (isMounted) {
+          setShowTestingSwitch(false)
+        }
+      }
+    }
+
+    loadTestingAccess()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   function handleNavigation(pageId) {
     if (typeof onNavigate === 'function') {
       onNavigate(pageId)
     }
   }
 
+  function handleTestingPlanChange(plan) {
+    setFounderTestPlan(plan)
+    setTestingPlan(plan)
+    window.location.reload()
+  }
+
   return (
     <>
+      {showTestingSwitch && (
+        <div className="fixed right-3 top-3 z-[70] rounded-2xl border border-cyan-300/25 bg-[#08131d]/95 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl sm:right-4 sm:top-4">
+          <p className="px-1 pb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-300">
+            Founder View
+          </p>
+          <div className="flex gap-1">
+            {testingPlans.map((plan) => (
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => handleTestingPlanChange(plan.id)}
+                className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold transition sm:px-3 sm:text-xs ${
+                  testingPlan === plan.id
+                    ? 'bg-cyan-400 text-[#06111b]'
+                    : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                }`}
+                aria-pressed={testingPlan === plan.id}
+              >
+                {plan.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-24 border-r border-white/10 bg-[#08131d]/95 backdrop-blur-xl lg:flex lg:flex-col">
         <div className="flex h-24 items-center justify-center border-b border-white/10">
           <button
