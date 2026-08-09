@@ -220,9 +220,38 @@ export async function signInMember(
 }
 
 export async function getMemberSnapshot() {
-  return authenticatedRequest(
+  const account = await authenticatedRequest(
     '/api/app/me',
   )
+
+  if (!account) {
+    return null
+  }
+
+  try {
+    const progressPayload =
+      await authenticatedRequest(
+        '/api/app/progress',
+      )
+
+    return {
+      ...account,
+      progress:
+        progressPayload?.progress || null,
+      progressSyncStatus: 'connected',
+    }
+  } catch (error) {
+    console.warn(
+      'Member progress sync is temporarily unavailable.',
+      error,
+    )
+
+    return {
+      ...account,
+      progress: null,
+      progressSyncStatus: 'unavailable',
+    }
+  }
 }
 
 export async function completeMemberChapter(
