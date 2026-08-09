@@ -4,6 +4,7 @@ import {
   Copy,
   KeyRound,
   LoaderCircle,
+  LogOut,
   Plus,
   Share2,
   UserPlus,
@@ -12,6 +13,7 @@ import {
   createChurchInvite,
   getChurchMemberships,
   joinChurchByCode,
+  leaveChurch,
 } from '../../services/connect'
 import { getMyReferral } from '../../services/referrals'
 
@@ -69,6 +71,31 @@ function ChurchConnectionPanel() {
       await loadMemberships()
     } catch (joinError) {
       setError(joinError instanceof Error ? joinError.message : 'Unable to join this church.')
+    } finally {
+      setIsWorking(false)
+    }
+  }
+
+  async function handleLeaveChurch(membership) {
+    if (!membership?.slug || isWorking) return
+
+    const confirmed = window.confirm(
+      `Leave ${membership.name}? You will lose access to its private Connect room until you join again.`,
+    )
+    if (!confirmed) return
+
+    try {
+      setIsWorking(true)
+      setError('')
+      setNotice('')
+      await leaveChurch(membership.slug)
+      if (generatedInvite?.churchName === membership.name) {
+        setGeneratedInvite(null)
+      }
+      setNotice(`You left ${membership.name}. Your account and past Project 3|26 progress were not affected.`)
+      await loadMemberships()
+    } catch (leaveError) {
+      setError(leaveError instanceof Error ? leaveError.message : 'Unable to leave this church.')
     } finally {
       setIsWorking(false)
     }
@@ -151,12 +178,23 @@ function ChurchConnectionPanel() {
                     {membership.role} · Private chat enabled
                   </p>
                 </div>
-                {membership.canInvite && (
-                  <button type="button" onClick={() => generateInvite(membership)} disabled={isWorking} className="inline-flex items-center justify-center gap-2 bg-orange-500 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
-                    <Plus size={14} />
-                    Invite member
+                <div className="flex flex-wrap gap-2">
+                  {membership.canInvite && (
+                    <button type="button" onClick={() => generateInvite(membership)} disabled={isWorking} className="inline-flex items-center justify-center gap-2 bg-orange-500 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+                      <Plus size={14} />
+                      Invite member
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleLeaveChurch(membership)}
+                    disabled={isWorking}
+                    className="inline-flex items-center justify-center gap-2 border border-red-300/40 bg-white/45 px-3 py-2 text-xs font-semibold text-red-700 disabled:opacity-50"
+                  >
+                    <LogOut size={14} />
+                    Leave church
                   </button>
-                )}
+                </div>
               </div>
             ))}
           </div>
