@@ -113,20 +113,42 @@ function PrayerRoom() {
     }
   }
 
+  function applyReaction(postId, reaction) {
+    setPosts((current) => current.map((post) => {
+      if (post.id !== postId) return post
+
+      const myReactions = post.myReactions || []
+      const wasMine = myReactions.includes(reaction)
+      const currentCount = post.reactions?.[reaction] || 0
+      const nextCount = Math.max(0, currentCount + (wasMine ? -1 : 1))
+
+      return {
+        ...post,
+        myReactions: wasMine
+          ? myReactions.filter((item) => item !== reaction)
+          : [...myReactions, reaction],
+        reactions: {
+          ...(post.reactions || {}),
+          [reaction]: nextCount,
+        },
+      }
+    }))
+  }
+
   async function toggleReaction(postId, reaction) {
-    if (!room?.canParticipate || isWorking) {
+    if (!room?.canParticipate) {
       setNotice('Upgrade to Standard to participate in the Prayer Room.')
       return
     }
 
+    setNotice('')
+    applyReaction(postId, reaction)
+
     try {
-      setIsWorking(true)
       await toggleCommunityReaction(postId, reaction)
-      await loadRoom({ quiet: true })
     } catch (error) {
+      applyReaction(postId, reaction)
       setNotice(error instanceof Error ? error.message : 'Unable to update encouragement.')
-    } finally {
-      setIsWorking(false)
     }
   }
 
@@ -335,7 +357,7 @@ function PrayerRoom() {
                       <button
                         key={reaction.id}
                         type="button"
-                        disabled={!room?.canParticipate || isWorking}
+                        disabled={!room?.canParticipate}
                         onClick={() => toggleReaction(post.id, reaction.id)}
                         className={`rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50 ${active ? 'bg-purple-400 text-[#170d20]' : 'bg-purple-400/10 text-purple-300'}`}
                       >
