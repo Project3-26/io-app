@@ -141,6 +141,36 @@ function App() {
   }, [])
 
   useEffect(() => {
+    let isMounted = true
+
+    async function refreshAchievementsAfterCompletion(event) {
+      if (event?.detail?.source === 'backend-sync' || !hasMemberSession()) return
+
+      try {
+        const snapshot = await getMemberSnapshot({ force: true })
+        if (isMounted && snapshot?.progress) {
+          hydrateMemberProgress(snapshot)
+        }
+      } catch {
+        // Completion is already saved. A later bootstrap/focus sync can retry.
+      }
+    }
+
+    window.addEventListener(
+      'project326-completion-change',
+      refreshAchievementsAfterCompletion,
+    )
+
+    return () => {
+      isMounted = false
+      window.removeEventListener(
+        'project326-completion-change',
+        refreshAchievementsAfterCompletion,
+      )
+    }
+  }, [])
+
+  useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }, [currentPage, selectedChapterId])
 
