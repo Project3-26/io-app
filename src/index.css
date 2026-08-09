@@ -2,4 +2,18 @@
 
 button {
   border-radius: 0 !important;
+  transform: translateY(0) scale(1);
+  transition-property: transform, box-shadow, background-color, border-color, color, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:not(:disabled):active {
+  transform: translateY(2px) scale(0.975) !important;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
