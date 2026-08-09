@@ -37,14 +37,10 @@ function buildScriptureOnlyChapter(chapterId) {
     return null
   }
 
-  const nextChapter =
-    chapterNumber < book.chapters
-      ? {
-          id: `${bookId}-${chapterNumber + 1}`,
-          reference: `${book.name} ${chapterNumber + 1}`,
-          title: '',
-        }
-      : null
+  const nextChapterId = getNextChapterId(chapterId)
+  const nextChapter = nextChapterId
+    ? buildChapterReference(nextChapterId)
+    : null
 
   return {
     id: chapterId,
@@ -95,6 +91,78 @@ function buildScriptureOnlyChapter(chapterId) {
   }
 }
 
+function getNextChapterId(chapterId) {
+  const match = chapterId.match(/^(.*)-(\d+)$/)
+
+  if (!match) {
+    return null
+  }
+
+  const bookId = match[1]
+  const chapterNumber = Number(match[2])
+  const bookIndex = bibleBooks.findIndex(
+    (candidate) => candidate.id === bookId,
+  )
+
+  if (bookIndex < 0) {
+    return null
+  }
+
+  const book = bibleBooks[bookIndex]
+
+  if (chapterNumber < book.chapters) {
+    return `${bookId}-${chapterNumber + 1}`
+  }
+
+  const nextBook = bibleBooks[bookIndex + 1]
+  return nextBook ? `${nextBook.id}-1` : null
+}
+
+function buildChapterReference(chapterId) {
+  const match = chapterId.match(/^(.*)-(\d+)$/)
+
+  if (!match) {
+    return null
+  }
+
+  const book = bibleBooks.find(
+    (candidate) => candidate.id === match[1],
+  )
+
+  if (!book) {
+    return null
+  }
+
+  const chapterNumber = Number(match[2])
+
+  return {
+    id: chapterId,
+    reference: `${book.name} ${chapterNumber}`,
+    title: '',
+  }
+}
+
+function openNextChapterAfterCompletion(chapterId, completionMethod) {
+  if (completionMethod !== 'continue') {
+    return
+  }
+
+  const nextChapterId = getNextChapterId(chapterId)
+
+  if (!nextChapterId) {
+    return
+  }
+
+  window.dispatchEvent(
+    new CustomEvent('project326-open-chapter', {
+      detail: {
+        chapterId: nextChapterId,
+        source: 'continue',
+      },
+    }),
+  )
+}
+
 export async function getChapterById(chapterId) {
   await wait(120)
 
@@ -132,18 +200,30 @@ export async function markChapterComplete(
       )
     }
 
+    openNextChapterAfterCompletion(
+      chapterId,
+      completionMethod,
+    )
+
     return result
   }
 
   await wait(150)
 
-  return {
+  const result = {
     success: true,
     chapterId,
     completionMethod,
     completedAt: new Date().toISOString(),
     mode: 'demo',
   }
+
+  openNextChapterAfterCompletion(
+    chapterId,
+    completionMethod,
+  )
+
+  return result
 }
 
 export async function getCurrentUser() {
@@ -180,7 +260,7 @@ export async function getCurrentUser() {
             : 'free',
         access: snapshot.access,
         progress: snapshot.progress,
-        journeyStartDate: null,
+        journeyStartDate: '2026-08-08',
         timezone:
           snapshot.user.timezone ||
           'America/New_York',
@@ -202,7 +282,7 @@ export async function getCurrentUser() {
       leaderGuideAccess: false,
       entitlements: [],
     },
-    journeyStartDate: '2026-08-03',
+    journeyStartDate: '2026-08-08',
     timezone: 'America/New_York',
   }
 }
