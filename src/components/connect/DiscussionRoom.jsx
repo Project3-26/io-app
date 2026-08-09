@@ -15,27 +15,6 @@ import {
 
 const REACTIONS = ['👍', '❤️', '🙏', '🔥', '👀']
 
-const defaultStartingPosts = [
-  {
-    id: 'demo-1',
-    name: 'Sarah M.',
-    message: 'God did not remain distant. The Word became flesh and came near.',
-    createdAt: new Date().toISOString(),
-    reactions: { '❤️': 4, '🙏': 3 },
-    myReactions: [],
-    isMine: false,
-  },
-  {
-    id: 'demo-2',
-    name: 'Marcus T.',
-    message: 'Jesus is where heaven and earth meet. That really stood out to me today.',
-    createdAt: new Date().toISOString(),
-    reactions: { '🔥': 3, '👍': 2 },
-    myReactions: [],
-    isMine: false,
-  },
-]
-
 const themes = {
   connect: {
     contextBadge: 'bg-cyan-400/10 text-cyan-300',
@@ -83,12 +62,25 @@ function initials(name) {
     .join('')
 }
 
+function moderationNotice(error, fallback) {
+  if (error?.code === 'COMMUNITY_BANNED') {
+    return 'Your community access has been suspended. Contact support if you believe this was a mistake.'
+  }
+  if (error?.code === 'COMMUNITY_SILENCED') {
+    return 'Your account is currently read-only in community spaces.'
+  }
+  if (error?.code === 'CHAT_PARTICIPATION_UPGRADE_REQUIRED') {
+    return 'Free John members can read today’s chat. Upgrade to Standard to join the conversation.'
+  }
+  return error instanceof Error ? error.message : fallback
+}
+
 function DiscussionRoom({
   roomId,
   prompt = `Share something about ${sharedJourney.reference}…`,
   contextLabel = 'Live conversation',
   contextPrompts = ['What stood out?', 'What confused you?', 'How might you live this?'],
-  startingPosts = defaultStartingPosts,
+  startingPosts = [],
   theme = 'connect',
 }) {
   const resolvedRoomId = roomId || (theme === 'church' ? 'villas-church' : 'today')
@@ -115,11 +107,7 @@ function DiscussionRoom({
       setPosts(payload.messages || [])
       setNotice('')
     } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : 'Unable to load this conversation.',
-      )
+      setNotice(moderationNotice(error, 'Unable to load this conversation.'))
     } finally {
       if (!quiet) setIsLoading(false)
     }
@@ -144,7 +132,7 @@ function DiscussionRoom({
     }
 
     if (!room?.canParticipate) {
-      setNotice('Free John members can follow today’s conversation. Upgrade to Standard to post, reply, and react.')
+      setNotice('This conversation is currently read-only for your account.')
       return
     }
 
@@ -159,13 +147,7 @@ function DiscussionRoom({
       setPosts((current) => [...current, payload.message])
       setMessage('')
     } catch (error) {
-      setNotice(
-        error?.code === 'CHAT_PARTICIPATION_UPGRADE_REQUIRED'
-          ? 'Free John members can read today’s chat. Upgrade to Standard to join the conversation.'
-          : error instanceof Error
-            ? error.message
-            : 'Unable to send your message.',
-      )
+      setNotice(moderationNotice(error, 'Unable to send your message.'))
     } finally {
       setIsSending(false)
     }
@@ -173,7 +155,7 @@ function DiscussionRoom({
 
   async function toggleReaction(postId, emoji) {
     if (!signedIn || !room?.canParticipate) {
-      setNotice('Upgrade to Standard to react and participate in today’s conversation.')
+      setNotice('This conversation is currently read-only for your account.')
       setReactionPickerId(null)
       return
     }
@@ -182,11 +164,7 @@ function DiscussionRoom({
       await toggleConnectReaction(postId, emoji)
       await loadRoom({ quiet: true })
     } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : 'Unable to update reaction.',
-      )
+      setNotice(moderationNotice(error, 'Unable to update reaction.'))
     } finally {
       setReactionPickerId(null)
     }
@@ -211,9 +189,7 @@ function DiscussionRoom({
       {!room?.canParticipate && signedIn && resolvedRoomId === 'today' && (
         <div className="mt-3 flex items-start gap-3 rounded-2xl border border-cyan-300/20 bg-cyan-400/[0.08] p-3 text-sm text-cyan-100">
           <Lock size={17} className="mt-0.5 shrink-0" />
-          <p>
-            You’re viewing today’s conversation with Free John. Upgrade to Standard to post and react.
-          </p>
+          <p>This conversation is read-only for your account.</p>
         </div>
       )}
 
@@ -270,7 +246,8 @@ function DiscussionRoom({
                             key={emoji}
                             type="button"
                             onClick={() => toggleReaction(post.id, emoji)}
-                            className={`flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${mine ? palette.reactionMine : 'border-white/10 bg-white/[0.04] text-slate-300'}`}
+                            disabled={!room?.canParticipate}
+                            className={`flex items-center gap-1 rounded-full border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50 ${mine ? palette.reactionMine : 'border-white/10 bg-white/[0.04] text-slate-300'}`}
                           >
                             <span>{emoji}</span>
                             <span>{count}</span>
@@ -278,31 +255,33 @@ function DiscussionRoom({
                         )
                       })}
 
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setReactionPickerId(reactionPickerId === post.id ? null : post.id)}
-                          className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400"
-                          aria-label="React to message"
-                        >
-                          <SmilePlus size={14} />
-                        </button>
+                      {room?.canParticipate && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setReactionPickerId(reactionPickerId === post.id ? null : post.id)}
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400"
+                            aria-label="React to message"
+                          >
+                            <SmilePlus size={14} />
+                          </button>
 
-                        {reactionPickerId === post.id && (
-                          <div className={`absolute bottom-9 z-30 flex gap-1 rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl ${isOwner ? 'right-0' : 'left-0'}`}>
-                            {REACTIONS.map((emoji) => (
-                              <button
-                                key={emoji}
-                                type="button"
-                                onClick={() => toggleReaction(post.id, emoji)}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
-                              >
-                                {emoji}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                          {reactionPickerId === post.id && (
+                            <div className={`absolute bottom-9 z-30 flex gap-1 rounded-2xl border border-white/10 bg-[#182630] p-2 shadow-2xl ${isOwner ? 'right-0' : 'left-0'}`}>
+                              {REACTIONS.map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={() => toggleReaction(post.id, emoji)}
+                                  className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -325,7 +304,7 @@ function DiscussionRoom({
                 disabled={signedIn && !room?.canParticipate}
                 placeholder={
                   signedIn && !room?.canParticipate
-                    ? 'Upgrade to Standard to join the conversation'
+                    ? 'Community posting is unavailable for your account'
                     : prompt
                 }
                 className={`min-h-11 max-h-28 flex-1 resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-60 ${palette.inputFocus}`}
