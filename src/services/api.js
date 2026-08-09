@@ -164,8 +164,6 @@ function openNextChapterAfterCompletion(chapterId, completionMethod) {
 }
 
 export async function getChapterById(chapterId) {
-  await wait(120)
-
   const chapter =
     chapterLibrary[chapterId] ||
     buildScriptureOnlyChapter(chapterId)
@@ -208,7 +206,7 @@ export async function markChapterComplete(
     return result
   }
 
-  await wait(150)
+  await wait(80)
 
   const result = {
     success: true,
@@ -268,8 +266,6 @@ export async function getCurrentUser() {
     }
   }
 
-  await wait(80)
-
   return {
     id: 'demo-user',
     firstName: 'Brian',
@@ -295,7 +291,7 @@ export async function openChapterPdf(pdfUrl, pdfType) {
   if (!pdfUrl) {
     return {
       success: false,
-      message: `${pdfType} PDF will open here after its backend URL is connected.`,
+      message: `${pdfType} is not available for this chapter yet.`,
     }
   }
 
