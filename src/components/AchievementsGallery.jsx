@@ -22,6 +22,12 @@ const tierText = {
   legendary: 'text-cyan-300',
 }
 
+const bookTestamentFilters = [
+  { id: 'all', label: 'All 66' },
+  { id: 'Old Testament', label: 'Old Testament' },
+  { id: 'New Testament', label: 'New Testament' },
+]
+
 function progressSuffix(achievement) {
   if (achievement.type === 'chapters') return 'chapters'
   if (achievement.type === 'streak') return 'days'
@@ -36,6 +42,7 @@ function AchievementsGallery({
   onBack,
 }) {
   const [activeCategory, setActiveCategory] = useState('all')
+  const [bookTestamentFilter, setBookTestamentFilter] = useState('all')
   const [selectedAchievementId, setSelectedAchievementId] = useState(null)
   const [popupAchievementId, setPopupAchievementId] = useState(null)
 
@@ -70,6 +77,13 @@ function AchievementsGallery({
   const visibleAchievements = achievements.filter((achievement) => {
     if (activeCategory === 'all') return true
     if (activeCategory === 'legendary') return achievement.tier === 'legendary'
+
+    if (activeCategory === 'featured') {
+      if (achievement.category !== 'featured') return false
+      if (bookTestamentFilter === 'all') return true
+      return achievement.testament === bookTestamentFilter
+    }
+
     return achievement.category === activeCategory
   })
 
@@ -169,6 +183,28 @@ function AchievementsGallery({
         })}
       </nav>
 
+      {activeCategory === 'featured' && (
+        <nav className="mt-2 flex gap-2 overflow-x-auto pb-2" aria-label="Book badge testament filters">
+          {bookTestamentFilters.map((filter) => {
+            const active = bookTestamentFilter === filter.id
+            return (
+              <button
+                key={filter.id}
+                type="button"
+                onClick={() => setBookTestamentFilter(filter.id)}
+                className={`shrink-0 border px-3 py-2 text-xs font-semibold transition ${
+                  active
+                    ? 'border-orange-300/60 bg-orange-400/15 text-orange-200'
+                    : 'border-white/10 bg-[#091a2b] text-slate-400 hover:text-white'
+                }`}
+              >
+                {filter.label}
+              </button>
+            )
+          })}
+        </nav>
+      )}
+
       <div className="mt-3 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-cyan-400">
@@ -209,6 +245,9 @@ function AchievementsGallery({
               </div>
 
               <h3 className="mt-3 text-sm font-semibold leading-5 text-white sm:text-base">{achievement.title}</h3>
+              {achievement.category === 'featured' && (
+                <p className="mt-0.5 text-[10px] font-semibold text-slate-500">{achievement.bookName}</p>
+              )}
               <p className={`mt-1 text-[10px] font-bold uppercase tracking-[0.12em] ${tierText[achievement.tier]}`}>
                 {tierLabels[achievement.tier]}
               </p>
@@ -260,6 +299,9 @@ function AchievementsGallery({
                 {tierLabels[popupAchievement.tier]} · {earned ? 'Collected' : 'Locked'}
               </p>
               <h2 id="badge-detail-title" className="mt-2 text-2xl font-bold">{popupAchievement.title}</h2>
+              {popupAchievement.bookName && (
+                <p className="mt-1 text-xs font-semibold text-slate-500">{popupAchievement.bookName}</p>
+              )}
 
               {earned ? (
                 <>
