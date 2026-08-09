@@ -17,21 +17,16 @@ const leaderFeatures = [
 ]
 
 const standardFeatures = [
-  'Bible reader',
-  'Audio studies',
-  'Study guides',
+  'Full Bible reader',
+  'Audio where available',
+  'Study resources where available',
+  'Community conversation participation',
 ]
 
 function UpgradePage({
   onBack,
   onNavigate,
 }) {
-  function handleUpgrade() {
-    window.alert(
-      'The secure Stripe checkout will open here after billing is connected.',
-    )
-  }
-
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation
@@ -56,7 +51,7 @@ function UpgradePage({
             </div>
 
             <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
-              Leader Plan
+              Leader Guides
             </p>
 
             <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-5xl">
@@ -64,8 +59,7 @@ function UpgradePage({
             </h1>
 
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-              Unlock leader guides and practical group resources while
-              keeping Scripture at the center.
+              Leader Guides are a separate paid product for pastors and small-group leaders.
             </p>
           </header>
 
@@ -75,27 +69,9 @@ function UpgradePage({
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
                   <BookOpen size={20} strokeWidth={2.2} />
                 </div>
-
                 <div>
-                  <h2 className="font-semibold">
-                    Standard Plan
-                  </h2>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    Your current plan
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                <div className="flex items-end gap-2">
-                  <p className="text-3xl font-bold">
-                    $7.50
-                  </p>
-
-                  <p className="pb-1 text-sm text-slate-500">
-                    per month
-                  </p>
+                  <h2 className="font-semibold">Bible Study</h2>
+                  <p className="mt-1 text-xs text-slate-500">Core paid experience</p>
                 </div>
               </div>
 
@@ -108,19 +84,9 @@ function UpgradePage({
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#c7dce7] text-cyan-700">
                       <Check size={15} strokeWidth={2.5} />
                     </div>
-
-                    <p className="text-sm font-medium text-slate-700">
-                      {feature}
-                    </p>
+                    <p className="text-sm font-medium text-slate-700">{feature}</p>
                   </div>
                 ))}
-              </div>
-
-              <div className="mt-5 rounded-xl border border-[#c8d3db] bg-[#edf2f4] px-4 py-3">
-                <p className="text-xs leading-5 text-slate-500">
-                  Your current access remains active unless you choose to
-                  upgrade.
-                </p>
               </div>
             </section>
 
@@ -128,36 +94,14 @@ function UpgradePage({
               <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-orange-300/30 blur-3xl" />
 
               <div className="relative">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-200/70 text-orange-600">
-                      <Users size={20} strokeWidth={2.2} />
-                    </div>
-
-                    <div>
-                      <h2 className="font-semibold">
-                        Leader Plan
-                      </h2>
-
-                      <p className="mt-1 text-xs text-slate-500">
-                        Everything in Standard
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-200/70 text-orange-600">
+                    <Users size={20} strokeWidth={2.2} />
                   </div>
-
-                  <span className="rounded-full border border-orange-300/50 bg-orange-200/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-600">
-                    Upgrade
-                  </span>
-                </div>
-
-                <div className="mt-5">
-                  <p className="text-2xl font-semibold">
-                    Pricing connected later
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Final pricing will come from Stripe.
-                  </p>
+                  <div>
+                    <h2 className="font-semibold">Leader Guides</h2>
+                    <p className="mt-1 text-xs text-slate-500">Separate leader entitlement</p>
+                  </div>
                 </div>
 
                 <div className="mt-5 space-y-3">
@@ -169,22 +113,22 @@ function UpgradePage({
                       <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-200/80 text-orange-600">
                         <Check size={15} strokeWidth={2.5} />
                       </div>
-
-                      <p className="text-sm leading-5 text-slate-700">
-                        {feature}
-                      </p>
+                      <p className="text-sm leading-5 text-slate-700">{feature}</p>
                     </div>
                   ))}
                 </div>
 
                 <button
                   type="button"
-                  onClick={handleUpgrade}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/15 transition hover:bg-orange-400 active:scale-[0.98]"
+                  disabled
+                  className="mt-6 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-orange-500/60 px-4 py-3 text-sm font-semibold text-white/90"
                 >
                   <Crown size={17} />
-                  Upgrade to Leader
+                  Checkout coming soon
                 </button>
+                <p className="mt-2 text-center text-xs text-slate-500">
+                  Stripe checkout will be enabled when production billing is connected.
+                </p>
               </div>
             </section>
           </div>
@@ -194,15 +138,10 @@ function UpgradePage({
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-200/70 text-emerald-700">
                 <ShieldCheck size={19} strokeWidth={2.2} />
               </div>
-
               <div>
-                <h2 className="text-sm font-semibold text-emerald-800">
-                  No payment is taken in this prototype
-                </h2>
-
+                <h2 className="text-sm font-semibold text-emerald-800">No payment is taken in beta</h2>
                 <p className="mt-1.5 text-sm leading-5 text-slate-600">
-                  The production version will use secure Stripe checkout
-                  and backend entitlement checks.
+                  Test accounts currently receive product access without a live checkout.
                 </p>
               </div>
             </div>
