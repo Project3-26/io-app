@@ -6,14 +6,14 @@ import {
   Crown,
   Flame,
   MessageCircle,
-  Quote,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
-import { mockChapter } from '../data/mockChapter'
 import {
   openSharedJourneyChapter,
   sharedJourney,
 } from '../data/sharedJourney'
+import { getCurrentUser } from '../services/api'
+import { getChurchMemberships } from '../services/connect'
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -97,6 +97,8 @@ function DashboardPage({
   onOpenUpgrade,
 }) {
   const [now, setNow] = useState(() => new Date())
+  const [firstName, setFirstName] = useState('Member')
+  const [primaryChurch, setPrimaryChurch] = useState(null)
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -106,9 +108,49 @@ function DashboardPage({
     return () => window.clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    let mounted = true
+
+    async function loadMemberHome() {
+      const [memberResult, churchResult] = await Promise.allSettled([
+        getCurrentUser(),
+        getChurchMemberships(),
+      ])
+
+      if (!mounted) return
+
+      if (memberResult.status === 'fulfilled') {
+        setFirstName(memberResult.value?.firstName || 'Member')
+      }
+
+      if (churchResult.status === 'fulfilled') {
+        const activeChurch = churchResult.value.find(
+          (membership) => membership?.status === 'active' && membership?.church?.active !== false,
+        )
+        setPrimaryChurch(activeChurch || null)
+      }
+    }
+
+    loadMemberHome()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   function openToday() {
     openSharedJourneyChapter(onOpenChapter, 'read')
   }
+
+  function openChurch() {
+    const churchSlug = primaryChurch?.church?.slug || primaryChurch?.churchSlug || primaryChurch?.slug
+    if (churchSlug) {
+      onNavigate('connect', churchSlug)
+      return
+    }
+    onNavigate('profile')
+  }
+
+  const churchName = primaryChurch?.church?.name || primaryChurch?.churchName || 'My Church'
 
   return (
     <div className="min-h-screen bg-[#041326] text-white">
@@ -127,7 +169,7 @@ function DashboardPage({
                   PROJECT 3|26
                 </p>
                 <h1 className="mt-1 text-xl font-bold sm:text-2xl lg:text-3xl">
-                  {getGreeting()}, Brian
+                  {getGreeting()}, {firstName}
                 </h1>
               </div>
             </div>
@@ -139,7 +181,6 @@ function DashboardPage({
               aria-label="Notifications"
             >
               <Bell size={20} strokeWidth={2.2} />
-              <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-[#0c2138] bg-orange-400" />
             </button>
           </header>
 
@@ -209,7 +250,7 @@ function DashboardPage({
 
             <button
               type="button"
-              onClick={() => onNavigate('connect', 'villas-church')}
+              onClick={openChurch}
               className="group relative flex min-h-36 overflow-hidden rounded-[26px] border border-white/10 p-4 text-left shadow-lg shadow-black/15 transition active:scale-[0.98] sm:min-h-40 sm:p-5"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-[#163a4c] via-[#13243c] to-[#071421]" />
@@ -217,8 +258,10 @@ function DashboardPage({
               <div className="relative z-10 flex w-full flex-col justify-between">
                 <Church size={31} strokeWidth={1.85} className="text-cyan-300" />
                 <div>
-                  <p className="text-base font-semibold text-white sm:text-lg">My Church</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-300 sm:text-sm">Church community</p>
+                  <p className="text-base font-semibold text-white sm:text-lg">{primaryChurch ? churchName : 'My Church'}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-300 sm:text-sm">
+                    {primaryChurch ? 'Private church community' : 'Connect your church in Profile'}
+                  </p>
                 </div>
               </div>
             </button>
@@ -236,25 +279,14 @@ function DashboardPage({
             </button>
           </section>
 
-          <section className="relative mt-7 overflow-hidden rounded-[24px] border border-white/10 bg-[#0c2138] px-4 py-4 shadow-lg shadow-black/10 sm:mt-8 sm:px-5 sm:py-5">
-            <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-cyan-500/10 to-transparent" />
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
-                <Quote size={17} />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400 sm:text-xs">
-                  Project 3|26 Quote of the Day
-                </p>
-                <p className="mt-1.5 text-sm font-medium leading-6 text-slate-100 sm:text-base">
-                  “{mockChapter.quote}”
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {mockChapter.quoteAttribution} · {sharedJourney.reference}
-                </p>
-              </div>
-            </div>
+          <section className="mt-7 rounded-[24px] border border-white/10 bg-[#0c2138] px-5 py-5 text-sm text-slate-300 shadow-lg shadow-black/10 sm:mt-8">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400 sm:text-xs">
+              Today’s Journey
+            </p>
+            <p className="mt-2 font-semibold text-white">{sharedJourney.reference}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400 sm:text-sm">
+              Read today’s chapter, mark it complete, and keep moving through the Bible one chapter at a time.
+            </p>
           </section>
         </main>
       </div>
