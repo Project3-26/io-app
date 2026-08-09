@@ -1,3 +1,4 @@
+import { bibleBooks } from '../data/bibleBooks'
 import { mockChapter } from '../data/mockChapter'
 import {
   completeMemberChapter,
@@ -14,20 +15,96 @@ const chapterLibrary = {
   [mockChapter.id]: mockChapter,
 }
 
-export async function getChapterById(chapterId) {
-  /*
-   * Bible content is still served from the current frontend content bundle.
-   * The backend is now connected for identity/progress first; published
-   * chapter content will move to the content API in a later slice.
-   */
+function buildScriptureOnlyChapter(chapterId) {
+  const match = chapterId.match(/^(.*)-(\d+)$/)
 
+  if (!match) {
+    return null
+  }
+
+  const bookId = match[1]
+  const chapterNumber = Number(match[2])
+  const book = bibleBooks.find(
+    (candidate) => candidate.id === bookId,
+  )
+
+  if (
+    !book ||
+    !Number.isInteger(chapterNumber) ||
+    chapterNumber < 1 ||
+    chapterNumber > book.chapters
+  ) {
+    return null
+  }
+
+  const nextChapter =
+    chapterNumber < book.chapters
+      ? {
+          id: `${bookId}-${chapterNumber + 1}`,
+          reference: `${book.name} ${chapterNumber + 1}`,
+          title: '',
+        }
+      : null
+
+  return {
+    id: chapterId,
+    book: book.name,
+    chapterNumber,
+    reference: `${book.name} ${chapterNumber}`,
+    title: `${book.name} ${chapterNumber}`,
+    lessonNumber: chapterNumber,
+    totalLessons: book.chapters,
+    journeyDay: 1,
+    totalJourneyDays: 1189,
+    summary: '',
+    quote: '',
+    quoteAttribution: '',
+    audio: {
+      title: `${book.name} ${chapterNumber} Audio`,
+      duration: '',
+      url: '',
+    },
+    studyGuide: {
+      title: 'Study',
+      description: '',
+      pdfUrl: '',
+      sections: [],
+    },
+    leaderGuide: {
+      title: 'Leader Guide',
+      theme: '',
+      description: '',
+      pdfUrl: '',
+      overview: '',
+      groupFlow: [],
+      icebreakers: [],
+      leaderPrep: [],
+      discussionQuestions: [],
+      reflectionPrompt: '',
+      prayerGuide: '',
+    },
+    compassPrompt: `Help me understand ${book.name} ${chapterNumber}.`,
+    isCompleted: false,
+    nextChapter,
+    contentAvailability: {
+      scripture: true,
+      audio: false,
+      study: false,
+      leaderGuide: false,
+    },
+  }
+}
+
+export async function getChapterById(chapterId) {
   await wait(120)
 
-  const chapter = chapterLibrary[chapterId]
+  const chapter =
+    chapterLibrary[chapterId] ||
+    buildScriptureOnlyChapter(chapterId)
 
   if (!chapter) {
     throw new Error(
-      `Chapter "${chapterId}" has not been added yet.`,
+      `Chapter "${chapterId}" is not a valid Bible chapter.`,
     )
   }
 
