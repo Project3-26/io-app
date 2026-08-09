@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Compass, MessageCircle, UserRound, X } from 'lucide-react'
 
 const ONBOARDING_TOUR_ENABLED = true
-const ONBOARDING_TOUR_VERSION = 3
+const ONBOARDING_TOUR_VERSION = 4
 const ONBOARDING_STORAGE_KEY = `project326-onboarding-tour-v${ONBOARDING_TOUR_VERSION}`
 
 const TOUR_STEPS = [
@@ -64,29 +64,26 @@ function markTourComplete() {
   }
 }
 
-function findPageRect() {
-  const main = document.querySelector('main')
-  if (!main) return null
+function getFocusRect() {
+  const target = document.querySelector('main h1') || document.querySelector('main header') || document.querySelector('main')
+  if (!target) return null
 
-  const rect = main.getBoundingClientRect()
-  const padding = 8
-  const left = Math.max(8, rect.left - padding)
-  const top = Math.max(8, rect.top - padding)
-  const right = Math.min(window.innerWidth - 8, rect.right + padding)
-  const bottom = Math.min(window.innerHeight - 8, rect.bottom + padding)
+  const rect = target.getBoundingClientRect()
+  const paddingX = 14
+  const paddingY = 10
 
   return {
-    left,
-    top,
-    width: Math.max(0, right - left),
-    height: Math.max(0, bottom - top),
+    left: Math.max(10, rect.left - paddingX),
+    top: Math.max(10, rect.top - paddingY),
+    width: Math.min(window.innerWidth - 20, rect.width + paddingX * 2),
+    height: Math.max(44, rect.height + paddingY * 2),
   }
 }
 
 function OnboardingTour({ onNavigate }) {
   const [isOpen, setIsOpen] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
-  const [pageRect, setPageRect] = useState(null)
+  const [focusRect, setFocusRect] = useState(null)
 
   const step = TOUR_STEPS[stepIndex]
   const Icon = step?.icon || Compass
@@ -114,19 +111,17 @@ function OnboardingTour({ onNavigate }) {
     let timer
 
     function measure() {
-      setPageRect(findPageRect())
+      setFocusRect(getFocusRect())
     }
 
     frame = window.requestAnimationFrame(measure)
-    timer = window.setTimeout(measure, 220)
+    timer = window.setTimeout(measure, 240)
     window.addEventListener('resize', measure)
-    window.addEventListener('scroll', measure, { passive: true })
 
     return () => {
       window.cancelAnimationFrame(frame)
       window.clearTimeout(timer)
       window.removeEventListener('resize', measure)
-      window.removeEventListener('scroll', measure)
     }
   }, [isOpen, onNavigate, step?.pageId])
 
@@ -138,7 +133,7 @@ function OnboardingTour({ onNavigate }) {
   }
 
   function goBack() {
-    setPageRect(null)
+    setFocusRect(null)
     setStepIndex((current) => Math.max(0, current - 1))
   }
 
@@ -148,7 +143,7 @@ function OnboardingTour({ onNavigate }) {
       return
     }
 
-    setPageRect(null)
+    setFocusRect(null)
     setStepIndex((current) => Math.min(TOUR_STEPS.length - 1, current + 1))
   }
 
@@ -156,90 +151,99 @@ function OnboardingTour({ onNavigate }) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-slate-950/28" />
+      <div className="absolute inset-0 bg-slate-950/18" />
 
-      {pageRect && (
+      {focusRect && (
         <div
-          className="absolute rounded-[22px] border-2 border-orange-300 shadow-[0_0_0_9999px_rgba(2,10,23,0.38),0_0_38px_rgba(251,146,60,0.7)] transition-all duration-300"
+          className="absolute rounded-2xl border-2 border-orange-400 bg-orange-300/5 shadow-[0_0_0_5px_rgba(251,146,60,0.16),0_0_30px_rgba(251,146,60,0.35)] transition-all duration-300"
           style={{
-            left: pageRect.left,
-            top: pageRect.top,
-            width: pageRect.width,
-            height: pageRect.height,
+            left: focusRect.left,
+            top: focusRect.top,
+            width: focusRect.width,
+            height: focusRect.height,
           }}
           aria-hidden="true"
         />
       )}
 
-      <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[390px] sm:px-0 sm:pb-0 lg:right-8">
+      <div className="absolute inset-x-0 bottom-4 flex justify-center px-4 sm:bottom-6 lg:bottom-auto lg:top-6">
         <div
-          className="pointer-events-auto w-full rounded-[24px] border border-orange-300/30 bg-[#071a31]/97 p-4 text-white shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-5"
+          className="pointer-events-auto relative w-full max-w-lg overflow-hidden rounded-[26px] border-2 border-orange-400 bg-[#fff8ee] text-[#102238] shadow-[0_24px_70px_rgba(0,0,0,0.55)]"
           role="dialog"
           aria-modal="true"
           aria-label="Project 3|26 app tour"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-500/15 text-orange-400">
-                <Icon size={20} strokeWidth={2.2} />
+          <div className="h-2 w-full bg-orange-500" />
+
+          <div className="p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/25">
+                  <Icon size={23} strokeWidth={2.3} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-orange-600">
+                    {step.eyebrow}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-slate-500">{progressLabel}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-400">
-                  {step.eyebrow}
-                </p>
-                <p className="mt-1 text-[11px] font-medium text-slate-500">{progressLabel}</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={finishTour}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-400 transition hover:bg-white/5 hover:text-white"
-              aria-label="Skip app tour"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <h2 className="mt-4 text-xl font-semibold leading-tight text-white sm:text-2xl">
-            {step.title}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-300">
-            {step.body}
-          </p>
-
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-            <div className="flex items-center gap-1.5">
-              {TOUR_STEPS.map((tourStep, index) => (
-                <span
-                  key={tourStep.id}
-                  className={`h-1.5 rounded-full transition-all ${
-                    index === stepIndex ? 'w-6 bg-orange-400' : 'w-1.5 bg-slate-600'
-                  }`}
-                />
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {!isFirstStep && (
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="flex h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white"
-                >
-                  <ArrowLeft size={15} />
-                  Back
-                </button>
-              )}
 
               <button
                 type="button"
-                onClick={goNext}
-                className="flex h-9 items-center gap-1.5 rounded-full bg-orange-500 px-4 text-xs font-bold text-white transition hover:bg-orange-400"
+                onClick={finishTour}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-500 transition hover:border-slate-400 hover:text-slate-800"
+                aria-label="Skip app tour"
               >
-                {isLastStep ? 'Start exploring' : 'Next'}
-                {!isLastStep && <ArrowRight size={15} />}
+                <X size={17} />
               </button>
+            </div>
+
+            <h2 className="mt-5 text-2xl font-extrabold leading-tight text-[#102238] sm:text-[28px]">
+              {step.title}
+            </h2>
+            <p className="mt-3 text-[15px] leading-6 text-slate-600">
+              {step.body}
+            </p>
+
+            <div className="mt-5 flex items-center gap-2 rounded-2xl bg-orange-100 px-3.5 py-2.5 text-xs font-bold text-orange-800">
+              <span className="text-base leading-none">↓</span>
+              The page behind this card is the feature we’re showing you.
+            </div>
+
+            <div className="mt-6 flex items-center justify-between gap-3 border-t border-orange-200 pt-4">
+              <div className="flex items-center gap-1.5">
+                {TOUR_STEPS.map((tourStep, index) => (
+                  <span
+                    key={tourStep.id}
+                    className={`h-2 rounded-full transition-all ${
+                      index === stepIndex ? 'w-7 bg-orange-500' : 'w-2 bg-slate-300'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {!isFirstStep && (
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="flex h-10 items-center gap-1 rounded-full px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100"
+                  >
+                    <ArrowLeft size={16} />
+                    Back
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={goNext}
+                  className="flex h-10 items-center gap-1.5 rounded-full bg-orange-500 px-5 text-sm font-extrabold text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400"
+                >
+                  {isLastStep ? 'Start exploring' : 'Next'}
+                  {!isLastStep && <ArrowRight size={16} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
