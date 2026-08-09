@@ -70,42 +70,36 @@ function LiveNotificationToast({ activePage, onNavigate }) {
 
   return (
     <div className="fixed left-3 right-3 top-3 z-[90] sm:left-auto sm:right-5 sm:top-5 sm:w-[390px]">
-      <div className="overflow-hidden rounded-2xl border border-cyan-300/25 bg-[#102238] text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-2xl border border-cyan-300/25 bg-[#102238] text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <button
           type="button"
           onClick={openNotification}
-          className="flex w-full items-start gap-3 px-4 py-4 text-left"
+          className="flex w-full items-start gap-3 px-4 py-4 pr-12 text-left"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400 text-[#06111b]">
             <Bell size={19} strokeWidth={2.4} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-300">
-                  New notification
-                </p>
-                <p className="mt-1 text-sm font-bold leading-5 text-white">
-                  {notification.title}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setNotification(null)
-                }}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white"
-                aria-label="Dismiss notification"
-              >
-                <X size={15} />
-              </button>
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-300">
+              New notification
+            </p>
+            <p className="mt-1 text-sm font-bold leading-5 text-white">
+              {notification.title}
+            </p>
             {notification.body && (
               <p className="mt-1.5 text-sm text-slate-300">{notification.body}</p>
             )}
             <p className="mt-2 text-[11px] font-semibold text-cyan-300">Tap to open</p>
           </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setNotification(null)}
+          className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white"
+          aria-label="Dismiss notification"
+        >
+          <X size={15} />
         </button>
       </div>
     </div>
