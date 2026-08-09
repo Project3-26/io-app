@@ -5,10 +5,12 @@ import {
   LoaderCircle,
   LockKeyhole,
   Server,
+  UserPlus,
 } from 'lucide-react'
 import {
   checkBackendConnection,
   signInMember,
+  signUpMember,
 } from '../services/backend'
 
 const GUEST_USERNAME = 'guest'
@@ -18,6 +20,8 @@ function AuthPage({
   onAuthenticated,
   onContinueDemo,
 }) {
+  const [mode, setMode] = useState('sign-in')
+  const [displayName, setDisplayName] = useState('')
   const [identifier, setIdentifier] =
     useState('')
   const [password, setPassword] =
@@ -26,6 +30,8 @@ function AuthPage({
     useState(false)
   const [error, setError] =
     useState('')
+  const [notice, setNotice] =
+    useState('')
   const [backendStatus, setBackendStatus] =
     useState('checking')
 
@@ -33,6 +39,7 @@ function AuthPage({
     identifier.trim().toLowerCase()
 
   const isGuestCredentials =
+    mode === 'sign-in' &&
     normalizedIdentifier === GUEST_USERNAME &&
     password === GUEST_PASSWORD
 
@@ -60,17 +67,25 @@ function AuthPage({
     }
   }, [])
 
+  function switchMode(nextMode) {
+    setMode(nextMode)
+    setError('')
+    setNotice('')
+    setPassword('')
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
+    setNotice('')
 
     if (!identifier.trim() || !password) {
       setError(
-        'Enter your email or username and password.',
+        'Enter your email and password.',
       )
       return
     }
 
-    if (isGuestCredentials) {
+    if (mode === 'sign-in' && isGuestCredentials) {
       setError('')
       onContinueDemo()
       return
@@ -78,14 +93,46 @@ function AuthPage({
 
     if (!identifier.includes('@')) {
       setError(
-        'Use guest / guest for tester access, or enter the email address for a real account.',
+        mode === 'sign-in'
+          ? 'Use guest / guest for tester access, or enter the email address for a real account.'
+          : 'Enter a valid email address.',
       )
+      return
+    }
+
+    if (mode === 'create-account' && !displayName.trim()) {
+      setError('Choose the name you want shown in Project 3|26.')
+      return
+    }
+
+    if (mode === 'create-account' && password.length < 8) {
+      setError('Use a password with at least 8 characters.')
       return
     }
 
     try {
       setIsSubmitting(true)
       setError('')
+
+      if (mode === 'create-account') {
+        const result = await signUpMember(
+          identifier.trim(),
+          password,
+          displayName.trim(),
+        )
+
+        if (result?.session) {
+          await onAuthenticated()
+          return
+        }
+
+        setNotice(
+          'Account created. Check your email to confirm the account, then sign in.',
+        )
+        setMode('sign-in')
+        setPassword('')
+        return
+      }
 
       await signInMember(
         identifier.trim(),
@@ -97,7 +144,9 @@ function AuthPage({
       setError(
         submitError instanceof Error
           ? submitError.message
-          : 'Unable to sign in.',
+          : mode === 'create-account'
+            ? 'Unable to create account.'
+            : 'Unable to sign in.',
       )
     } finally {
       setIsSubmitting(false)
@@ -118,7 +167,9 @@ function AuthPage({
                 PROJECT 3|26
               </p>
               <h1 className="mt-1 text-2xl font-bold">
-                Welcome back
+                {mode === 'create-account'
+                  ? 'Create your account'
+                  : 'Welcome back'}
               </h1>
             </div>
           </div>
@@ -133,7 +184,7 @@ function AuthPage({
                   Live development build
                 </p>
                 <p className="mt-1 text-xs leading-5 text-slate-400">
-                  Testers can use guest / guest. Real accounts sync with the Project 3|26 backend.
+                  Signed-in accounts sync profile and progress across devices. Testers receive the full product surface during beta.
                 </p>
               </div>
               <span
@@ -153,13 +204,54 @@ function AuthPage({
               </span>
             </div>
 
+            <div className="mt-5 grid grid-cols-2 border border-white/10 bg-[#071a2d] p-1">
+              <button
+                type="button"
+                onClick={() => switchMode('sign-in')}
+                className={`px-3 py-2.5 text-xs font-bold ${
+                  mode === 'sign-in'
+                    ? 'bg-cyan-400 text-[#041326]'
+                    : 'text-slate-400'
+                }`}
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode('create-account')}
+                className={`px-3 py-2.5 text-xs font-bold ${
+                  mode === 'create-account'
+                    ? 'bg-cyan-400 text-[#041326]'
+                    : 'text-slate-400'
+                }`}
+              >
+                Create account
+              </button>
+            </div>
+
             <form
               onSubmit={handleSubmit}
               className="mt-5 space-y-4"
             >
+              {mode === 'create-account' && (
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-300">
+                    Display name
+                  </span>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(event) => setDisplayName(event.target.value)}
+                    autoComplete="name"
+                    className="mt-2 w-full border border-white/10 bg-[#071a2d] px-3 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+                    placeholder="Your name"
+                  />
+                </label>
+              )}
+
               <label className="block">
                 <span className="text-xs font-semibold text-slate-300">
-                  Email or username
+                  {mode === 'sign-in' ? 'Email or username' : 'Email'}
                 </span>
                 <input
                   type="text"
@@ -169,7 +261,7 @@ function AuthPage({
                   }
                   autoComplete="username"
                   className="mt-2 w-full border border-white/10 bg-[#071a2d] px-3 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                  placeholder="guest or you@example.com"
+                  placeholder={mode === 'sign-in' ? 'guest or you@example.com' : 'you@example.com'}
                 />
               </label>
 
@@ -188,9 +280,9 @@ function AuthPage({
                     onChange={(event) =>
                       setPassword(event.target.value)
                     }
-                    autoComplete="current-password"
+                    autoComplete={mode === 'create-account' ? 'new-password' : 'current-password'}
                     className="w-full border border-white/10 bg-[#071a2d] py-3 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                    placeholder="Password"
+                    placeholder={mode === 'create-account' ? 'At least 8 characters' : 'Password'}
                   />
                 </div>
               </label>
@@ -198,6 +290,12 @@ function AuthPage({
               {error && (
                 <p className="border border-orange-300/20 bg-orange-400/10 px-3 py-2.5 text-xs leading-5 text-orange-200">
                   {error}
+                </p>
+              )}
+
+              {notice && (
+                <p className="border border-emerald-300/20 bg-emerald-400/10 px-3 py-2.5 text-xs leading-5 text-emerald-100">
+                  {notice}
                 </p>
               )}
 
@@ -218,7 +316,12 @@ function AuthPage({
                       size={17}
                       className="animate-spin"
                     />
-                    Signing in…
+                    {mode === 'create-account' ? 'Creating account…' : 'Signing in…'}
+                  </>
+                ) : mode === 'create-account' ? (
+                  <>
+                    <UserPlus size={17} />
+                    Create account
                   </>
                 ) : (
                   <>
