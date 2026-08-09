@@ -244,18 +244,16 @@ function DiscussionRoom({
               return (
                 <div key={post.id} className={`flex ${isOwner ? 'justify-end' : 'justify-start'}`}>
                   <div className={`relative max-w-[84%] sm:max-w-[72%] ${isOwner ? 'text-right' : 'text-left'}`}>
-                    {!isOwner && (
-                      <div className="mb-1.5 flex items-center gap-2 px-1">
-                        {post.avatarUrl ? (
-                          <img src={post.avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" />
-                        ) : (
-                          <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${palette.avatar}`}>
-                            {initials(post.name)}
-                          </div>
-                        )}
-                        <span className="text-xs font-semibold text-slate-300">{post.name}</span>
-                      </div>
-                    )}
+                    <div className={`mb-1.5 flex items-center gap-2 px-1 ${isOwner ? 'flex-row-reverse justify-start' : ''}`}>
+                      {post.avatarUrl ? (
+                        <img src={post.avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" />
+                      ) : (
+                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${palette.avatar}`}>
+                          {initials(post.name)}
+                        </div>
+                      )}
+                      <span className="text-xs font-semibold text-slate-300">{post.name}</span>
+                    </div>
 
                     <div className={`rounded-2xl px-4 py-3 shadow-md ${isOwner ? `rounded-br-md ${palette.ownerBubble}` : 'rounded-bl-md border border-white/10 bg-[#12283d] text-slate-100'}`}>
                       <p className="text-sm leading-6">{post.message}</p>
