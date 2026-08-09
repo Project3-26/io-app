@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import {
   BookOpen,
   CheckCircle2,
-  Eye,
   LoaderCircle,
   LockKeyhole,
   Server,
@@ -14,8 +13,8 @@ import {
   signUpMember,
 } from '../services/backend'
 
-function AuthPage({ onAuthenticated, onGuestPreview, initialMode = 'sign-in' }) {
-  const [mode, setMode] = useState(initialMode)
+function AuthPage({ onAuthenticated }) {
+  const [mode, setMode] = useState('sign-in')
   const [displayName, setDisplayName] = useState('')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
@@ -23,13 +22,6 @@ function AuthPage({ onAuthenticated, onGuestPreview, initialMode = 'sign-in' }) 
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [backendStatus, setBackendStatus] = useState('checking')
-
-  useEffect(() => {
-    setMode(initialMode)
-    setError('')
-    setNotice('')
-    setPassword('')
-  }, [initialMode])
 
   useEffect(() => {
     let isMounted = true
@@ -218,21 +210,6 @@ function AuthPage({ onAuthenticated, onGuestPreview, initialMode = 'sign-in' }) 
                 )}
               </button>
             </form>
-
-            <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-600">or</span>
-              <div className="h-px flex-1 bg-white/10" />
-            </div>
-
-            <button
-              type="button"
-              onClick={onGuestPreview}
-              className="flex w-full items-center justify-center gap-2 border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
-            >
-              <Eye size={17} />
-              Explore as guest
-            </button>
           </section>
 
           <p className="mt-4 text-center text-[11px] leading-5 text-slate-600">
