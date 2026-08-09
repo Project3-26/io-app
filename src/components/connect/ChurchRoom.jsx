@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bell,
   Calendar,
@@ -12,65 +12,18 @@ import {
 import DiscussionRoom from './DiscussionRoom'
 import PrayerRoom from './PrayerRoom'
 
-const STORAGE_KEY = 'project326-villas-announcements'
-
-const mockUser = {
-  name: 'Brian Cooper',
-  role: 'church-admin',
-}
-
-const initialAnnouncements = [
-  {
-    id: 1,
-    title: 'Sunday Worship',
-    date: 'This Sunday · 10:00 AM',
-    message: 'Join us for worship and the next message in our current series.',
-    author: 'Villas Church',
-  },
-  {
-    id: 2,
-    title: 'Community Dinner',
-    date: 'Wednesday · 6:30 PM',
-    message: 'Bring your family and join us for dinner and fellowship.',
-    author: 'Villas Church',
-  },
-]
-
-const churchDiscussionPosts = [
-  {
-    id: 101,
-    name: 'Sarah M.',
-    message: 'Looking forward to seeing everyone Sunday. What has God been teaching you this week?',
-    timestamp: '8:42 AM',
-    reactions: { '❤️': 3, '🙏': 2 },
-    myReactions: [],
-    reported: false,
-    hidden: false,
-  },
-  {
-    id: 102,
-    name: 'James T.',
-    message: 'The message about being present with people has stayed with me all week.',
-    timestamp: '9:06 AM',
-    reactions: { '👍': 2 },
-    myReactions: [],
-    reported: false,
-    hidden: false,
-  },
-]
-
-function getSavedAnnouncements() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? JSON.parse(saved) : initialAnnouncements
-  } catch {
-    return initialAnnouncements
-  }
-}
-
-function ChurchRoom() {
+function ChurchRoom({
+  roomId = 'church',
+  churchName = 'My Church',
+  membership,
+}) {
+  const storageKey = useMemo(
+    () => `project326-${roomId}-announcements`,
+    [roomId],
+  )
   const [activeTab, setActiveTab] = useState('discussion')
-  const [announcements, setAnnouncements] = useState(getSavedAnnouncements)
+  const [announcements, setAnnouncements] = useState([])
+  const [loadedStorage, setLoadedStorage] = useState(false)
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
   const [deleteAnnouncementId, setDeleteAnnouncementId] = useState(null)
   const [announcementForm, setAnnouncementForm] = useState({
@@ -79,11 +32,23 @@ function ChurchRoom() {
     message: '',
   })
 
-  const isChurchAdmin = mockUser.role === 'church-admin'
+  const isChurchAdmin = ['admin', 'leader'].includes(membership?.role)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(announcements))
-  }, [announcements])
+    try {
+      const saved = localStorage.getItem(storageKey)
+      setAnnouncements(saved ? JSON.parse(saved) : [])
+    } catch {
+      setAnnouncements([])
+    } finally {
+      setLoadedStorage(true)
+    }
+  }, [storageKey])
+
+  useEffect(() => {
+    if (!loadedStorage) return
+    localStorage.setItem(storageKey, JSON.stringify(announcements))
+  }, [announcements, loadedStorage, storageKey])
 
   function submitAnnouncement(event) {
     event.preventDefault()
@@ -98,7 +63,7 @@ function ChurchRoom() {
         title,
         date,
         message,
-        author: mockUser.name,
+        author: churchName,
       },
       ...current,
     ])
@@ -146,11 +111,11 @@ function ChurchRoom() {
 
       {activeTab === 'discussion' && (
         <DiscussionRoom
-          storageKey="project326-villas-discussion"
+          roomId={roomId}
           prompt="Message your church family…"
-          contextLabel="Villas Church chat"
+          contextLabel={`${churchName} chat`}
           contextPrompts={['Share life', 'Encourage someone', 'Stay connected']}
-          startingPosts={churchDiscussionPosts}
+          startingPosts={[]}
           theme="church"
         />
       )}
@@ -165,7 +130,7 @@ function ChurchRoom() {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#9a5f2e]">
-                    Villas Church
+                    {churchName}
                   </p>
                   <h2 className="mt-1 text-lg font-semibold">Announcements</h2>
                 </div>
@@ -220,6 +185,12 @@ function ChurchRoom() {
           )}
 
           <div className="mt-4 space-y-3">
+            {announcements.length === 0 && (
+              <div className="rounded-[22px] border border-amber-100/10 bg-[#151713] p-5 text-sm text-stone-500">
+                No church announcements have been posted yet.
+              </div>
+            )}
+
             {announcements.map((announcement) => (
               <article key={announcement.id} className="rounded-[22px] border border-amber-100/10 bg-[#151713] p-4">
                 <div className="flex items-start gap-3">
