@@ -6,13 +6,15 @@ import {
 } from './backend'
 
 const RESOURCE_CACHE_TTL_MS = 60_000
+const CATALOG_CACHE_TTL_MS = 60_000
 const resourceCache = new Map()
+let catalogCache = null
 
 function cacheKey(bookSlug, chapterNumber) {
   return `${readFounderTestPlan() || 'default'}:${bookSlug}:${chapterNumber}`
 }
 
-async function requestChapterResources(bookSlug, chapterNumber, retry = true) {
+async function authenticatedContentRequest(path, retry = true) {
   let session = readMemberSession()
 
   if (!session?.accessToken) {
@@ -20,20 +22,17 @@ async function requestChapterResources(bookSlug, chapterNumber, retry = true) {
   }
 
   const testPlan = readFounderTestPlan()
-  const response = await fetch(
-    `${BACKEND_BASE_URL}/api/app/content/${encodeURIComponent(bookSlug)}/${chapterNumber}`,
-    {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-        ...(testPlan ? { 'X-Project326-Test-Plan': testPlan } : {}),
-      },
+  const response = await fetch(`${BACKEND_BASE_URL}${path}`, {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`,
+      ...(testPlan ? { 'X-Project326-Test-Plan': testPlan } : {}),
     },
-  )
+  })
 
   if (response.status === 401 && retry) {
     session = await refreshMemberSession()
     if (session) {
-      return requestChapterResources(bookSlug, chapterNumber, false)
+      return authenticatedContentRequest(path, false)
     }
   }
 
@@ -46,7 +45,7 @@ async function requestChapterResources(bookSlug, chapterNumber, retry = true) {
 
   if (!response.ok) {
     const error = new Error(
-      payload?.error || `Unable to load chapter resources (${response.status}).`,
+      payload?.error || `Unable to load app content (${response.status}).`,
     )
     error.status = response.status
     error.code = payload?.code || null
@@ -54,6 +53,12 @@ async function requestChapterResources(bookSlug, chapterNumber, retry = true) {
   }
 
   return payload
+}
+
+async function requestChapterResources(bookSlug, chapterNumber) {
+  return authenticatedContentRequest(
+    `/api/app/content/${encodeURIComponent(bookSlug)}/${chapterNumber}`,
+  )
 }
 
 export async function getChapterResources(bookSlug, chapterNumber, options = {}) {
@@ -70,6 +75,23 @@ export async function getChapterResources(bookSlug, chapterNumber, options = {})
   return value
 }
 
+export async function getContentCatalog(options = {}) {
+  const force = Boolean(options?.force)
+
+  if (
+    !force &&
+    catalogCache &&
+    Date.now() - catalogCache.createdAt < CATALOG_CACHE_TTL_MS
+  ) {
+    return catalogCache.value
+  }
+
+  const value = await authenticatedContentRequest('/api/app/content/catalog')
+  catalogCache = { createdAt: Date.now(), value }
+  return value
+}
+
 export function clearChapterResourceCache() {
   resourceCache.clear()
+  catalogCache = null
 }
