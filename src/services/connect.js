@@ -160,3 +160,10 @@ export async function createChurchInvite(churchSlug) {
   )
   return payload?.invite || null
 }
+
+export async function leaveChurch(churchSlug) {
+  return connectRequest(
+    `/api/app/churches/${encodeURIComponent(churchSlug)}/membership`,
+    { method: 'DELETE' },
+  )
+}
