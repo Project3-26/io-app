@@ -2,7 +2,10 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  Cloud,
+  CloudOff,
   Flame,
+  History,
   Rocket,
   Trophy,
 } from 'lucide-react'
@@ -17,6 +20,7 @@ import {
   sharedJourney,
   TOTAL_CYCLE_DAYS,
 } from '../data/sharedJourney'
+import { getMemberSnapshot } from '../services/backend'
 import {
   achievements,
   clearUnseenAchievements,
@@ -28,6 +32,7 @@ import {
 import { calculateCurrentStreak } from '../utils/streak'
 
 const COMPLETED_CHAPTERS_KEY = 'project326-completed-chapters'
+const LAST_OPENED_CHAPTER_KEY = 'project326-last-opened-chapter'
 const TOTAL_BIBLE_CHAPTERS = 1189
 
 function readCompletedChapters() {
@@ -36,6 +41,15 @@ function readCompletedChapters() {
     return Array.isArray(stored) ? stored : []
   } catch {
     return []
+  }
+}
+
+function readLastOpenedChapter() {
+  try {
+    const value = JSON.parse(localStorage.getItem(LAST_OPENED_CHAPTER_KEY) || 'null')
+    return value?.id ? value : null
+  } catch {
+    return null
   }
 }
 
@@ -75,6 +89,8 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
   const [earnedAchievementIds, setEarnedAchievementIds] = useState(readEarnedAchievements)
   const [unseenAchievementIds, setUnseenAchievementIds] = useState(readUnseenAchievements)
   const [showAchievementsOnly, setShowAchievementsOnly] = useState(false)
+  const [lastOpenedChapter, setLastOpenedChapter] = useState(readLastOpenedChapter)
+  const [syncState, setSyncState] = useState('checking')
 
   useEffect(() => {
     function refreshProgress() {
@@ -82,6 +98,7 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
       setCurrentStreak(calculateCurrentStreak())
       setEarnedAchievementIds(readEarnedAchievements())
       setUnseenAchievementIds(readUnseenAchievements())
+      setLastOpenedChapter(readLastOpenedChapter())
     }
 
     const events = [
@@ -91,10 +108,30 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
       'project326-streak-change',
       'project326-achievement-change',
       'project326-achievement-viewed',
+      'project326-last-opened-change',
     ]
     events.forEach((eventName) => window.addEventListener(eventName, refreshProgress))
     return () => events.forEach((eventName) => window.removeEventListener(eventName, refreshProgress))
   }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function verifySync() {
+      try {
+        const snapshot = await getMemberSnapshot({ force: true })
+        if (!mounted) return
+        setSyncState(snapshot?.progress ? 'synced' : 'local')
+      } catch {
+        if (mounted) setSyncState('local')
+      }
+    }
+
+    verifySync()
+    return () => {
+      mounted = false
+    }
+  }, [completedChapterIds.length])
 
   const chaptersCompleted = Math.min(completedChapterIds.length, TOTAL_BIBLE_CHAPTERS)
   const overallProgress = Math.round((chaptersCompleted / TOTAL_BIBLE_CHAPTERS) * 1000) / 10
@@ -146,6 +183,23 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
     onNavigate(pageId)
   }
 
+  function openChapterId(chapterId, tab = 'read', source = 'journey') {
+    if (!chapterId) return
+    sessionStorage.setItem(
+      'project326-chapter-request',
+      JSON.stringify({ chapterId, tab, createdAt: Date.now(), source }),
+    )
+    onOpenChapter(chapterId)
+  }
+
+  function resumeLastChapter() {
+    if (!lastOpenedChapter?.id) return
+    const tab = ['read', 'listen', 'study', 'leader'].includes(lastOpenedChapter.tab)
+      ? lastOpenedChapter.tab
+      : 'read'
+    openChapterId(lastOpenedChapter.id, tab, 'journey-resume')
+  }
+
   function openBookRoad(book) {
     const currentBook = currentJourneyBookId()
     let chapterId
@@ -160,11 +214,7 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
       chapterId = nextIncomplete || `${book.id}-1`
     }
 
-    sessionStorage.setItem(
-      'project326-chapter-request',
-      JSON.stringify({ chapterId, tab: 'read', createdAt: Date.now() }),
-    )
-    onOpenChapter(chapterId)
+    openChapterId(chapterId)
   }
 
   if (showAchievementsOnly) {
@@ -187,6 +237,8 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
     ? achievements.filter((achievement) => earnedAchievementIds.includes(achievement.id)).slice(-4).reverse()
     : achievements.slice(0, 4)
 
+  const canResume = lastOpenedChapter?.id && lastOpenedChapter.id !== sharedJourney.chapterId
+
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation activePage="journey" onNavigate={handleNavigation} />
@@ -197,6 +249,14 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
             <div>
               <p className="text-xs font-semibold tracking-[0.2em] text-cyan-400">PROJECT 3|26</p>
               <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Your Journey</h1>
+              <div className={`mt-2 inline-flex items-center gap-1.5 text-[11px] ${syncState === 'synced' ? 'text-emerald-300' : 'text-slate-500'}`}>
+                {syncState === 'synced' ? <Cloud size={13} /> : <CloudOff size={13} />}
+                {syncState === 'checking'
+                  ? 'Checking progress sync…'
+                  : syncState === 'synced'
+                    ? 'Progress synced to your member profile'
+                    : 'Showing saved progress on this device'}
+              </div>
             </div>
             <button
               type="button"
@@ -236,6 +296,21 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
               </div>
             </div>
           </section>
+
+          {canResume && (
+            <button
+              type="button"
+              onClick={resumeLastChapter}
+              className="mt-4 flex w-full items-center gap-3 border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-left transition hover:bg-cyan-300/[0.11]"
+            >
+              <History size={18} className="shrink-0 text-cyan-300" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400">Resume your last chapter</p>
+                <p className="mt-0.5 truncate text-sm font-semibold text-white">{lastOpenedChapter.reference || lastOpenedChapter.id}</p>
+              </div>
+              <ArrowRight size={17} className="shrink-0 text-cyan-300" />
+            </button>
+          )}
 
           <section className="mt-7">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">Today on the Journey</p>
