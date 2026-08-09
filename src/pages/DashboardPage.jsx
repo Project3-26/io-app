@@ -14,6 +14,7 @@ import {
 } from '../data/sharedJourney'
 import { getCurrentUser } from '../services/api'
 import { getChurchMemberships } from '../services/connect'
+import { getMemberNotifications } from '../services/notifications'
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -99,6 +100,7 @@ function DashboardPage({
   const [now, setNow] = useState(() => new Date())
   const [firstName, setFirstName] = useState('Member')
   const [primaryChurch, setPrimaryChurch] = useState(null)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -134,6 +136,27 @@ function DashboardPage({
     loadMemberHome()
     return () => {
       mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadUnreadNotifications() {
+      try {
+        const payload = await getMemberNotifications()
+        if (mounted) setUnreadNotifications(payload?.unreadCount || 0)
+      } catch {
+        if (mounted) setUnreadNotifications(0)
+      }
+    }
+
+    loadUnreadNotifications()
+    window.addEventListener('project326-notifications-change', loadUnreadNotifications)
+
+    return () => {
+      mounted = false
+      window.removeEventListener('project326-notifications-change', loadUnreadNotifications)
     }
   }, [])
 
@@ -177,9 +200,14 @@ function DashboardPage({
               type="button"
               onClick={onOpenNotifications}
               className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-slate-200 transition hover:border-cyan-400/35 hover:text-white active:scale-95"
-              aria-label="Notifications"
+              aria-label={unreadNotifications > 0 ? `${unreadNotifications} unread notifications` : 'Notifications'}
             >
               <Bell size={20} strokeWidth={2.2} />
+              {unreadNotifications > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-[#041326] bg-orange-500 px-1 text-[9px] font-bold leading-none text-white">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
+              )}
             </button>
           </header>
 
