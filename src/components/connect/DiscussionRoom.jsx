@@ -153,6 +153,28 @@ function DiscussionRoom({
     }
   }
 
+  function applyReaction(postId, emoji) {
+    setPosts((current) => current.map((post) => {
+      if (post.id !== postId) return post
+
+      const myReactions = post.myReactions || []
+      const wasMine = myReactions.includes(emoji)
+      const currentCount = post.reactions?.[emoji] || 0
+      const nextCount = Math.max(0, currentCount + (wasMine ? -1 : 1))
+
+      return {
+        ...post,
+        myReactions: wasMine
+          ? myReactions.filter((reaction) => reaction !== emoji)
+          : [...myReactions, emoji],
+        reactions: {
+          ...(post.reactions || {}),
+          [emoji]: nextCount,
+        },
+      }
+    }))
+  }
+
   async function toggleReaction(postId, emoji) {
     if (!signedIn || !room?.canParticipate) {
       setNotice('This conversation is currently read-only for your account.')
@@ -160,13 +182,15 @@ function DiscussionRoom({
       return
     }
 
+    setReactionPickerId(null)
+    setNotice('')
+    applyReaction(postId, emoji)
+
     try {
       await toggleConnectReaction(postId, emoji)
-      await loadRoom({ quiet: true })
     } catch (error) {
+      applyReaction(postId, emoji)
       setNotice(moderationNotice(error, 'Unable to update reaction.'))
-    } finally {
-      setReactionPickerId(null)
     }
   }
 
