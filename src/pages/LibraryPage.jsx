@@ -9,6 +9,7 @@ import {
   FileText,
   Headphones,
   Library,
+  LoaderCircle,
   Lock,
   Search,
   Wrench,
@@ -16,14 +17,15 @@ import {
 import AppNavigation from '../components/AppNavigation'
 import { bibleBooks } from '../data/bibleBooks'
 import {
-  getBookAvailability,
-  isChapterContentAvailable,
+  getBookAvailability as getFallbackBookAvailability,
+  isChapterContentAvailable as isFallbackChapterAvailable,
 } from '../data/contentAvailability'
 import {
   openSharedJourneyChapter,
   sharedJourney,
 } from '../data/sharedJourney'
 import { getCurrentUser } from '../services/api'
+import { getContentCatalog } from '../services/chapterContent'
 
 const COMPLETED_CHAPTERS_KEY = 'project326-completed-chapters'
 
@@ -63,11 +65,21 @@ function readCompletedChapters() {
     const stored = JSON.parse(
       localStorage.getItem(COMPLETED_CHAPTERS_KEY) || '[]',
     )
-
     return Array.isArray(stored) ? stored : []
   } catch {
     return []
   }
+}
+
+function buildCatalogIndex(payload) {
+  const index = new Map()
+
+  for (const row of payload?.chapters || []) {
+    const key = `${row.bookId}-${row.chapterNumber}`
+    index.set(key, new Set(Array.isArray(row.types) ? row.types : []))
+  }
+
+  return index
 }
 
 function LibraryPage({ onNavigate, onOpenChapter }) {
@@ -75,21 +87,38 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
   const [selectedResourceType, setSelectedResourceType] = useState(null)
   const [selectedBookId, setSelectedBookId] = useState(null)
   const [bookSearch, setBookSearch] = useState('')
-  const [completedChapterIds, setCompletedChapterIds] = useState(() =>
-    readCompletedChapters(),
-  )
+  const [completedChapterIds, setCompletedChapterIds] = useState(readCompletedChapters)
   const [user, setUser] = useState(null)
+  const [catalog, setCatalog] = useState(new Map())
+  const [catalogStatus, setCatalogStatus] = useState('loading')
 
   useEffect(() => {
-    async function loadUser() {
-      try {
-        setUser(await getCurrentUser())
-      } catch {
-        setUser(null)
+    let mounted = true
+
+    async function loadLibraryState() {
+      const [userResult, catalogResult] = await Promise.allSettled([
+        getCurrentUser(),
+        getContentCatalog(),
+      ])
+
+      if (!mounted) return
+
+      if (userResult.status === 'fulfilled') {
+        setUser(userResult.value)
+      }
+
+      if (catalogResult.status === 'fulfilled') {
+        setCatalog(buildCatalogIndex(catalogResult.value))
+        setCatalogStatus('connected')
+      } else {
+        setCatalogStatus('fallback')
       }
     }
 
-    loadUser()
+    loadLibraryState()
+    return () => {
+      mounted = false
+    }
   }, [])
 
   useEffect(() => {
@@ -99,52 +128,88 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
 
     window.addEventListener('focus', refreshCompletedChapters)
     window.addEventListener('storage', refreshCompletedChapters)
-    window.addEventListener(
-      'project326-completion-change',
-      refreshCompletedChapters,
-    )
+    window.addEventListener('project326-completion-change', refreshCompletedChapters)
 
     return () => {
       window.removeEventListener('focus', refreshCompletedChapters)
       window.removeEventListener('storage', refreshCompletedChapters)
-      window.removeEventListener(
-        'project326-completion-change',
-        refreshCompletedChapters,
-      )
+      window.removeEventListener('project326-completion-change', refreshCompletedChapters)
     }
   }, [])
 
+  const hasFullBibleAccess = Boolean(user?.access?.fullBibleStudyAccess)
   const hasLeaderAccess = user?.plan === 'leader'
-
   const selectedResource = resourceTypes.find(
     (resource) => resource.id === selectedResourceType,
   )
-
   const selectedBook = bibleBooks.find((book) => book.id === selectedBookId)
 
   const filteredBooks = useMemo(() => {
     const search = bookSearch.trim().toLowerCase()
-
     if (!search) return bibleBooks
-
-    return bibleBooks.filter((book) =>
-      book.name.toLowerCase().includes(search),
-    )
+    return bibleBooks.filter((book) => book.name.toLowerCase().includes(search))
   }, [bookSearch])
 
   const oldTestamentBooks = filteredBooks.filter(
     (book) => book.testament === 'Old Testament',
   )
-
   const newTestamentBooks = filteredBooks.filter(
     (book) => book.testament === 'New Testament',
   )
-
   const chapterOptions = useMemo(() => {
     if (!selectedBook) return []
-
     return Array.from({ length: selectedBook.chapters }, (_, index) => index + 1)
   }, [selectedBook])
+
+  function hasBibleAccess(bookId) {
+    return hasFullBibleAccess || bookId === 'john'
+  }
+
+  function catalogHas(bookId, chapterNumber, type) {
+    return catalog.get(`${bookId}-${chapterNumber}`)?.has(type) || false
+  }
+
+  function isChapterAvailable(bookId, chapterNumber, type = selectedResourceType) {
+    if (type === 'bible') return hasBibleAccess(bookId)
+
+    if (catalogStatus === 'connected') {
+      return catalogHas(bookId, chapterNumber, type)
+    }
+
+    return isFallbackChapterAvailable(bookId, chapterNumber)
+  }
+
+  function getBookAvailability(book) {
+    if (selectedResourceType === 'bible') {
+      return {
+        status: hasBibleAccess(book.id) ? 'available' : 'locked',
+        availableChapters: hasBibleAccess(book.id) ? book.chapters : 0,
+        totalChapters: book.chapters,
+      }
+    }
+
+    if (catalogStatus !== 'connected') {
+      return getFallbackBookAvailability(book.id, book.chapters)
+    }
+
+    let availableChapters = 0
+    for (let chapterNumber = 1; chapterNumber <= book.chapters; chapterNumber += 1) {
+      if (catalogHas(book.id, chapterNumber, selectedResourceType)) {
+        availableChapters += 1
+      }
+    }
+
+    return {
+      status:
+        availableChapters === 0
+          ? 'development'
+          : availableChapters === book.chapters
+            ? 'available'
+            : 'partial',
+      availableChapters,
+      totalChapters: book.chapters,
+    }
+  }
 
   function returnHome() {
     setLibraryView('home')
@@ -158,7 +223,6 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
       returnHome()
       return
     }
-
     onNavigate(pageId)
   }
 
@@ -170,19 +234,10 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
   }
 
   function selectBook(book) {
-    const availability = getBookAvailability(book.id, book.chapters)
-    const isBible = selectedResourceType === 'bible'
-
-    if (!isBible && availability.status === 'development') return
-
+    const availability = getBookAvailability(book)
+    if (availability.status === 'development') return
     setSelectedBookId(book.id)
     setLibraryView('chapters')
-  }
-
-  function isChapterAvailable(chapterNumber) {
-    if (selectedResourceType === 'bible') return true
-
-    return isChapterContentAvailable(selectedBook.id, chapterNumber)
   }
 
   function isChapterCompleted(chapterNumber) {
@@ -190,16 +245,16 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
   }
 
   function openChapter(chapterNumber) {
-    if (!isChapterAvailable(chapterNumber)) return
+    const available = isChapterAvailable(selectedBook.id, chapterNumber)
+    if (!available) return
 
     const chapterId = `${selectedBook.id}-${chapterNumber}`
     const tab = selectedResource?.tab || 'read'
 
     sessionStorage.setItem(
       'project326-chapter-request',
-      JSON.stringify({ chapterId, tab, createdAt: Date.now() }),
+      JSON.stringify({ chapterId, tab, createdAt: Date.now(), source: 'library' }),
     )
-
     onOpenChapter(chapterId)
   }
 
@@ -209,29 +264,26 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
   }
 
   function renderBookButton(book) {
-    const isBible = selectedResourceType === 'bible'
-    const availability = getBookAvailability(book.id, book.chapters)
-    const isDevelopment =
-      !isBible && availability.status === 'development'
-    const isPartial = !isBible && availability.status === 'partial'
+    const availability = getBookAvailability(book)
+    const isDevelopment = availability.status === 'development'
+    const isPartial = availability.status === 'partial'
+    const isLocked = availability.status === 'locked'
 
     return (
       <button
         key={book.id}
         type="button"
         onClick={() => selectBook(book)}
-        disabled={isDevelopment}
+        disabled={isDevelopment || isLocked}
         className={`relative min-h-24 rounded-[20px] border p-3 text-left transition active:scale-[0.98] ${
-          isDevelopment
+          isDevelopment || isLocked
             ? 'cursor-not-allowed border-white/5 bg-[#10263a] text-slate-500'
             : 'border-white/10 bg-[#0c2138] text-white hover:border-cyan-400/35'
         }`}
       >
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-semibold">{book.name}</p>
-
-          {isDevelopment && <Lock size={13} className="shrink-0" />}
-
+          {(isDevelopment || isLocked) && <Lock size={13} className="shrink-0" />}
           {isPartial && (
             <span className="rounded-full bg-[#c7dce7] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-cyan-700">
               Partial
@@ -239,10 +291,13 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
           )}
         </div>
 
-        {isDevelopment ? (
+        {isLocked ? (
+          <p className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-orange-300">
+            Bible Study access
+          </p>
+        ) : isDevelopment ? (
           <p className="mt-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-            <Wrench size={10} />
-            In Development
+            <Wrench size={10} /> Not published yet
           </p>
         ) : isPartial ? (
           <p className="mt-3 text-[11px] text-slate-400">
@@ -250,7 +305,7 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
           </p>
         ) : (
           <p className="mt-3 text-[11px] text-slate-400">
-            {book.chapters} {book.chapters === 1 ? 'chapter' : 'chapters'}
+            {availability.availableChapters} {availability.availableChapters === 1 ? 'chapter' : 'chapters'} available
           </p>
         )}
       </button>
@@ -264,70 +319,49 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
     return (
       <div className="min-h-screen bg-[#041326] text-white">
         <AppNavigation activePage="library" onNavigate={handleNavigation} />
-
         <div className="lg:pl-24">
           <main className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={returnHome}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-slate-300 transition hover:border-cyan-400/35 hover:text-white"
-                aria-label="Back to Library"
-              >
+              <button type="button" onClick={returnHome} className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-slate-300 transition hover:border-cyan-400/35 hover:text-white" aria-label="Back to Library">
                 <ArrowLeft size={18} />
               </button>
-
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">
-                  {selectedResource?.label}
-                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">{selectedResource?.label}</p>
                 <h1 className="text-2xl font-bold">Choose a Book</h1>
               </div>
-
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
                 <ResourceIcon size={19} />
               </div>
             </div>
 
             <div className="relative mt-5">
-              <Search
-                size={18}
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-              />
-              <input
-                type="search"
-                value={bookSearch}
-                onChange={(event) => setBookSearch(event.target.value)}
-                placeholder="Search books"
-                className="h-12 w-full rounded-2xl border border-white/10 bg-[#0c2138] pl-11 pr-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/50"
-              />
+              <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input type="search" value={bookSearch} onChange={(event) => setBookSearch(event.target.value)} placeholder="Search books" className="h-12 w-full rounded-2xl border border-white/10 bg-[#0c2138] pl-11 pr-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/50" />
             </div>
 
             {!isBible && (
-              <div className="mt-3 rounded-2xl border border-white/10 bg-[#0c2138] px-4 py-3 text-xs text-slate-400">
-                Only produced Project 3|26 resources can be opened here.
+              <div className="mt-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-[#0c2138] px-4 py-3 text-xs text-slate-400">
+                {catalogStatus === 'loading' && <LoaderCircle size={14} className="animate-spin" />}
+                <span>
+                  {catalogStatus === 'connected'
+                    ? 'Availability is synced directly with published Admin content.'
+                    : catalogStatus === 'fallback'
+                      ? 'Live availability is temporarily unavailable. Showing the last known release map.'
+                      : 'Checking published resources…'}
+                </span>
               </div>
             )}
 
             {oldTestamentBooks.length > 0 && (
               <section className="mt-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
-                  Old Testament
-                </p>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {oldTestamentBooks.map(renderBookButton)}
-                </div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">Old Testament</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{oldTestamentBooks.map(renderBookButton)}</div>
               </section>
             )}
-
             {newTestamentBooks.length > 0 && (
               <section className="mt-7">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">
-                  New Testament
-                </p>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {newTestamentBooks.map(renderBookButton)}
-                </div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400">New Testament</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{newTestamentBooks.map(renderBookButton)}</div>
               </section>
             )}
           </main>
@@ -339,34 +373,21 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
   if (libraryView === 'chapters' && selectedBook) {
     const ResourceIcon = selectedResource?.icon || BookOpen
     const isBible = selectedResourceType === 'bible'
-    const availability = getBookAvailability(
-      selectedBook.id,
-      selectedBook.chapters,
-    )
+    const availability = getBookAvailability(selectedBook)
 
     return (
       <div className="min-h-screen bg-[#041326] text-white">
         <AppNavigation activePage="library" onNavigate={handleNavigation} />
-
         <div className="lg:pl-24">
           <main className="mx-auto w-full max-w-5xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={returnToBooks}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-slate-300 transition hover:border-cyan-400/35 hover:text-white"
-                aria-label="Back to books"
-              >
+              <button type="button" onClick={returnToBooks} className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-slate-300 transition hover:border-cyan-400/35 hover:text-white" aria-label="Back to books">
                 <ArrowLeft size={18} />
               </button>
-
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">
-                  {selectedResource?.label}
-                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">{selectedResource?.label}</p>
                 <h1 className="truncate text-2xl font-bold">{selectedBook.name}</h1>
               </div>
-
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
                 <ResourceIcon size={19} />
               </div>
@@ -374,14 +395,20 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
 
             {!isBible && availability.status === 'partial' && (
               <div className="mt-4 inline-flex rounded-full bg-[#c7dce7] px-3 py-1 text-xs font-semibold text-cyan-700">
-                {availability.availableChapters} chapters available
+                {availability.availableChapters} chapters published
+              </div>
+            )}
+
+            {!isBible && selectedResourceType === 'leader' && !hasLeaderAccess && (
+              <div className="mt-4 rounded-2xl border border-orange-300/30 bg-[#e8ddd0] px-4 py-3 text-xs text-orange-700">
+                Published Leader Guides are visible here. Opening them requires Leader access.
               </div>
             )}
 
             <section className="mt-5 rounded-[26px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
               <div className="grid grid-cols-5 gap-2 min-[420px]:grid-cols-6 sm:grid-cols-8 lg:grid-cols-10">
                 {chapterOptions.map((chapterNumber) => {
-                  const available = isChapterAvailable(chapterNumber)
+                  const available = isChapterAvailable(selectedBook.id, chapterNumber)
                   const completed = isChapterCompleted(chapterNumber)
 
                   return (
@@ -399,35 +426,18 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
                       }`}
                     >
                       {chapterNumber}
-                      {completed && available && (
-                        <Check size={10} strokeWidth={3} className="absolute right-1 top-1" />
-                      )}
-                      {!available && (
-                        <Lock size={9} className="absolute right-1 top-1" />
-                      )}
+                      {completed && available && <Check size={10} strokeWidth={3} className="absolute right-1 top-1" />}
+                      {!available && <Lock size={9} className="absolute right-1 top-1" />}
                     </button>
                   )
                 })}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-[#c8d3db] pt-4 text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <span className="h-4 w-4 rounded border border-[#c8d3db] bg-[#edf2f4]" />
-                  Available
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="flex h-4 w-4 items-center justify-center rounded bg-cyan-500 text-white">
-                    <Check size={9} strokeWidth={3} />
-                  </span>
-                  Completed
-                </div>
+                <div className="flex items-center gap-2"><span className="h-4 w-4 rounded border border-[#c8d3db] bg-[#edf2f4]" />Available</div>
+                <div className="flex items-center gap-2"><span className="flex h-4 w-4 items-center justify-center rounded bg-cyan-500 text-white"><Check size={9} strokeWidth={3} /></span>Completed</div>
                 {!isBible && (
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-4 w-4 items-center justify-center rounded bg-[#d3dce1] text-slate-500">
-                      <Lock size={9} />
-                    </span>
-                    In Development
-                  </div>
+                  <div className="flex items-center gap-2"><span className="flex h-4 w-4 items-center justify-center rounded bg-[#d3dce1] text-slate-500"><Lock size={9} /></span>Not published</div>
                 )}
               </div>
             </section>
@@ -440,51 +450,31 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation activePage="library" onNavigate={handleNavigation} />
-
       <div className="lg:pl-24">
         <main className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
           <header className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold tracking-[0.2em] text-cyan-400">
-                PROJECT 3|26
-              </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
-                Library
-              </h1>
+              <p className="text-xs font-semibold tracking-[0.2em] text-cyan-400">PROJECT 3|26</p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">Library</h1>
             </div>
-
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-cyan-400">
-              <Library size={21} />
-            </div>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#0c2138] text-cyan-400"><Library size={21} /></div>
           </header>
 
-          <button
-            type="button"
-            onClick={() => openSharedJourneyChapter(onOpenChapter, 'read')}
-            className="group mt-5 w-full rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-left text-[#153047] shadow-xl shadow-black/15 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] active:scale-[0.995] sm:p-6"
-          >
+          <button type="button" onClick={() => openSharedJourneyChapter(onOpenChapter, 'read')} className="group mt-5 w-full rounded-[28px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-left text-[#153047] shadow-xl shadow-black/15 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] active:scale-[0.995] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-700 sm:text-xs">
-                  Chapter of the Day
-                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-700 sm:text-xs">Chapter of the Day</p>
                 <h2 className="mt-2 text-3xl font-bold">{sharedJourney.reference}</h2>
-                <p className="mt-1.5 text-sm font-semibold text-cyan-700">
-                  {sharedJourney.title}
-                </p>
+                <p className="mt-1.5 text-sm font-semibold text-cyan-700">{sharedJourney.title}</p>
               </div>
-
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white transition group-hover:translate-x-0.5">
-                <ArrowRight size={19} />
-              </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white transition group-hover:translate-x-0.5"><ArrowRight size={19} /></div>
             </div>
           </button>
 
           <section className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
             {resourceTypes.map((resource) => {
               const ResourceIcon = resource.icon
-              const isLeaderUpsell =
-                resource.id === 'leader' && !hasLeaderAccess
+              const isLeaderUpsell = resource.id === 'leader' && !hasLeaderAccess
 
               return (
                 <button
@@ -499,31 +489,14 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
                         : 'border-[#c8d3db] bg-[#dfe8ee] text-[#153047] hover:border-cyan-400/40 hover:bg-[#e7eef2]'
                   }`}
                 >
-                  <ResourceIcon
-                    size={30}
-                    strokeWidth={1.9}
-                    className={
-                      isLeaderUpsell
-                        ? 'text-orange-600'
-                        : resource.id === 'bible'
-                          ? 'text-cyan-400'
-                          : 'text-cyan-700'
-                    }
-                  />
-
+                  <ResourceIcon size={30} strokeWidth={1.9} className={isLeaderUpsell ? 'text-orange-600' : resource.id === 'bible' ? 'text-cyan-400' : 'text-cyan-700'} />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-base font-semibold sm:text-lg">
-                        {resource.label}
-                      </p>
+                      <p className="text-base font-semibold sm:text-lg">{resource.label}</p>
                       {isLeaderUpsell && <Lock size={12} className="text-orange-600" />}
                     </div>
-                    <p
-                      className={`mt-1 text-xs leading-5 sm:text-sm ${
-                        resource.id === 'bible' ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                    >
-                      {isLeaderUpsell ? 'Unlock leader resources' : resource.description}
+                    <p className={`mt-1 text-xs leading-5 sm:text-sm ${resource.id === 'bible' ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {isLeaderUpsell ? 'Preview published leader resources' : resource.description}
                     </p>
                   </div>
                 </button>
@@ -533,25 +506,12 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
 
           <section className="mt-4 rounded-[24px] border border-white/10 bg-[#0c2138] px-4 py-4 shadow-lg shadow-black/10 sm:px-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700">
-                <Bookmark size={17} />
-              </div>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#c7dce7] text-cyan-700"><Bookmark size={17} /></div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400 sm:text-xs">
-                  Your Journey
-                </p>
-                <p className="mt-1 text-sm text-slate-300">
-                  {completedChapterIds.length} chapters completed
-                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400 sm:text-xs">Your Journey</p>
+                <p className="mt-1 text-sm text-slate-300">{completedChapterIds.length} chapters completed</p>
               </div>
-              <button
-                type="button"
-                onClick={() => onNavigate('journey')}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-cyan-400"
-                aria-label="Open Journey"
-              >
-                <ArrowRight size={17} />
-              </button>
+              <button type="button" onClick={() => onNavigate('journey')} className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-cyan-400" aria-label="Open Journey"><ArrowRight size={17} /></button>
             </div>
           </section>
         </main>
