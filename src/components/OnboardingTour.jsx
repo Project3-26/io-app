@@ -42,8 +42,8 @@ const TOUR_STEPS = [
     id: 'profile',
     pageId: 'profile',
     eyebrow: 'YOUR PROFILE',
-    title: 'Your account and preferences live here.',
-    body: 'Profile is your home for account details, church connection, plan information, and other personal settings.',
+    title: 'Make Project 3|26 yours.',
+    body: 'Profile is where you can personalize your name and photo, connect your church, and see your current Bible access.',
     icon: UserRound,
   },
 ]
