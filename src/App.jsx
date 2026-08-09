@@ -5,7 +5,6 @@ import AuthPage from './pages/AuthPage'
 import ChapterPage from './pages/ChapterPage'
 import ConnectRoomPage from './pages/ConnectRoomPage'
 import DashboardPage from './pages/DashboardPage'
-import GuestPreviewPage from './pages/GuestPreviewPage'
 import JourneyPage from './pages/JourneyPage'
 import LibraryPage from './pages/LibraryPage'
 import NotificationsPage from './pages/NotificationsPage'
@@ -111,7 +110,6 @@ function App() {
   const [selectedChapterId, setSelectedChapterId] = useState('john-1')
   const [selectedConnectRoomId, setSelectedConnectRoomId] = useState('today')
   const [authMode, setAuthMode] = useState('checking')
-  const [authEntryMode, setAuthEntryMode] = useState('sign-in')
 
   useEffect(() => {
     captureReferralFromUrl()
@@ -172,20 +170,6 @@ function App() {
     setAuthMode('signed-in')
   }
 
-  function handleGuestPreview() {
-    setAuthMode('guest-preview')
-  }
-
-  function handleGuestCreateAccount() {
-    setAuthEntryMode('create-account')
-    setAuthMode('signed-out')
-  }
-
-  function handleGuestSignIn() {
-    setAuthEntryMode('sign-in')
-    setAuthMode('signed-out')
-  }
-
   function handleNavigate(pageId, connectRoomId = 'today') {
     if (!NAVIGATION_PAGES.includes(pageId)) return
 
@@ -231,23 +215,8 @@ function App() {
     )
   }
 
-  if (authMode === 'guest-preview') {
-    return (
-      <GuestPreviewPage
-        onCreateAccount={handleGuestCreateAccount}
-        onSignIn={handleGuestSignIn}
-      />
-    )
-  }
-
   if (authMode === 'signed-out') {
-    return (
-      <AuthPage
-        onAuthenticated={handleAuthenticated}
-        onGuestPreview={handleGuestPreview}
-        initialMode={authEntryMode}
-      />
-    )
+    return <AuthPage onAuthenticated={handleAuthenticated} />
   }
 
   let pageContent
