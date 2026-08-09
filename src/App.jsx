@@ -185,6 +185,31 @@ function App() {
     })
   }, [currentPage, selectedChapterId])
 
+  useEffect(() => {
+    function handleOpenChapterEvent(event) {
+      const chapterId = event?.detail?.chapterId
+
+      if (!chapterId) {
+        return
+      }
+
+      setSelectedChapterId(chapterId)
+      setCurrentPage(PAGE_IDS.chapter)
+    }
+
+    window.addEventListener(
+      'project326-open-chapter',
+      handleOpenChapterEvent,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'project326-open-chapter',
+        handleOpenChapterEvent,
+      )
+    }
+  }, [])
+
   async function handleAuthenticated() {
     sessionStorage.removeItem(
       DEMO_MODE_KEY,
