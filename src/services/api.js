@@ -5,6 +5,7 @@ import {
   getMemberSnapshot,
   hasMemberSession,
 } from './backend'
+import { getChapterResources } from './chapterContent'
 
 function buildScriptureOnlyChapter(chapterId) {
   const match = chapterId.match(/^(.*)-(\d+)$/)
@@ -32,6 +33,10 @@ function buildScriptureOnlyChapter(chapterId) {
   const nextChapter = nextChapterId
     ? buildChapterReference(nextChapterId)
     : null
+  const previousChapterId = getPreviousChapterId(chapterId)
+  const previousChapter = previousChapterId
+    ? buildChapterReference(previousChapterId)
+    : null
 
   return {
     id: chapterId,
@@ -50,18 +55,24 @@ function buildScriptureOnlyChapter(chapterId) {
       title: `${book.name} ${chapterNumber} Audio`,
       duration: '',
       url: '',
+      body: '',
+      locked: false,
     },
     studyGuide: {
       title: 'Study',
       description: '',
+      body: '',
       pdfUrl: '',
+      locked: false,
       sections: [],
     },
     leaderGuide: {
       title: 'Leader Guide',
       theme: '',
       description: '',
+      body: '',
       pdfUrl: '',
+      locked: false,
       overview: '',
       groupFlow: [],
       icebreakers: [],
@@ -72,6 +83,7 @@ function buildScriptureOnlyChapter(chapterId) {
     },
     compassPrompt: `Help me understand ${book.name} ${chapterNumber}.`,
     isCompleted: false,
+    previousChapter,
     nextChapter,
     contentAvailability: {
       scripture: true,
@@ -109,6 +121,22 @@ function getNextChapterId(chapterId) {
   return nextBook ? `${nextBook.id}-1` : null
 }
 
+function getPreviousChapterId(chapterId) {
+  const match = chapterId.match(/^(.*)-(\d+)$/)
+
+  if (!match) return null
+
+  const bookId = match[1]
+  const chapterNumber = Number(match[2])
+  const bookIndex = bibleBooks.findIndex((candidate) => candidate.id === bookId)
+
+  if (bookIndex < 0) return null
+  if (chapterNumber > 1) return `${bookId}-${chapterNumber - 1}`
+
+  const previousBook = bibleBooks[bookIndex - 1]
+  return previousBook ? `${previousBook.id}-${previousBook.chapters}` : null
+}
+
 function buildChapterReference(chapterId) {
   const match = chapterId.match(/^(.*)-(\d+)$/)
 
@@ -130,6 +158,45 @@ function buildChapterReference(chapterId) {
     id: chapterId,
     reference: `${book.name} ${chapterNumber}`,
     title: '',
+  }
+}
+
+function mergePublishedResources(chapter, payload) {
+  const resources = payload?.resources || {}
+  const audio = resources.audio
+  const study = resources.study
+  const leader = resources.leader
+
+  return {
+    ...chapter,
+    audio: {
+      ...chapter.audio,
+      title: audio?.title || chapter.audio.title,
+      body: audio?.body || '',
+      url: audio?.url || '',
+      locked: Boolean(audio?.locked),
+    },
+    studyGuide: {
+      ...chapter.studyGuide,
+      title: study?.title || chapter.studyGuide.title,
+      description: study?.body ? '' : chapter.studyGuide.description,
+      body: study?.body || '',
+      pdfUrl: study?.url || '',
+      locked: Boolean(study?.locked),
+    },
+    leaderGuide: {
+      ...chapter.leaderGuide,
+      title: leader?.title || chapter.leaderGuide.title,
+      body: leader?.body || '',
+      pdfUrl: leader?.url || '',
+      locked: Boolean(leader?.locked),
+    },
+    contentAvailability: {
+      ...chapter.contentAvailability,
+      audio: Boolean(audio),
+      study: Boolean(study),
+      leaderGuide: Boolean(leader),
+    },
   }
 }
 
@@ -163,7 +230,16 @@ export async function getChapterById(chapterId) {
     )
   }
 
-  return chapter
+  try {
+    const resourcePayload = await getChapterResources(
+      chapterId.replace(/-\d+$/, ''),
+      chapter.chapterNumber,
+    )
+    return mergePublishedResources(chapter, resourcePayload)
+  } catch (error) {
+    console.warn('Published chapter resources are temporarily unavailable.', error)
+    return chapter
+  }
 }
 
 export async function getTodaysChapter() {
