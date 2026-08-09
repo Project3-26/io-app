@@ -1,21 +1,3 @@
-const bookNames = {
-  acts: 'Acts',
-  ephesians: 'Ephesians',
-  exodus: 'Exodus',
-  genesis: 'Genesis',
-  habakkuk: 'Habakkuk',
-  james: 'James',
-  john: 'John',
-  jonah: 'Jonah',
-  judges: 'Judges',
-  mark: 'Mark',
-  proverbs: 'Proverbs',
-  revelation: 'Revelation',
-  romans: 'Romans',
-  ruth: 'Ruth',
-  'first-samuel': '1 Samuel',
-}
-
 const specialMessages = {
   'the-law': 'You read all 5 books of the Law — Genesis through Deuteronomy!',
   'the-history': 'You read all 12 Historical Books — Joshua through Esther!',
@@ -54,7 +36,7 @@ export function getAchievementEarnedMessage(achievement) {
   }
 
   if (achievement.type === 'book') {
-    const bookName = bookNames[achievement.bookId] || achievement.title
+    const bookName = achievement.bookName || achievement.title
     return `You completed the entire book of ${bookName}!`
   }
 
