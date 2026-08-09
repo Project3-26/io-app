@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Compass, MessageCircle, UserRound, X } from 'lucide-react'
 
 const ONBOARDING_TOUR_ENABLED = true
-const ONBOARDING_TOUR_VERSION = 1
+const ONBOARDING_TOUR_VERSION = 2
 const ONBOARDING_STORAGE_KEY = `project326-onboarding-tour-v${ONBOARDING_TOUR_VERSION}`
 
 const TOUR_STEPS = [
