@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import AchievementsGallery from '../components/AchievementsGallery'
 import AppNavigation from '../components/AppNavigation'
 import BadgeMedallion from '../components/BadgeMedallion'
+import { bibleBooks } from '../data/bibleBooks'
 import {
   journeyBookOrder,
   openSharedJourneyChapter,
@@ -98,7 +99,7 @@ function JourneyPage({ onNavigate, onOpenChapter }) {
   const chaptersCompleted = Math.min(completedChapterIds.length, TOTAL_BIBLE_CHAPTERS)
   const overallProgress = Math.round((chaptersCompleted / TOTAL_BIBLE_CHAPTERS) * 1000) / 10
   const completedBookIds = useMemo(
-    () => journeyBookOrder
+    () => bibleBooks
       .filter((book) =>
         Array.from({ length: book.chapters }, (_, index) => `${book.id}-${index + 1}`)
           .every((id) => completedChapterIds.includes(id)),
