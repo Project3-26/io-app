@@ -11,11 +11,14 @@ import {
   signInMember,
 } from '../services/backend'
 
+const GUEST_USERNAME = 'guest'
+const GUEST_PASSWORD = 'guest'
+
 function AuthPage({
   onAuthenticated,
   onContinueDemo,
 }) {
-  const [email, setEmail] =
+  const [identifier, setIdentifier] =
     useState('')
   const [password, setPassword] =
     useState('')
@@ -25,6 +28,13 @@ function AuthPage({
     useState('')
   const [backendStatus, setBackendStatus] =
     useState('checking')
+
+  const normalizedIdentifier =
+    identifier.trim().toLowerCase()
+
+  const isGuestCredentials =
+    normalizedIdentifier === GUEST_USERNAME &&
+    password === GUEST_PASSWORD
 
   useEffect(() => {
     let isMounted = true
@@ -53,9 +63,22 @@ function AuthPage({
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (!email.trim() || !password) {
+    if (!identifier.trim() || !password) {
       setError(
-        'Enter your email and password.',
+        'Enter your email or username and password.',
+      )
+      return
+    }
+
+    if (isGuestCredentials) {
+      setError('')
+      onContinueDemo()
+      return
+    }
+
+    if (!identifier.includes('@')) {
+      setError(
+        'Use guest / guest for tester access, or enter the email address for a real account.',
       )
       return
     }
@@ -65,7 +88,7 @@ function AuthPage({
       setError('')
 
       await signInMember(
-        email.trim(),
+        identifier.trim(),
         password,
       )
 
@@ -110,7 +133,7 @@ function AuthPage({
                   Live development build
                 </p>
                 <p className="mt-1 text-xs leading-5 text-slate-400">
-                  Sign in to test real account and Bible progress syncing.
+                  Testers can use guest / guest. Real accounts sync with the Project 3|26 backend.
                 </p>
               </div>
               <span
@@ -136,17 +159,17 @@ function AuthPage({
             >
               <label className="block">
                 <span className="text-xs font-semibold text-slate-300">
-                  Email
+                  Email or username
                 </span>
                 <input
-                  type="email"
-                  value={email}
+                  type="text"
+                  value={identifier}
                   onChange={(event) =>
-                    setEmail(event.target.value)
+                    setIdentifier(event.target.value)
                   }
-                  autoComplete="email"
+                  autoComplete="username"
                   className="mt-2 w-full border border-white/10 bg-[#071a2d] px-3 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                  placeholder="you@example.com"
+                  placeholder="guest or you@example.com"
                 />
               </label>
 
@@ -182,7 +205,10 @@ function AuthPage({
                 type="submit"
                 disabled={
                   isSubmitting ||
-                  backendStatus === 'unavailable'
+                  (
+                    backendStatus === 'unavailable' &&
+                    !isGuestCredentials
+                  )
                 }
                 className="flex w-full items-center justify-center gap-2 border border-cyan-300/50 bg-cyan-400 px-4 py-3 text-sm font-bold text-[#041326] transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -213,7 +239,7 @@ function AuthPage({
           </button>
 
           <p className="mt-4 text-center text-[11px] leading-5 text-slate-600">
-            Demo mode keeps development data on this device. Signed-in mode syncs progress with the Project 3|26 backend.
+            Guest access keeps test data on the tester’s device. Signed-in member accounts sync progress with the Project 3|26 backend.
           </p>
         </div>
       </div>
