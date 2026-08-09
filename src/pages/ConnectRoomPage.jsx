@@ -4,6 +4,7 @@ import {
   Church,
   Heart,
   LoaderCircle,
+  ShieldCheck,
   Sparkles,
   Users,
 } from 'lucide-react'
@@ -76,8 +77,8 @@ function getRoomStyle(type, active = false) {
 function roomDescriptor(room) {
   if (room.type === 'church') return 'Private church community'
   if (room.id === 'today') return 'Today’s shared Bible conversation'
-  if (room.id === 'prayer') return 'Share requests and pray together'
-  if (room.id === 'transformation') return 'Share how Scripture is changing your life'
+  if (room.id === 'prayer') return 'Share requests; support one another with prayer reactions'
+  if (room.id === 'transformation') return 'Share what God is changing; encourage with reactions'
   return 'Project 3|26 community'
 }
 
@@ -190,6 +191,7 @@ function ConnectRoomPage({
   }
 
   const ActiveRoomIcon = getRoomIcon(activeRoom.type)
+  const isReactionOnlyRoom = ['prayer', 'transformation'].includes(activeRoom.id)
 
   return (
     <div className="min-h-screen bg-[#041326] text-white">
@@ -232,6 +234,15 @@ function ConnectRoomPage({
               )}
             </div>
           </section>
+
+          {isReactionOnlyRoom && (
+            <section className="mt-2.5 flex items-start gap-2 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.06] px-3 py-2.5 text-[11px] leading-5 text-cyan-50/70 sm:text-xs">
+              <ShieldCheck size={15} className="mt-0.5 shrink-0 text-cyan-300" />
+              <p>
+                This is a reaction-only space by design. Support people without advice threads or written replies.
+              </p>
+            </section>
+          )}
 
           <div className="mt-2.5">{renderRoomContent()}</div>
         </main>
