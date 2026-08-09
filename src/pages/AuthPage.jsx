@@ -14,8 +14,8 @@ import {
   signUpMember,
 } from '../services/backend'
 
-function AuthPage({ onAuthenticated, onGuestPreview }) {
-  const [mode, setMode] = useState('sign-in')
+function AuthPage({ onAuthenticated, onGuestPreview, initialMode = 'sign-in' }) {
+  const [mode, setMode] = useState(initialMode)
   const [displayName, setDisplayName] = useState('')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
@@ -23,6 +23,13 @@ function AuthPage({ onAuthenticated, onGuestPreview }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [backendStatus, setBackendStatus] = useState('checking')
+
+  useEffect(() => {
+    setMode(initialMode)
+    setError('')
+    setNotice('')
+    setPassword('')
+  }, [initialMode])
 
   useEffect(() => {
     let isMounted = true
