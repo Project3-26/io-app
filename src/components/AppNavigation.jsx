@@ -10,6 +10,8 @@ import {
 import LiveNotificationToast from './LiveNotificationToast'
 import { getMemberNotifications } from '../services/notifications'
 
+const UNREAD_NOTIFICATION_CACHE_KEY = 'project326-unread-notification-count'
+
 const navigationItems = [
   {
     id: 'dashboard',
@@ -38,11 +40,16 @@ const navigationItems = [
   },
 ]
 
+function readCachedUnreadCount() {
+  const value = Number(localStorage.getItem(UNREAD_NOTIFICATION_CACHE_KEY) || 0)
+  return Number.isFinite(value) && value > 0 ? value : 0
+}
+
 function AppNavigation({
   activePage = 'dashboard',
   onNavigate,
 }) {
-  const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [unreadNotifications, setUnreadNotifications] = useState(readCachedUnreadCount)
 
   useEffect(() => {
     let mounted = true
@@ -50,9 +57,14 @@ function AppNavigation({
     async function loadUnreadNotifications() {
       try {
         const payload = await getMemberNotifications()
-        if (mounted) setUnreadNotifications(payload?.unreadCount || 0)
+        if (!mounted) return
+
+        const unreadCount = payload?.unreadCount || 0
+        setUnreadNotifications(unreadCount)
+        localStorage.setItem(UNREAD_NOTIFICATION_CACHE_KEY, String(unreadCount))
       } catch {
-        if (mounted) setUnreadNotifications(0)
+        // Keep the last known unread count visible. A temporary request delay
+        // should never make the notification indicator flicker off.
       }
     }
 
