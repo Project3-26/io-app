@@ -14,6 +14,7 @@ import {
   getMemberSnapshot,
   hasMemberSession,
 } from './services/backend'
+import { claimReferral } from './services/referrals'
 import { syncAchievements } from './utils/achievements'
 
 const PAGE_IDS = {
@@ -35,6 +36,33 @@ const NAVIGATION_PAGES = [
   PAGE_IDS.connect,
   PAGE_IDS.profile,
 ]
+
+const PENDING_REFERRAL_KEY = 'project326-pending-referral'
+
+function captureReferralFromUrl() {
+  const params = new URLSearchParams(window.location.search)
+  const code = params.get('ref')?.trim().toUpperCase()
+  if (!code) return
+
+  localStorage.setItem(PENDING_REFERRAL_KEY, code)
+  params.delete('ref')
+  const query = params.toString()
+  window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`)
+}
+
+async function claimPendingReferral() {
+  const code = localStorage.getItem(PENDING_REFERRAL_KEY)
+  if (!code) return
+
+  try {
+    await claimReferral(code)
+    localStorage.removeItem(PENDING_REFERRAL_KEY)
+  } catch (error) {
+    if ([400, 404].includes(error?.status)) {
+      localStorage.removeItem(PENDING_REFERRAL_KEY)
+    }
+  }
+}
 
 function hydrateMemberProgress(snapshot) {
   const progress = snapshot?.progress
@@ -83,6 +111,8 @@ function App() {
   const [authMode, setAuthMode] = useState('checking')
 
   useEffect(() => {
+    captureReferralFromUrl()
+
     let isMounted = true
 
     async function bootstrapAuthentication() {
@@ -95,6 +125,7 @@ function App() {
         const snapshot = await getMemberSnapshot()
         if (!snapshot) throw new Error('Member session is unavailable.')
         hydrateMemberProgress(snapshot)
+        await claimPendingReferral()
         if (isMounted) setAuthMode('signed-in')
       } catch {
         clearMemberSession()
@@ -134,6 +165,7 @@ function App() {
     }
 
     hydrateMemberProgress(snapshot)
+    await claimPendingReferral()
     setAuthMode('signed-in')
   }
 
