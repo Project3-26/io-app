@@ -6,15 +6,24 @@ import {
 
 const MAX_AVATAR_DIMENSION = 1200
 const AVATAR_JPEG_QUALITY = 0.84
+const MAX_SOURCE_AVATAR_BYTES = 25 * 1024 * 1024
+const MAX_UPLOAD_AVATAR_BYTES = 4 * 1024 * 1024
 
 export async function uploadMemberAvatar(file) {
   const session = readMemberSession()
 
   if (!session?.accessToken) {
-    throw new Error('Sign in to update your profile picture.')
+    throw new Error('Your session has expired. Reopen Project 3|26 and try the photo again.')
   }
 
   const uploadFile = await normalizeAvatarImage(file)
+
+  if (uploadFile.size > MAX_UPLOAD_AVATAR_BYTES) {
+    throw new Error(
+      'That photo is still too large after resizing. Choose a smaller photo and try again.',
+    )
+  }
+
   const formData = new FormData()
   formData.append('avatar', uploadFile)
 
@@ -36,8 +45,20 @@ export async function uploadMemberAvatar(file) {
   const payload = await response.json().catch(() => null)
 
   if (!response.ok) {
+    if (response.status === 413) {
+      throw new Error(
+        'That photo is too large to upload. Choose a smaller photo and try again.',
+      )
+    }
+
+    if (response.status === 401) {
+      throw new Error(
+        'Your session has expired. Reopen Project 3|26 and try the photo again.',
+      )
+    }
+
     throw new Error(
-      payload?.error || `Avatar upload failed (${response.status}).`,
+      payload?.error || `We could not upload that photo (${response.status}). Please try again.`,
     )
   }
 
@@ -46,7 +67,13 @@ export async function uploadMemberAvatar(file) {
 
 async function normalizeAvatarImage(file) {
   if (!(file instanceof File) || !file.type.startsWith('image/')) {
-    throw new Error('Choose an image for your profile picture.')
+    throw new Error('That file is not a photo. Choose an image and try again.')
+  }
+
+  if (file.size > MAX_SOURCE_AVATAR_BYTES) {
+    throw new Error(
+      'That photo is too large to process. Choose a photo smaller than 25 MB and try again.',
+    )
   }
 
   let image
@@ -54,7 +81,7 @@ async function normalizeAvatarImage(file) {
     image = await loadBrowserImage(file)
   } catch {
     throw new Error(
-      'This photo format cannot be processed on this device. Try a JPG, PNG, WebP, or a screenshot of the photo.',
+      'We could not read that photo format on this device. Try a JPG, PNG, WebP, or a screenshot of the photo.',
     )
   }
 
@@ -62,7 +89,7 @@ async function normalizeAvatarImage(file) {
   const sourceHeight = image.naturalHeight || image.height
 
   if (!sourceWidth || !sourceHeight) {
-    throw new Error('Unable to read that profile picture.')
+    throw new Error('We could not read that photo. Choose a different image and try again.')
   }
 
   const scale = Math.min(
@@ -78,7 +105,7 @@ async function normalizeAvatarImage(file) {
 
   const context = canvas.getContext('2d')
   if (!context) {
-    throw new Error('Unable to prepare that profile picture.')
+    throw new Error('We could not prepare that photo on this device. Try a different image.')
   }
 
   context.drawImage(image, 0, 0, width, height)
@@ -88,7 +115,7 @@ async function normalizeAvatarImage(file) {
   })
 
   if (!blob) {
-    throw new Error('Unable to prepare that profile picture.')
+    throw new Error('We could not prepare that photo. Try a different image.')
   }
 
   return new File([blob], 'avatar.jpg', {
