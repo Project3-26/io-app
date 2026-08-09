@@ -5,6 +5,7 @@ import {
   Church,
   Crown,
   Flame,
+  History,
   MessageCircle,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
@@ -15,6 +16,17 @@ import {
 import { getCurrentUser } from '../services/api'
 import { getChurchMemberships } from '../services/connect'
 import { getMemberNotifications } from '../services/notifications'
+
+const LAST_OPENED_CHAPTER_KEY = 'project326-last-opened-chapter'
+
+function readLastOpenedChapter() {
+  try {
+    const value = JSON.parse(localStorage.getItem(LAST_OPENED_CHAPTER_KEY) || 'null')
+    return value?.id ? value : null
+  } catch {
+    return null
+  }
+}
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -101,6 +113,7 @@ function DashboardPage({
   const [firstName, setFirstName] = useState('Member')
   const [primaryChurch, setPrimaryChurch] = useState(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [lastOpenedChapter, setLastOpenedChapter] = useState(readLastOpenedChapter)
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -160,8 +173,38 @@ function DashboardPage({
     }
   }, [])
 
+  useEffect(() => {
+    function refreshLastOpened() {
+      setLastOpenedChapter(readLastOpenedChapter())
+    }
+
+    window.addEventListener('project326-last-opened-change', refreshLastOpened)
+    window.addEventListener('storage', refreshLastOpened)
+    return () => {
+      window.removeEventListener('project326-last-opened-change', refreshLastOpened)
+      window.removeEventListener('storage', refreshLastOpened)
+    }
+  }, [])
+
   function openToday() {
     openSharedJourneyChapter(onOpenChapter, 'read')
+  }
+
+  function resumeReading() {
+    if (!lastOpenedChapter?.id) return
+    const tab = ['read', 'listen', 'study', 'leader'].includes(lastOpenedChapter.tab)
+      ? lastOpenedChapter.tab
+      : 'read'
+    sessionStorage.setItem(
+      'project326-chapter-request',
+      JSON.stringify({
+        chapterId: lastOpenedChapter.id,
+        tab,
+        createdAt: Date.now(),
+        source: 'resume',
+      }),
+    )
+    onOpenChapter(lastOpenedChapter.id)
   }
 
   function openChurch() {
@@ -173,6 +216,7 @@ function DashboardPage({
   }
 
   const churchName = primaryChurch?.name || 'My Church'
+  const canResume = lastOpenedChapter?.id && lastOpenedChapter.id !== sharedJourney.chapterId
 
   return (
     <div className="min-h-screen bg-[#041326] text-white">
@@ -249,6 +293,28 @@ function DashboardPage({
               </span>
             </button>
           </section>
+
+          {canResume && (
+            <button
+              type="button"
+              onClick={resumeReading}
+              className="mt-4 flex w-full items-center gap-3 rounded-[20px] border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-left transition hover:bg-cyan-300/[0.11] active:scale-[0.99]"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-300">
+                <History size={18} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400">Continue Reading</p>
+                <p className="mt-0.5 truncate text-sm font-semibold text-white">
+                  {lastOpenedChapter.reference || lastOpenedChapter.id}
+                  {lastOpenedChapter.tab && lastOpenedChapter.tab !== 'read'
+                    ? ` · ${lastOpenedChapter.tab.charAt(0).toUpperCase()}${lastOpenedChapter.tab.slice(1)}`
+                    : ''}
+                </p>
+              </div>
+              <span className="text-lg text-cyan-300">→</span>
+            </button>
+          )}
 
           <section className="mt-7 grid grid-cols-2 gap-5 sm:mt-8 sm:gap-6">
             <button
