@@ -1,4 +1,6 @@
 export const TOTAL_CYCLE_DAYS = 1189
+export const BETA_JOURNEY_START_DATE = '2026-08-08'
+export const JOURNEY_TIME_ZONE = 'America/New_York'
 
 /*
   PROJECT 3|26 SHARED JOURNEY ORDER
@@ -87,14 +89,6 @@ export const journeyBookOrder = [
   /*
     ADD EACH NEW BOOK BELOW THIS LINE
     IN THE ORDER YOU PRODUCE IT.
-
-    Example:
-
-    {
-      id: 'luke',
-      name: 'Luke',
-      chapters: 24,
-    },
   */
 ]
 
@@ -157,13 +151,6 @@ export function getSharedJourneyForCycleDay(
       chapter.chapterId,
     reference:
       chapter.reference,
-
-    /*
-      Chapter-specific titles will eventually
-      come from the backend/content database.
-
-      John 1 keeps the current prototype title.
-    */
     title:
       chapter.chapterId ===
       'john-1'
@@ -172,16 +159,57 @@ export function getSharedJourneyForCycleDay(
   }
 }
 
-/*
-  PROTOTYPE CURRENT DAY
+function getDateKeyInTimeZone(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
 
-  Later the backend will determine this from
-  the official Project 3|26 cycle calendar.
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  )
 
-  For now, changing this number lets us test
-  the journey sequence.
-*/
-export const CURRENT_CYCLE_DAY = 1
+  return `${values.year}-${values.month}-${values.day}`
+}
+
+function dateKeyToUtcMilliseconds(dateKey) {
+  const [year, month, day] = dateKey
+    .split('-')
+    .map(Number)
+
+  return Date.UTC(
+    year,
+    month - 1,
+    day,
+  )
+}
+
+export function getBetaCycleDay(now = new Date()) {
+  const todayKey = getDateKeyInTimeZone(
+    now,
+    JOURNEY_TIME_ZONE,
+  )
+
+  const elapsedDays = Math.floor(
+    (
+      dateKeyToUtcMilliseconds(todayKey) -
+      dateKeyToUtcMilliseconds(BETA_JOURNEY_START_DATE)
+    ) /
+      86_400_000,
+  )
+
+  return Math.min(
+    TOTAL_CYCLE_DAYS,
+    Math.max(1, elapsedDays + 1),
+  )
+}
+
+export const CURRENT_CYCLE_DAY =
+  getBetaCycleDay()
 
 export const sharedJourney =
   getSharedJourneyForCycleDay(
@@ -205,7 +233,7 @@ export function openSharedJourneyChapter(
         sharedJourney.chapterId,
       tab,
       createdAt: Date.now(),
-    }),  
+    }),
   )
 
   onOpenChapter(
