@@ -23,21 +23,18 @@ const communityRooms = [
     shortName: 'Today',
     name: 'Today’s Conversation',
     type: 'chapter',
-    members: 128,
   },
   {
     id: 'prayer',
     shortName: 'Prayer',
     name: 'Prayer Room',
     type: 'prayer',
-    members: 92,
   },
   {
     id: 'transformation',
     shortName: 'Transformation',
     name: 'Transformation Board',
     type: 'transformation',
-    members: 86,
   },
 ]
 
@@ -74,6 +71,14 @@ function getRoomStyle(type, active = false) {
       ? 'border-cyan-400/50 bg-[#c7dce7] text-[#153047]'
       : 'border-[#c8d3db] bg-[#dfe8ee] text-slate-600 hover:border-cyan-400/40 hover:bg-[#e7eef2]',
   }
+}
+
+function roomDescriptor(room) {
+  if (room.type === 'church') return 'Private church community'
+  if (room.id === 'today') return 'Today’s shared Bible conversation'
+  if (room.id === 'prayer') return 'Share requests and pray together'
+  if (room.id === 'transformation') return 'Share how Scripture is changing your life'
+  return 'Project 3|26 community'
 }
 
 function RoomSwitcher({ rooms, activeRoomId, onSelectRoom }) {
@@ -145,7 +150,6 @@ function ConnectRoomPage({
           shortName: 'My Church',
           name: membership.name,
           type: 'church',
-          members: null,
           membership,
         })),
     ],
@@ -204,11 +208,7 @@ function ConnectRoomPage({
 
                 <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500 sm:text-xs">
                   <Users size={12} />
-                  <span>
-                    {activeRoom.type === 'church'
-                      ? 'Private church community'
-                      : `${activeRoom.members} people here`}
-                  </span>
+                  <span>{roomDescriptor(activeRoom)}</span>
                 </div>
               </div>
 
