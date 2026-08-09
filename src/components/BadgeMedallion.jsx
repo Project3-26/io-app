@@ -59,6 +59,7 @@ const artworkIcons = {
   watchtower: Landmark,
   'twelve-stars': Star,
   temple: Church,
+  church: Church,
   'cross-rays': Cross,
   'flame-footsteps': Footprints,
   letter: Mail,
