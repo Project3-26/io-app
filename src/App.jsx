@@ -36,211 +36,109 @@ const NAVIGATION_PAGES = [
   PAGE_IDS.profile,
 ]
 
-const DEMO_MODE_KEY =
-  'project326-demo-mode'
-
 function hydrateMemberProgress(snapshot) {
   const progress = snapshot?.progress
+  if (!progress) return
 
-  if (!progress) {
-    return
-  }
-
-  if (
-    Array.isArray(
-      progress.completedChapterIds,
-    )
-  ) {
+  if (Array.isArray(progress.completedChapterIds)) {
     localStorage.setItem(
       'project326-completed-chapters',
-      JSON.stringify(
-        progress.completedChapterIds,
-      ),
+      JSON.stringify(progress.completedChapterIds),
     )
   }
 
-  if (
-    Array.isArray(
-      progress.completionDays,
-    )
-  ) {
+  if (Array.isArray(progress.completionDays)) {
     localStorage.setItem(
       'project326-completion-days',
-      JSON.stringify(
-        progress.completionDays,
-      ),
+      JSON.stringify(progress.completionDays),
     )
   }
 
   syncAchievements({
-    chaptersCompleted:
-      progress.completedChapters || 0,
-    completedBooks:
-      progress.booksCompleted || 0,
-    completedBookIds:
-      Array.isArray(
-        progress.completedBookIds,
-      )
-        ? progress.completedBookIds
-        : [],
-    currentStreak:
-      progress.currentStreak || 0,
+    chaptersCompleted: progress.completedChapters || 0,
+    completedBooks: progress.booksCompleted || 0,
+    completedBookIds: Array.isArray(progress.completedBookIds)
+      ? progress.completedBookIds
+      : [],
+    currentStreak: progress.currentStreak || 0,
   })
 
   window.dispatchEvent(
-    new CustomEvent(
-      'project326-completion-change',
-      {
-        detail: {
-          source: 'backend-sync',
-        },
-      },
-    ),
+    new CustomEvent('project326-completion-change', {
+      detail: { source: 'backend-sync' },
+    }),
   )
 
   window.dispatchEvent(
-    new CustomEvent(
-      'project326-streak-change',
-      {
-        detail: {
-          source: 'backend-sync',
-        },
-      },
-    ),
+    new CustomEvent('project326-streak-change', {
+      detail: { source: 'backend-sync' },
+    }),
   )
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState(
-    PAGE_IDS.dashboard,
-  )
-
-  const [selectedChapterId, setSelectedChapterId] =
-    useState('john-1')
-
-  const [selectedConnectRoomId, setSelectedConnectRoomId] =
-    useState('today')
-
-  const [authMode, setAuthMode] =
-    useState('checking')
+  const [currentPage, setCurrentPage] = useState(PAGE_IDS.dashboard)
+  const [selectedChapterId, setSelectedChapterId] = useState('john-1')
+  const [selectedConnectRoomId, setSelectedConnectRoomId] = useState('today')
+  const [authMode, setAuthMode] = useState('checking')
 
   useEffect(() => {
     let isMounted = true
 
     async function bootstrapAuthentication() {
-      if (
-        sessionStorage.getItem(
-          DEMO_MODE_KEY,
-        ) === '1'
-      ) {
-        if (isMounted) {
-          setAuthMode('demo')
-        }
-        return
-      }
-
       if (!hasMemberSession()) {
-        if (isMounted) {
-          setAuthMode('signed-out')
-        }
+        if (isMounted) setAuthMode('signed-out')
         return
       }
 
       try {
-        const snapshot =
-          await getMemberSnapshot()
-
-        if (!snapshot) {
-          throw new Error(
-            'Member session is unavailable.',
-          )
-        }
-
+        const snapshot = await getMemberSnapshot()
+        if (!snapshot) throw new Error('Member session is unavailable.')
         hydrateMemberProgress(snapshot)
-
-        if (isMounted) {
-          setAuthMode('signed-in')
-        }
+        if (isMounted) setAuthMode('signed-in')
       } catch {
         clearMemberSession()
-
-        if (isMounted) {
-          setAuthMode('signed-out')
-        }
+        if (isMounted) setAuthMode('signed-out')
       }
     }
 
     bootstrapAuthentication()
-
     return () => {
       isMounted = false
     }
   }, [])
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'auto',
-    })
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }, [currentPage, selectedChapterId])
 
   useEffect(() => {
     function handleOpenChapterEvent(event) {
       const chapterId = event?.detail?.chapterId
-
-      if (!chapterId) {
-        return
-      }
-
+      if (!chapterId) return
       setSelectedChapterId(chapterId)
       setCurrentPage(PAGE_IDS.chapter)
     }
 
-    window.addEventListener(
-      'project326-open-chapter',
-      handleOpenChapterEvent,
-    )
-
+    window.addEventListener('project326-open-chapter', handleOpenChapterEvent)
     return () => {
-      window.removeEventListener(
-        'project326-open-chapter',
-        handleOpenChapterEvent,
-      )
+      window.removeEventListener('project326-open-chapter', handleOpenChapterEvent)
     }
   }, [])
 
   async function handleAuthenticated() {
-    sessionStorage.removeItem(
-      DEMO_MODE_KEY,
-    )
-
-    const snapshot =
-      await getMemberSnapshot()
-
+    const snapshot = await getMemberSnapshot()
     if (!snapshot) {
       clearMemberSession()
-      throw new Error(
-        'Your account connected, but your profile could not be loaded.',
-      )
+      throw new Error('Your account connected, but your profile could not be loaded.')
     }
 
     hydrateMemberProgress(snapshot)
     setAuthMode('signed-in')
   }
 
-  function handleContinueDemo() {
-    sessionStorage.setItem(
-      DEMO_MODE_KEY,
-      '1',
-    )
-    setAuthMode('demo')
-  }
-
   function handleNavigate(pageId, connectRoomId = 'today') {
-    if (!NAVIGATION_PAGES.includes(pageId)) {
-      return
-    }
+    if (!NAVIGATION_PAGES.includes(pageId)) return
 
     if (pageId === PAGE_IDS.connect) {
       setSelectedConnectRoomId(connectRoomId)
@@ -252,17 +150,8 @@ function App() {
   }
 
   function handleOpenChapter(chapterValue = 'john-1') {
-    const chapterId =
-      typeof chapterValue === 'string'
-        ? chapterValue
-        : chapterValue?.id
-
-    if (!chapterId) {
-      setSelectedChapterId('john-1')
-    } else {
-      setSelectedChapterId(chapterId)
-    }
-
+    const chapterId = typeof chapterValue === 'string' ? chapterValue : chapterValue?.id
+    setSelectedChapterId(chapterId || 'john-1')
     setCurrentPage(PAGE_IDS.chapter)
   }
 
@@ -286,24 +175,15 @@ function App() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#041326] px-4 text-white">
         <div className="text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-400">
-            PROJECT 3|26
-          </p>
-          <p className="mt-3 text-sm text-slate-400">
-            Connecting your journey…
-          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-400">PROJECT 3|26</p>
+          <p className="mt-3 text-sm text-slate-400">Connecting your journey…</p>
         </div>
       </main>
     )
   }
 
   if (authMode === 'signed-out') {
-    return (
-      <AuthPage
-        onAuthenticated={handleAuthenticated}
-        onContinueDemo={handleContinueDemo}
-      />
-    )
+    return <AuthPage onAuthenticated={handleAuthenticated} />
   }
 
   if (currentPage === PAGE_IDS.chapter) {
@@ -318,27 +198,14 @@ function App() {
   }
 
   if (currentPage === PAGE_IDS.journey) {
-    return (
-      <JourneyPage
-        onNavigate={handleNavigate}
-        onOpenChapter={handleOpenChapter}
-      />
-    )
+    return <JourneyPage onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
   }
 
   if (currentPage === PAGE_IDS.library) {
-    return (
-      <LibraryPage
-        onNavigate={handleNavigate}
-        onOpenChapter={handleOpenChapter}
-      />
-    )
+    return <LibraryPage onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
   }
 
-  if (
-    currentPage === PAGE_IDS.connect ||
-    currentPage === PAGE_IDS.connectRoom
-  ) {
+  if (currentPage === PAGE_IDS.connect || currentPage === PAGE_IDS.connectRoom) {
     return (
       <ConnectRoomPage
         selectedRoomId={selectedConnectRoomId}
@@ -367,12 +234,7 @@ function App() {
   }
 
   if (currentPage === PAGE_IDS.profile) {
-    return (
-      <ProfilePage
-        onNavigate={handleNavigate}
-        onOpenUpgrade={handleOpenUpgrade}
-      />
-    )
+    return <ProfilePage onNavigate={handleNavigate} onOpenUpgrade={handleOpenUpgrade} />
   }
 
   return (
