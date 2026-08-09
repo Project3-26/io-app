@@ -4,11 +4,14 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  LoaderCircle,
+  Lock,
   Minus,
   Plus,
 } from 'lucide-react'
 import { bibleBooks } from '../data/bibleBooks'
 import { john1Scripture } from '../data/john1Scripture'
+import { getBibleChapter } from '../services/backend'
 
 function BibleReader({
   initialBookId = 'john',
@@ -24,6 +27,9 @@ function BibleReader({
     return requestedView === 'books' ? 'books' : 'reader'
   })
   const [fontSize, setFontSize] = useState(18)
+  const [scripture, setScripture] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [readerError, setReaderError] = useState(null)
 
   useEffect(() => {
     const requestedView = sessionStorage.getItem(
@@ -35,6 +41,67 @@ function BibleReader({
       sessionStorage.removeItem('project326-bible-start-view')
     }
   }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadScripture() {
+      if (currentView !== 'reader') {
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setReaderError(null)
+
+        const payload = await getBibleChapter(
+          selectedBookId,
+          selectedChapter,
+        )
+
+        if (isMounted) {
+          setScripture(payload)
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        if (
+          error?.status === 401 &&
+          selectedBookId === john1Scripture.bookId &&
+          selectedChapter === john1Scripture.chapterNumber
+        ) {
+          setScripture(createJohnOneDemoPayload())
+          setReaderError({
+            code: 'DEMO_FALLBACK',
+            message:
+              'Demo mode is showing the local John 1 preview. Sign in for the live licensed reader.',
+          })
+          return
+        }
+
+        setScripture(null)
+        setReaderError({
+          code: error?.code || 'LOAD_FAILED',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unable to load Scripture.',
+        })
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadScripture()
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentView, selectedBookId, selectedChapter])
 
   const selectedBook = useMemo(
     () =>
@@ -61,24 +128,40 @@ function BibleReader({
     [selectedBook],
   )
 
-  const hasLocalScripture =
-    selectedBookId === john1Scripture.bookId &&
-    selectedChapter === john1Scripture.chapterNumber
+  const headingsByVerse = useMemo(() => {
+    const result = new Map()
+
+    for (const heading of scripture?.headings || []) {
+      const verseNumber = Number(heading.verseNumber || 1)
+      const current = result.get(verseNumber) || []
+      current.push(heading)
+      result.set(verseNumber, current)
+    }
+
+    return result
+  }, [scripture])
 
   function selectBook(bookId) {
     setSelectedBookId(bookId)
     setSelectedChapter(1)
+    setScripture(null)
+    setReaderError(null)
     setCurrentView('chapters')
   }
 
   function selectChapter(chapterNumber) {
     setSelectedChapter(chapterNumber)
+    setScripture(null)
+    setReaderError(null)
     setCurrentView('reader')
 
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
   }
 
   function goToPreviousChapter() {
+    setScripture(null)
+    setReaderError(null)
+
     if (selectedChapter > 1) {
       setSelectedChapter((current) => current - 1)
       return
@@ -96,6 +179,9 @@ function BibleReader({
   }
 
   function goToNextChapter() {
+    setScripture(null)
+    setReaderError(null)
+
     if (selectedChapter < selectedBook.chapters) {
       setSelectedChapter((current) => current + 1)
       return
@@ -158,7 +244,7 @@ function BibleReader({
               </p>
               <h2 className="mt-1.5 text-xl font-semibold">Choose a Book</h2>
               <p className="mt-1.5 text-sm text-slate-500">
-                Select the book you want to read.
+                Free John members can read John. Full Bible Study members can read all 66 books.
               </p>
             </div>
           </div>
@@ -233,6 +319,9 @@ function BibleReader({
     )
   }
 
+  const isUpgradeRequired =
+    readerError?.code === 'BIBLE_UPGRADE_REQUIRED'
+
   return (
     <div className="space-y-4">
       <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-lg shadow-black/10 sm:p-5">
@@ -294,28 +383,63 @@ function BibleReader({
           </div>
         </div>
 
-        {hasLocalScripture ? (
+        {isLoading ? (
+          <div className="flex min-h-64 flex-col items-center justify-center text-slate-500">
+            <LoaderCircle size={32} className="animate-spin text-cyan-700" />
+            <p className="mt-3 text-sm">Loading licensed NASB 1995 Scripture…</p>
+          </div>
+        ) : isUpgradeRequired ? (
+          <div className="flex min-h-64 flex-col items-center justify-center px-4 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#c7dce7] text-cyan-700">
+              <Lock size={23} />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold text-[#153047]">
+              Unlock the full Bible
+            </h3>
+            <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+              The Free John plan includes all 21 chapters of John. Upgrade to the full Bible Study to read {selectedBook.name} and continue through the entire Bible.
+            </p>
+          </div>
+        ) : scripture ? (
           <div
             className="py-2 leading-[1.85] text-[#243b50]"
             style={{ fontSize: `${fontSize}px` }}
           >
-            {john1Scripture.sections.map((section) => (
-              <section key={section.heading} className="mt-7 first:mt-3">
-                <h3 className="mb-3 text-base font-bold text-[#153047] sm:text-lg">
-                  {section.heading}
-                </h3>
-                <p>
-                  {section.verses.map((verse) => (
-                    <span key={verse.number}>
-                      <sup className="mr-1 font-bold text-cyan-700">
-                        {verse.number}
-                      </sup>
-                      {verse.text}{' '}
-                    </span>
+            {readerError?.code === 'DEMO_FALLBACK' ? (
+              <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                {readerError.message}
+              </p>
+            ) : null}
+
+            {(scripture.verses || []).map((verse) => {
+              const verseHeadings = headingsByVerse.get(verse.number) || []
+
+              return (
+                <div
+                  key={verse.number}
+                  className={verse.paragraphStart ? 'mt-4' : ''}
+                >
+                  {verseHeadings.map((heading) => (
+                    <h3
+                      key={`${heading.sequencePosition}-${heading.text}`}
+                      className="mb-2 mt-6 text-base font-bold leading-6 text-[#153047] first:mt-2 sm:text-lg"
+                    >
+                      {heading.text}
+                    </h3>
                   ))}
-                </p>
-              </section>
-            ))}
+                  <span
+                    className={verse.kind === 'poetry' ? 'block pl-4' : ''}
+                  >
+                    <sup className="mr-1 font-bold text-cyan-700">
+                      {verse.number}
+                    </sup>
+                    <span className={verse.hasRedLetter ? 'text-red-700' : ''}>
+                      {verse.text}
+                    </span>{' '}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         ) : (
           <div
@@ -324,9 +448,7 @@ function BibleReader({
           >
             <BookOpen size={36} className="mx-auto text-cyan-700" />
             <p className="mx-auto mt-4 max-w-lg">
-              NASB 1995 Scripture text for {selectedBook.name}{' '}
-              {selectedChapter} will appear here after the licensed electronic
-              files from The Lockman Foundation are imported.
+              {readerError?.message || 'Unable to load this Scripture passage.'}
             </p>
           </div>
         )}
@@ -362,13 +484,47 @@ function BibleReader({
 
       <section className="rounded-2xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047]">
         <p className="text-xs leading-5 text-slate-500">
-          New American Standard Bible - NASB 1995. Copyright © 1960, 1962,
-          1963, 1968, 1971, 1972, 1973, 1975, 1977, 1995 by The Lockman
-          Foundation. All rights reserved.
+          {scripture?.translation?.copyrightNotice ||
+            'New American Standard Bible Copyright © 1960, 1971, 1977, 1995 by The Lockman Foundation. All rights reserved.'}
         </p>
       </section>
     </div>
   )
+}
+
+function createJohnOneDemoPayload() {
+  const verses = []
+  const headings = []
+
+  for (const section of john1Scripture.sections) {
+    if (section.verses.length > 0) {
+      headings.push({
+        sequencePosition: headings.length + 1,
+        verseNumber: section.verses[0].number,
+        text: section.heading,
+      })
+    }
+
+    for (const verse of section.verses) {
+      verses.push({
+        number: verse.number,
+        text: verse.text,
+        kind: 'prose',
+        paragraphStart: false,
+        hasRedLetter: false,
+      })
+    }
+  }
+
+  return {
+    translation: {
+      shortName: 'NASB 1995',
+      copyrightNotice:
+        'New American Standard Bible Copyright © 1960, 1971, 1977, 1995 by The Lockman Foundation. All rights reserved.',
+    },
+    verses,
+    headings,
+  }
 }
 
 export default BibleReader
