@@ -14,6 +14,8 @@ import {
   clearMemberSession,
   getMemberSnapshot,
   hasMemberSession,
+  signInMember,
+  signUpMember,
 } from './services/backend'
 import { claimReferral } from './services/referrals'
 import { syncAchievements } from './utils/achievements'
@@ -39,6 +41,13 @@ const NAVIGATION_PAGES = [
 ]
 
 const PENDING_REFERRAL_KEY = 'project326-pending-referral'
+const BETA_CREDENTIALS_KEY = 'project326-beta-device-member'
+
+// TEMPORARY BETA BEHAVIOR:
+// Keep the real authentication flow intact, but hide it during beta. Set this
+// to false near production and the existing sign-in/create-account screen is
+// restored without rebuilding auth.
+const BETA_AUTO_ENTRY_ENABLED = true
 
 function captureReferralFromUrl() {
   const params = new URLSearchParams(window.location.search)
@@ -62,6 +71,60 @@ async function claimPendingReferral() {
     if ([400, 404].includes(error?.status)) {
       localStorage.removeItem(PENDING_REFERRAL_KEY)
     }
+  }
+}
+
+function readBetaCredentials() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(BETA_CREDENTIALS_KEY) || 'null')
+    if (!stored?.email || !stored?.password || !stored?.displayName) return null
+    return stored
+  } catch {
+    return null
+  }
+}
+
+function createBetaCredentials() {
+  const randomId =
+    typeof globalThis.crypto?.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID().replaceAll('-', '')
+      : `${Date.now()}${Math.random().toString(36).slice(2)}`
+  const shortId = randomId.slice(0, 10).toLowerCase()
+  const credentials = {
+    email: `beta+${shortId}@project326.org`,
+    password: `Beta-${randomId.slice(0, 20)}!`,
+    displayName: `Beta ${shortId.slice(-4).toUpperCase()}`,
+  }
+
+  localStorage.setItem(BETA_CREDENTIALS_KEY, JSON.stringify(credentials))
+  return credentials
+}
+
+async function ensureBetaMemberSession() {
+  if (hasMemberSession()) return
+
+  const stored = readBetaCredentials()
+
+  if (stored) {
+    try {
+      await signInMember(stored.email, stored.password)
+      return
+    } catch (error) {
+      if (![400, 401, 404].includes(error?.status)) throw error
+    }
+  }
+
+  const credentials = stored || createBetaCredentials()
+
+  try {
+    await signUpMember(
+      credentials.email,
+      credentials.password,
+      credentials.displayName,
+    )
+  } catch (error) {
+    if (error?.status !== 409) throw error
+    await signInMember(credentials.email, credentials.password)
   }
 }
 
@@ -110,6 +173,7 @@ function App() {
   const [selectedChapterId, setSelectedChapterId] = useState('john-1')
   const [selectedConnectRoomId, setSelectedConnectRoomId] = useState('today')
   const [authMode, setAuthMode] = useState('checking')
+  const [bootstrapError, setBootstrapError] = useState('')
 
   useEffect(() => {
     captureReferralFromUrl()
@@ -117,20 +181,38 @@ function App() {
     let isMounted = true
 
     async function bootstrapAuthentication() {
-      if (!hasMemberSession()) {
-        if (isMounted) setAuthMode('signed-out')
-        return
-      }
-
       try {
-        const snapshot = await getMemberSnapshot()
+        setBootstrapError('')
+
+        if (!hasMemberSession()) {
+          if (!BETA_AUTO_ENTRY_ENABLED) {
+            if (isMounted) setAuthMode('signed-out')
+            return
+          }
+
+          await ensureBetaMemberSession()
+        }
+
+        const snapshot = await getMemberSnapshot({ force: true })
         if (!snapshot) throw new Error('Member session is unavailable.')
         hydrateMemberProgress(snapshot)
         await claimPendingReferral()
         if (isMounted) setAuthMode('signed-in')
-      } catch {
-        clearMemberSession()
-        if (isMounted) setAuthMode('signed-out')
+      } catch (error) {
+        if (!BETA_AUTO_ENTRY_ENABLED) {
+          clearMemberSession()
+          if (isMounted) setAuthMode('signed-out')
+          return
+        }
+
+        if (isMounted) {
+          setBootstrapError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to start the beta experience.',
+          )
+          setAuthMode('beta-error')
+        }
       }
     }
 
@@ -239,7 +321,26 @@ function App() {
       <main className="flex min-h-screen items-center justify-center bg-[#041326] px-4 text-white">
         <div className="text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-400">PROJECT 3|26</p>
-          <p className="mt-3 text-sm text-slate-400">Connecting your journey…</p>
+          <p className="mt-3 text-sm text-slate-400">Opening your beta journey…</p>
+        </div>
+      </main>
+    )
+  }
+
+  if (authMode === 'beta-error') {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#041326] px-4 text-white">
+        <div className="w-full max-w-md text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-400">PROJECT 3|26 BETA</p>
+          <h1 className="mt-3 text-xl font-semibold">We couldn’t open the beta.</h1>
+          <p className="mt-2 text-sm text-slate-400">{bootstrapError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-5 rounded-full bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-white"
+          >
+            Try again
+          </button>
         </div>
       </main>
     )
