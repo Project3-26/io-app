@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  AlertTriangle,
   Camera,
   Check,
   Crown,
@@ -8,6 +9,7 @@ import {
   Save,
   Sparkles,
   User,
+  X,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
 import ChurchConnectionPanel from '../components/profile/ChurchConnectionPanel'
@@ -42,6 +44,7 @@ function ProfilePage({
   const [isUploading, setIsUploading] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
+  const [avatarUploadError, setAvatarUploadError] = useState('')
   const [selectedTestingPlan, setSelectedTestingPlan] = useState(
     () => readFounderTestPlan() || 'leader',
   )
@@ -98,6 +101,14 @@ function ProfilePage({
     snapshot?.access?.canSwitchTestingPlan ||
     testingAccountEmails.has(testingAccountEmail)
 
+  const avatarErrorTitle = avatarUploadError.toLowerCase().includes('too large')
+    ? 'That photo is too large'
+    : avatarUploadError.toLowerCase().includes('format')
+      ? 'That photo format did not work'
+      : avatarUploadError.toLowerCase().includes('session')
+        ? 'Your session expired'
+        : 'We could not use that photo'
+
   async function saveProfile() {
     if (!displayName.trim()) {
       setError('Display name cannot be empty.')
@@ -130,15 +141,16 @@ function ProfilePage({
     try {
       setIsUploading(true)
       setError('')
+      setAvatarUploadError('')
       await uploadMemberAvatar(file)
       await loadProfile(true)
       setNotice('Profile picture updated.')
     } catch (uploadError) {
-      setError(
-        uploadError instanceof Error
-          ? uploadError.message
-          : 'Unable to upload your profile picture.',
-      )
+      const message = uploadError instanceof Error
+        ? uploadError.message
+        : 'Unable to upload your profile picture. Please try another photo.'
+      setError(message)
+      setAvatarUploadError(message)
     } finally {
       setIsUploading(false)
     }
@@ -369,6 +381,53 @@ function ProfilePage({
           )}
         </main>
       </div>
+
+      {avatarUploadError && (
+        <div
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm"
+          role="presentation"
+        >
+          <div
+            className="w-full max-w-md overflow-hidden rounded-[26px] border border-orange-300/40 bg-[#f7f2e8] text-[#153047] shadow-2xl shadow-black/50"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="avatar-error-title"
+            aria-describedby="avatar-error-message"
+          >
+            <div className="h-2 bg-orange-500" />
+            <div className="p-6 sm:p-7">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+                  <AlertTriangle size={24} strokeWidth={2.3} />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAvatarUploadError('')}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-500 transition hover:bg-white hover:text-slate-800"
+                  aria-label="Close photo upload message"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <h2 id="avatar-error-title" className="mt-5 text-2xl font-bold tracking-tight">
+                {avatarErrorTitle}
+              </h2>
+              <p id="avatar-error-message" className="mt-3 text-sm leading-6 text-slate-600">
+                {avatarUploadError}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setAvatarUploadError('')}
+                className="mt-6 w-full rounded-full bg-orange-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-orange-400"
+              >
+                Choose another photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
