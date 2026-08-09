@@ -4,7 +4,6 @@ import {
   Check,
   Crown,
   LoaderCircle,
-  LogOut,
   Mail,
   Save,
   Sparkles,
@@ -13,7 +12,6 @@ import {
 import AppNavigation from '../components/AppNavigation'
 import ChurchConnectionPanel from '../components/profile/ChurchConnectionPanel'
 import {
-  clearMemberSession,
   getMemberSnapshot,
   readFounderTestPlan,
   setFounderTestPlan,
@@ -74,6 +72,12 @@ function ProfilePage({
     loadProfile()
   }, [])
 
+  const testingAccountEmail =
+    snapshot?.user?.email?.trim().toLowerCase() || ''
+  const isSilentBetaAccount =
+    testingAccountEmail.startsWith('beta+') &&
+    testingAccountEmail.endsWith('@project326.org')
+
   const initials = useMemo(() => {
     const value = snapshot?.user?.displayName || snapshot?.user?.email || 'P 3'
     return value
@@ -90,8 +94,6 @@ function ProfilePage({
       ? 'Standard'
       : 'Free John'
 
-  const testingAccountEmail =
-    snapshot?.user?.email?.trim().toLowerCase() || ''
   const canUseTestingPlan =
     snapshot?.access?.canSwitchTestingPlan ||
     testingAccountEmails.has(testingAccountEmail)
@@ -149,11 +151,6 @@ function ProfilePage({
     await loadProfile(true)
   }
 
-  function signOut() {
-    clearMemberSession()
-    window.location.reload()
-  }
-
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation activePage="profile" onNavigate={onNavigate} />
@@ -168,14 +165,14 @@ function ProfilePage({
               Profile
             </h1>
             <p className="mt-2 text-sm text-slate-400 sm:text-base">
-              Your account, plan, identity, and church connection.
+              Your identity, Bible access, and church connection.
             </p>
           </header>
 
           {isLoading && !snapshot ? (
             <div className="mt-8 flex items-center gap-3 text-slate-400">
               <LoaderCircle size={20} className="animate-spin" />
-              Loading your account…
+              Loading your profile…
             </div>
           ) : (
             <div className="mt-6 grid gap-5 lg:grid-cols-3">
@@ -226,10 +223,17 @@ function ProfilePage({
                         </h2>
                       )}
 
-                      <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                        <Mail size={14} />
-                        <span className="truncate">{snapshot?.user?.email}</span>
-                      </div>
+                      {isSilentBetaAccount ? (
+                        <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                          <Sparkles size={14} />
+                          <span>Project 3|26 beta participant</span>
+                        </div>
+                      ) : (
+                        <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                          <Mail size={14} />
+                          <span className="truncate">{snapshot?.user?.email}</span>
+                        </div>
+                      )}
 
                       <div className="mt-3 flex flex-wrap gap-2">
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-[#b8ccd7] bg-[#c7dce7] px-3 py-1 text-xs font-semibold text-cyan-700">
@@ -237,7 +241,14 @@ function ProfilePage({
                           {planLabel}
                         </span>
 
-                        {snapshot?.user?.email?.toLowerCase() === 'brian@project326.org' && (
+                        {isSilentBetaAccount && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-300/40 bg-[#e8ddd0] px-3 py-1 text-xs font-semibold text-orange-600">
+                            <Sparkles size={12} />
+                            Beta
+                          </span>
+                        )}
+
+                        {testingAccountEmail === 'brian@project326.org' && (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-300/40 bg-[#e8ddd0] px-3 py-1 text-xs font-semibold text-orange-600">
                             <Sparkles size={12} />
                             Founder
@@ -319,12 +330,14 @@ function ProfilePage({
                   <div className="flex items-center gap-3">
                     <Crown size={19} className="text-orange-600" />
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current access</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        {isSilentBetaAccount ? 'Beta access' : 'Current access'}
+                      </p>
                       <h2 className="mt-1 text-lg font-semibold">{planLabel}</h2>
                     </div>
                   </div>
 
-                  {!snapshot?.access?.leaderGuideAccess && (
+                  {!isSilentBetaAccount && !snapshot?.access?.leaderGuideAccess && (
                     <button
                       type="button"
                       onClick={onOpenUpgrade}
@@ -332,6 +345,12 @@ function ProfilePage({
                     >
                       View upgrades
                     </button>
+                  )}
+
+                  {isSilentBetaAccount && (
+                    <p className="mt-3 text-xs leading-5 text-slate-500">
+                      Full Standard access is enabled during beta. Public plans and sign-in return closer to launch.
+                    </p>
                   )}
                 </section>
 
@@ -341,18 +360,9 @@ function ProfilePage({
                   </section>
                 )}
 
-                <button
-                  type="button"
-                  onClick={signOut}
-                  className="flex w-full items-center justify-center gap-2 border border-red-300/40 bg-[#ead9d9] px-4 py-3 text-sm font-semibold text-red-700"
-                >
-                  <LogOut size={17} />
-                  Sign Out
-                </button>
-
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                   <Check size={14} className="text-emerald-400" />
-                  Account sync connected
+                  {isSilentBetaAccount ? 'Beta progress sync connected' : 'Account sync connected'}
                 </div>
               </aside>
             </div>
