@@ -1,19 +1,10 @@
 import { bibleBooks } from '../data/bibleBooks'
-import { mockChapter } from '../data/mockChapter'
+import { sharedJourney } from '../data/sharedJourney'
 import {
   completeMemberChapter,
   getMemberSnapshot,
   hasMemberSession,
 } from './backend'
-
-const wait = (milliseconds) =>
-  new Promise((resolve) => {
-    window.setTimeout(resolve, milliseconds)
-  })
-
-const chapterLibrary = {
-  [mockChapter.id]: mockChapter,
-}
 
 function buildScriptureOnlyChapter(chapterId) {
   const match = chapterId.match(/^(.*)-(\d+)$/)
@@ -50,7 +41,7 @@ function buildScriptureOnlyChapter(chapterId) {
     title: `${book.name} ${chapterNumber}`,
     lessonNumber: chapterNumber,
     totalLessons: book.chapters,
-    journeyDay: 1,
+    journeyDay: sharedJourney.cycleDay,
     totalJourneyDays: 1189,
     summary: '',
     quote: '',
@@ -164,9 +155,7 @@ function openNextChapterAfterCompletion(chapterId, completionMethod) {
 }
 
 export async function getChapterById(chapterId) {
-  const chapter =
-    chapterLibrary[chapterId] ||
-    buildScriptureOnlyChapter(chapterId)
+  const chapter = buildScriptureOnlyChapter(chapterId)
 
   if (!chapter) {
     throw new Error(
@@ -174,46 +163,34 @@ export async function getChapterById(chapterId) {
     )
   }
 
-  return structuredClone(chapter)
+  return chapter
 }
 
 export async function getTodaysChapter() {
-  return getChapterById(mockChapter.id)
+  if (!sharedJourney.chapterId) {
+    throw new Error('Today’s Journey chapter is not available yet.')
+  }
+
+  return getChapterById(sharedJourney.chapterId)
 }
 
 export async function markChapterComplete(
   chapterId,
   completionMethod,
 ) {
-  if (hasMemberSession()) {
-    const result =
-      await completeMemberChapter(
-        chapterId,
-        completionMethod,
-      )
-
-    if (!result?.success) {
-      throw new Error(
-        'Unable to save chapter completion.',
-      )
-    }
-
-    openNextChapterAfterCompletion(
-      chapterId,
-      completionMethod,
-    )
-
-    return result
+  if (!hasMemberSession()) {
+    throw new Error('Sign in to save chapter progress.')
   }
 
-  await wait(80)
-
-  const result = {
-    success: true,
+  const result = await completeMemberChapter(
     chapterId,
     completionMethod,
-    completedAt: new Date().toISOString(),
-    mode: 'demo',
+  )
+
+  if (!result?.success) {
+    throw new Error(
+      'Unable to save chapter completion.',
+    )
   }
 
   openNextChapterAfterCompletion(
@@ -225,61 +202,46 @@ export async function markChapterComplete(
 }
 
 export async function getCurrentUser() {
-  if (hasMemberSession()) {
-    const snapshot =
-      await getMemberSnapshot()
-
-    if (snapshot?.user) {
-      const leaderAccess =
-        Boolean(
-          snapshot.access?.leaderGuideAccess,
-        )
-
-      const fullBibleAccess =
-        Boolean(
-          snapshot.access?.fullBibleStudyAccess,
-        )
-
-      return {
-        id: snapshot.user.id,
-        firstName:
-          snapshot.user.firstName ||
-          'Member',
-        displayName:
-          snapshot.user.displayName ||
-          snapshot.user.firstName ||
-          'Member',
-        email:
-          snapshot.user.email || '',
-        plan: leaderAccess
-          ? 'leader'
-          : fullBibleAccess
-            ? 'standard'
-            : 'free',
-        access: snapshot.access,
-        progress: snapshot.progress,
-        journeyStartDate: '2026-08-08',
-        timezone:
-          snapshot.user.timezone ||
-          'America/New_York',
-      }
-    }
+  if (!hasMemberSession()) {
+    throw new Error('Sign in to load your account.')
   }
 
+  const snapshot = await getMemberSnapshot()
+
+  if (!snapshot?.user) {
+    throw new Error('Unable to load your account.')
+  }
+
+  const leaderAccess = Boolean(
+    snapshot.access?.leaderGuideAccess,
+  )
+
+  const fullBibleAccess = Boolean(
+    snapshot.access?.fullBibleStudyAccess,
+  )
+
   return {
-    id: 'demo-user',
-    firstName: 'Brian',
-    displayName: 'Brian Cooper',
-    email: 'demo@project326.io',
-    plan: 'standard',
-    access: {
-      freeJohnAccess: true,
-      fullBibleStudyAccess: true,
-      leaderGuideAccess: false,
-      entitlements: [],
-    },
+    id: snapshot.user.id,
+    firstName:
+      snapshot.user.firstName ||
+      'Member',
+    displayName:
+      snapshot.user.displayName ||
+      snapshot.user.firstName ||
+      'Member',
+    email:
+      snapshot.user.email || '',
+    plan: leaderAccess
+      ? 'leader'
+      : fullBibleAccess
+        ? 'standard'
+        : 'free',
+    access: snapshot.access,
+    progress: snapshot.progress,
     journeyStartDate: '2026-08-08',
-    timezone: 'America/New_York',
+    timezone:
+      snapshot.user.timezone ||
+      'America/New_York',
   }
 }
 
