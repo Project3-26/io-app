@@ -125,7 +125,7 @@ function DashboardPage({
 
       if (churchResult.status === 'fulfilled') {
         const activeChurch = churchResult.value.find(
-          (membership) => membership?.status === 'active' && membership?.church?.active !== false,
+          (membership) => membership?.status === 'active',
         )
         setPrimaryChurch(activeChurch || null)
       }
@@ -142,15 +142,14 @@ function DashboardPage({
   }
 
   function openChurch() {
-    const churchSlug = primaryChurch?.church?.slug || primaryChurch?.churchSlug || primaryChurch?.slug
-    if (churchSlug) {
-      onNavigate('connect', churchSlug)
+    if (primaryChurch?.slug) {
+      onNavigate('connect', primaryChurch.slug)
       return
     }
     onNavigate('profile')
   }
 
-  const churchName = primaryChurch?.church?.name || primaryChurch?.churchName || 'My Church'
+  const churchName = primaryChurch?.name || 'My Church'
 
   return (
     <div className="min-h-screen bg-[#041326] text-white">
