@@ -78,6 +78,67 @@ export function toggleConnectReaction(messageId, emoji) {
   )
 }
 
+export async function getCommunityRoom(postType) {
+  return connectRequest(
+    `/api/app/community/${encodeURIComponent(postType)}`,
+  )
+}
+
+export async function createCommunityPost(postType, post) {
+  const payload = await connectRequest(
+    `/api/app/community/${encodeURIComponent(postType)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(post),
+    },
+  )
+  return payload?.post || null
+}
+
+export function toggleCommunityReaction(postId, reaction) {
+  return connectRequest(
+    `/api/app/community/posts/${encodeURIComponent(postId)}/reaction`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reaction }),
+    },
+  )
+}
+
+export function updateCommunityPost(postId, updates) {
+  return connectRequest(
+    `/api/app/community/posts/${encodeURIComponent(postId)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    },
+  )
+}
+
+export function deleteCommunityPost(postId) {
+  return connectRequest(
+    `/api/app/community/posts/${encodeURIComponent(postId)}`,
+    { method: 'DELETE' },
+  )
+}
+
+export function reportCommunityPost(postId) {
+  return connectRequest(
+    `/api/app/community/posts/${encodeURIComponent(postId)}/report`,
+    { method: 'POST' },
+  )
+}
+
+export function hideCommunityPost(postId) {
+  return connectRequest(
+    `/api/app/community/posts/${encodeURIComponent(postId)}/hide`,
+    { method: 'POST' },
+  )
+}
+
 export async function getChurchMemberships() {
   const payload = await connectRequest('/api/app/churches')
   return payload?.memberships || []
