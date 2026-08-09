@@ -42,6 +42,7 @@ const NAVIGATION_PAGES = [
 
 const PENDING_REFERRAL_KEY = 'project326-pending-referral'
 const BETA_CREDENTIALS_KEY = 'project326-beta-device-member'
+const CHAPTER_TABS = new Set(['read', 'listen', 'study', 'leader'])
 
 // TEMPORARY BETA BEHAVIOR:
 // Keep the real authentication flow intact, but hide it during beta. Set this
@@ -58,6 +59,27 @@ function captureReferralFromUrl() {
   params.delete('ref')
   const query = params.toString()
   window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`)
+}
+
+function captureChapterLaunchFromUrl() {
+  const params = new URLSearchParams(window.location.search)
+  const chapterId = params.get('chapter')?.trim().toLowerCase() || ''
+  const requestedTab = params.get('tab')?.trim().toLowerCase() || 'read'
+  const tab = CHAPTER_TABS.has(requestedTab) ? requestedTab : 'read'
+
+  if (!/^[a-z0-9-]+-\d+$/.test(chapterId)) return null
+
+  sessionStorage.setItem(
+    'project326-chapter-request',
+    JSON.stringify({ chapterId, tab, createdAt: Date.now(), source: 'deep-link' }),
+  )
+
+  params.delete('chapter')
+  params.delete('tab')
+  const query = params.toString()
+  window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`)
+
+  return chapterId
 }
 
 async function claimPendingReferral() {
@@ -177,6 +199,7 @@ function App() {
 
   useEffect(() => {
     captureReferralFromUrl()
+    const launchChapterId = captureChapterLaunchFromUrl()
 
     let isMounted = true
 
@@ -197,7 +220,14 @@ function App() {
         if (!snapshot) throw new Error('Member session is unavailable.')
         hydrateMemberProgress(snapshot)
         await claimPendingReferral()
-        if (isMounted) setAuthMode('signed-in')
+
+        if (isMounted) {
+          setAuthMode('signed-in')
+          if (launchChapterId) {
+            setSelectedChapterId(launchChapterId)
+            setCurrentPage(PAGE_IDS.chapter)
+          }
+        }
       } catch (error) {
         if (!BETA_AUTO_ENTRY_ENABLED) {
           clearMemberSession()
