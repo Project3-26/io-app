@@ -103,6 +103,8 @@ async function requestJson(
     )
 
     error.status = response.status
+    error.code = payload?.code || null
+    error.payload = payload
     throw error
   }
 
@@ -271,6 +273,26 @@ export async function completeMemberChapter(
       }),
     },
   )
+}
+
+export async function getBibleChapter(
+  bookSlug,
+  chapterNumber,
+) {
+  const payload = await authenticatedRequest(
+    `/api/app/scripture/${encodeURIComponent(bookSlug)}/${chapterNumber}`,
+  )
+
+  if (!payload) {
+    const error = new Error(
+      'Sign in to read the Bible.',
+    )
+    error.status = 401
+    error.code = 'AUTH_REQUIRED'
+    throw error
+  }
+
+  return payload
 }
 
 export async function checkBackendConnection() {
