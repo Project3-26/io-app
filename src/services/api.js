@@ -1,4 +1,9 @@
 import { mockChapter } from '../data/mockChapter'
+import {
+  completeMemberChapter,
+  getMemberSnapshot,
+  hasMemberSession,
+} from './backend'
 
 const wait = (milliseconds) =>
   new Promise((resolve) => {
@@ -11,23 +16,12 @@ const chapterLibrary = {
 
 export async function getChapterById(chapterId) {
   /*
-   * FUTURE BACKEND VERSION:
-   *
-   * const response = await fetch(
-   *   `/api/chapters/${chapterId}`,
-   *   {
-   *     credentials: 'include',
-   *   },
-   * )
-   *
-   * if (!response.ok) {
-   *   throw new Error('Unable to load this chapter.')
-   * }
-   *
-   * return response.json()
+   * Bible content is still served from the current frontend content bundle.
+   * The backend is now connected for identity/progress first; published
+   * chapter content will move to the content API in a later slice.
    */
 
-  await wait(350)
+  await wait(120)
 
   const chapter = chapterLibrary[chapterId]
 
@@ -41,22 +35,6 @@ export async function getChapterById(chapterId) {
 }
 
 export async function getTodaysChapter() {
-  /*
-   * FUTURE BACKEND VERSION:
-   *
-   * const response = await fetch('/api/chapters/today', {
-   *   credentials: 'include',
-   * })
-   *
-   * if (!response.ok) {
-   *   throw new Error(
-   *     "Unable to load today's chapter.",
-   *   )
-   * }
-   *
-   * return response.json()
-   */
-
   return getChapterById(mockChapter.id)
 }
 
@@ -64,84 +42,95 @@ export async function markChapterComplete(
   chapterId,
   completionMethod,
 ) {
-  /*
-   * FUTURE BACKEND VERSION:
-   *
-   * const response = await fetch(
-   *   `/api/chapters/${chapterId}/complete`,
-   *   {
-   *     method: 'POST',
-   *     credentials: 'include',
-   *     headers: {
-   *       'Content-Type': 'application/json',
-   *     },
-   *     body: JSON.stringify({
-   *       completionMethod,
-   *       completedAt: new Date().toISOString(),
-   *     }),
-   *   },
-   * )
-   *
-   * if (!response.ok) {
-   *   throw new Error(
-   *     'Unable to save chapter completion.',
-   *   )
-   * }
-   *
-   * return response.json()
-   */
+  if (hasMemberSession()) {
+    const result =
+      await completeMemberChapter(
+        chapterId,
+        completionMethod,
+      )
 
-  await wait(300)
+    if (!result?.success) {
+      throw new Error(
+        'Unable to save chapter completion.',
+      )
+    }
+
+    return result
+  }
+
+  await wait(150)
 
   return {
     success: true,
     chapterId,
     completionMethod,
     completedAt: new Date().toISOString(),
+    mode: 'demo',
   }
 }
 
 export async function getCurrentUser() {
-  /*
-   * FUTURE BACKEND VERSION:
-   *
-   * const response = await fetch('/api/users/me', {
-   *   credentials: 'include',
-   * })
-   *
-   * if (!response.ok) {
-   *   throw new Error(
-   *     'Unable to load user information.',
-   *   )
-   * }
-   *
-   * return response.json()
-   */
+  if (hasMemberSession()) {
+    const snapshot =
+      await getMemberSnapshot()
 
-  await wait(150)
+    if (snapshot?.user) {
+      const leaderAccess =
+        Boolean(
+          snapshot.access?.leaderGuideAccess,
+        )
+
+      const fullBibleAccess =
+        Boolean(
+          snapshot.access?.fullBibleStudyAccess,
+        )
+
+      return {
+        id: snapshot.user.id,
+        firstName:
+          snapshot.user.firstName ||
+          'Member',
+        displayName:
+          snapshot.user.displayName ||
+          snapshot.user.firstName ||
+          'Member',
+        email:
+          snapshot.user.email || '',
+        plan: leaderAccess
+          ? 'leader'
+          : fullBibleAccess
+            ? 'standard'
+            : 'free',
+        access: snapshot.access,
+        progress: snapshot.progress,
+        journeyStartDate: null,
+        timezone:
+          snapshot.user.timezone ||
+          'America/New_York',
+      }
+    }
+  }
+
+  await wait(80)
 
   return {
     id: 'demo-user',
     firstName: 'Brian',
-
-    // Change this to 'leader' later to preview access.
+    displayName: 'Brian Cooper',
+    email: 'demo@project326.io',
     plan: 'standard',
-
+    access: {
+      freeJohnAccess: true,
+      fullBibleStudyAccess: true,
+      leaderGuideAccess: false,
+      entitlements: [],
+    },
     journeyStartDate: '2026-08-03',
     timezone: 'America/New_York',
   }
 }
 
 export async function getAssignedJourneyChapter() {
-  /*
-   * FUTURE BACKEND RESPONSIBILITY:
-   *
-   * 1. Read the user's journeyStartDate.
-   * 2. Calculate the current journey day.
-   * 3. Find that day's chapter.
-   * 4. Return the chapter and completion status.
-   */
-
   return getTodaysChapter()
 }
 
