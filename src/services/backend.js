@@ -4,6 +4,8 @@ const BACKEND_BASE_URL =
 
 const MEMBER_SESSION_KEY =
   'project326-member-session'
+const TEST_PLAN_KEY =
+  'project326-founder-test-plan'
 
 function normalizeSession(session) {
   if (!session?.accessToken || !session?.refreshToken) {
@@ -63,6 +65,28 @@ export function clearMemberSession() {
 
 export function hasMemberSession() {
   return Boolean(readMemberSession())
+}
+
+export function readFounderTestPlan() {
+  const plan = localStorage.getItem(TEST_PLAN_KEY)
+
+  return ['free', 'standard', 'leader'].includes(plan)
+    ? plan
+    : null
+}
+
+export function setFounderTestPlan(plan) {
+  if (!['free', 'standard', 'leader'].includes(plan)) {
+    localStorage.removeItem(TEST_PLAN_KEY)
+  } else {
+    localStorage.setItem(TEST_PLAN_KEY, plan)
+  }
+
+  window.dispatchEvent(
+    new CustomEvent('project326-test-plan-change', {
+      detail: { plan },
+    }),
+  )
 }
 
 function isSessionExpiring(session) {
@@ -169,12 +193,17 @@ async function authenticatedRequest(
     return null
   }
 
+  const testPlan = readFounderTestPlan()
+
   try {
     return await requestJson(path, {
       ...options,
       headers: {
         ...(options.headers || {}),
         Authorization: `Bearer ${session.accessToken}`,
+        ...(testPlan
+          ? { 'X-Project326-Test-Plan': testPlan }
+          : {}),
       },
     })
   } catch (error) {
