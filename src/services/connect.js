@@ -77,3 +77,25 @@ export function toggleConnectReaction(messageId, emoji) {
     },
   )
 }
+
+export async function getChurchMemberships() {
+  const payload = await connectRequest('/api/app/churches')
+  return payload?.memberships || []
+}
+
+export async function joinChurchByCode(code) {
+  const payload = await connectRequest('/api/app/churches/join', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  })
+  return payload?.membership || null
+}
+
+export async function createChurchInvite(churchSlug) {
+  const payload = await connectRequest(
+    `/api/app/churches/${encodeURIComponent(churchSlug)}/invites`,
+    { method: 'POST' },
+  )
+  return payload?.invite || null
+}
