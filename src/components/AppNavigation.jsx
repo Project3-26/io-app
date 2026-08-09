@@ -6,6 +6,7 @@ import {
   MessageCircle,
   User,
 } from 'lucide-react'
+import LiveNotificationToast from './LiveNotificationToast'
 
 const navigationItems = [
   {
@@ -47,6 +48,8 @@ function AppNavigation({
 
   return (
     <>
+      <LiveNotificationToast activePage={activePage} onNavigate={onNavigate} />
+
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-24 border-r border-white/10 bg-[#08131d]/95 backdrop-blur-xl lg:flex lg:flex-col">
         <div className="flex h-24 items-center justify-center border-b border-white/10">
           <button
