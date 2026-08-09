@@ -6,6 +6,11 @@ const MEMBER_SESSION_KEY =
   'project326-member-session'
 const TEST_PLAN_KEY =
   'project326-founder-test-plan'
+const MEMBER_SNAPSHOT_TTL_MS = 30_000
+const SCRIPTURE_CACHE_LIMIT = 3
+
+let memberSnapshotCache = null
+const scriptureMemoryCache = new Map()
 
 function normalizeSession(session) {
   if (!session?.accessToken || !session?.refreshToken) {
@@ -21,6 +26,11 @@ function normalizeSession(session) {
         ? null
         : Number(session.expiresAt),
   }
+}
+
+function clearRequestCaches() {
+  memberSnapshotCache = null
+  scriptureMemoryCache.clear()
 }
 
 export function readMemberSession() {
@@ -40,6 +50,7 @@ function saveMemberSession(session) {
 
   if (!normalized) {
     localStorage.removeItem(MEMBER_SESSION_KEY)
+    clearRequestCaches()
     return null
   }
 
@@ -47,6 +58,7 @@ function saveMemberSession(session) {
     MEMBER_SESSION_KEY,
     JSON.stringify(normalized),
   )
+  clearRequestCaches()
 
   window.dispatchEvent(
     new CustomEvent('project326-auth-change'),
@@ -57,6 +69,7 @@ function saveMemberSession(session) {
 
 export function clearMemberSession() {
   localStorage.removeItem(MEMBER_SESSION_KEY)
+  clearRequestCaches()
 
   window.dispatchEvent(
     new CustomEvent('project326-auth-change'),
@@ -81,6 +94,8 @@ export function setFounderTestPlan(plan) {
   } else {
     localStorage.setItem(TEST_PLAN_KEY, plan)
   }
+
+  clearRequestCaches()
 
   window.dispatchEvent(
     new CustomEvent('project326-test-plan-change', {
@@ -250,7 +265,61 @@ export async function signInMember(
   return payload.user
 }
 
-export async function getMemberSnapshot() {
+export async function signUpMember(
+  email,
+  password,
+  displayName,
+) {
+  const payload = await requestJson(
+    '/api/app/auth/sign-up',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        displayName,
+      }),
+    },
+  )
+
+  if (payload?.session) {
+    saveMemberSession(payload.session)
+  }
+
+  return payload
+}
+
+export async function updateMemberProfile(updates) {
+  const payload = await authenticatedRequest(
+    '/api/app/profile',
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    },
+  )
+
+  memberSnapshotCache = null
+  return payload?.profile || null
+}
+
+export async function getMemberSnapshot(options = {}) {
+  const force = Boolean(options?.force)
+  const now = Date.now()
+
+  if (
+    !force &&
+    memberSnapshotCache &&
+    now - memberSnapshotCache.createdAt < MEMBER_SNAPSHOT_TTL_MS
+  ) {
+    return memberSnapshotCache.value
+  }
+
   const account = await authenticatedRequest(
     '/api/app/me',
   )
@@ -259,13 +328,15 @@ export async function getMemberSnapshot() {
     return null
   }
 
+  let snapshot
+
   try {
     const progressPayload =
       await authenticatedRequest(
         '/api/app/progress',
       )
 
-    return {
+    snapshot = {
       ...account,
       progress:
         progressPayload?.progress || null,
@@ -277,18 +348,27 @@ export async function getMemberSnapshot() {
       error,
     )
 
-    return {
+    snapshot = {
       ...account,
       progress: null,
       progressSyncStatus: 'unavailable',
     }
   }
+
+  memberSnapshotCache = {
+    createdAt: now,
+    value: snapshot,
+  }
+
+  return snapshot
 }
 
 export async function completeMemberChapter(
   chapterId,
   completionMethod,
 ) {
+  memberSnapshotCache = null
+
   return authenticatedRequest(
     '/api/app/chapters/complete',
     {
@@ -304,24 +384,62 @@ export async function completeMemberChapter(
   )
 }
 
+function scriptureCacheKey(bookSlug, chapterNumber) {
+  return `${readFounderTestPlan() || 'default'}:${bookSlug}:${chapterNumber}`
+}
+
+function rememberScripture(key, promise) {
+  scriptureMemoryCache.set(key, promise)
+
+  while (scriptureMemoryCache.size > SCRIPTURE_CACHE_LIMIT) {
+    const oldestKey = scriptureMemoryCache.keys().next().value
+    scriptureMemoryCache.delete(oldestKey)
+  }
+
+  promise.catch(() => {
+    if (scriptureMemoryCache.get(key) === promise) {
+      scriptureMemoryCache.delete(key)
+    }
+  })
+
+  return promise
+}
+
 export async function getBibleChapter(
   bookSlug,
   chapterNumber,
 ) {
-  const payload = await authenticatedRequest(
-    `/api/app/scripture/${encodeURIComponent(bookSlug)}/${chapterNumber}`,
-  )
+  const key = scriptureCacheKey(bookSlug, chapterNumber)
+  const cached = scriptureMemoryCache.get(key)
 
-  if (!payload) {
-    const error = new Error(
-      'Sign in to read the Bible.',
-    )
-    error.status = 401
-    error.code = 'AUTH_REQUIRED'
-    throw error
+  if (cached) {
+    return cached
   }
 
-  return payload
+  const request = authenticatedRequest(
+    `/api/app/scripture/${encodeURIComponent(bookSlug)}/${chapterNumber}`,
+  ).then((payload) => {
+    if (!payload) {
+      const error = new Error(
+        'Sign in to read the Bible.',
+      )
+      error.status = 401
+      error.code = 'AUTH_REQUIRED'
+      throw error
+    }
+
+    return payload
+  })
+
+  return rememberScripture(key, request)
+}
+
+export function prefetchBibleChapter(bookSlug, chapterNumber) {
+  if (!hasMemberSession()) return
+
+  getBibleChapter(bookSlug, chapterNumber).catch(() => {
+    // Prefetch is opportunistic. The normal reader request owns error UI.
+  })
 }
 
 export async function checkBackendConnection() {
