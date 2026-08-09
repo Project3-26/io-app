@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import OnboardingTour from './components/OnboardingTour'
 import AuthPage from './pages/AuthPage'
 import ChapterPage from './pages/ChapterPage'
 import ConnectRoomPage from './pages/ConnectRoomPage'
@@ -218,8 +219,10 @@ function App() {
     return <AuthPage onAuthenticated={handleAuthenticated} />
   }
 
+  let pageContent
+
   if (currentPage === PAGE_IDS.chapter) {
-    return (
+    pageContent = (
       <ChapterPage
         chapterId={selectedChapterId}
         onBack={handleCloseChapter}
@@ -227,55 +230,50 @@ function App() {
         onOpenUpgrade={handleOpenUpgrade}
       />
     )
-  }
-
-  if (currentPage === PAGE_IDS.journey) {
-    return <JourneyPage onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
-  }
-
-  if (currentPage === PAGE_IDS.library) {
-    return <LibraryPage onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
-  }
-
-  if (currentPage === PAGE_IDS.connect || currentPage === PAGE_IDS.connectRoom) {
-    return (
+  } else if (currentPage === PAGE_IDS.journey) {
+    pageContent = <JourneyPage onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
+  } else if (currentPage === PAGE_IDS.library) {
+    pageContent = <LibraryPage onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
+  } else if (currentPage === PAGE_IDS.connect || currentPage === PAGE_IDS.connectRoom) {
+    pageContent = (
       <ConnectRoomPage
         selectedRoomId={selectedConnectRoomId}
         onSelectRoom={handleSelectConnectRoom}
         onNavigate={handleNavigate}
       />
     )
-  }
-
-  if (currentPage === PAGE_IDS.notifications) {
-    return (
+  } else if (currentPage === PAGE_IDS.notifications) {
+    pageContent = (
       <NotificationsPage
         onBack={() => setCurrentPage(PAGE_IDS.dashboard)}
         onNavigate={handleNavigate}
       />
     )
-  }
-
-  if (currentPage === PAGE_IDS.upgrade) {
-    return (
+  } else if (currentPage === PAGE_IDS.upgrade) {
+    pageContent = (
       <UpgradePage
         onBack={() => setCurrentPage(PAGE_IDS.profile)}
         onNavigate={handleNavigate}
       />
     )
-  }
-
-  if (currentPage === PAGE_IDS.profile) {
-    return <ProfilePage onNavigate={handleNavigate} onOpenUpgrade={handleOpenUpgrade} />
+  } else if (currentPage === PAGE_IDS.profile) {
+    pageContent = <ProfilePage onNavigate={handleNavigate} onOpenUpgrade={handleOpenUpgrade} />
+  } else {
+    pageContent = (
+      <DashboardPage
+        onOpenChapter={handleOpenChapter}
+        onNavigate={handleNavigate}
+        onOpenNotifications={handleOpenNotifications}
+        onOpenUpgrade={handleOpenUpgrade}
+      />
+    )
   }
 
   return (
-    <DashboardPage
-      onOpenChapter={handleOpenChapter}
-      onNavigate={handleNavigate}
-      onOpenNotifications={handleOpenNotifications}
-      onOpenUpgrade={handleOpenUpgrade}
-    />
+    <>
+      {pageContent}
+      <OnboardingTour onNavigate={handleNavigate} />
+    </>
   )
 }
 
