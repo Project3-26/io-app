@@ -21,6 +21,7 @@ import {
   markChapterComplete,
   openChapterPdf,
 } from '../services/api'
+import { prefetchBibleChapter } from '../services/backend'
 
 const COMPLETED_CHAPTERS_KEY = 'project326-completed-chapters'
 
@@ -44,6 +45,13 @@ function getRequestedChapterTab(chapterId) {
   } catch {
     return 'read'
   }
+}
+
+function parseChapterLocation(chapterId) {
+  const match = String(chapterId || '').match(/^(.*)-(\d+)$/)
+  return match
+    ? { bookId: match[1], chapterNumber: Number(match[2]) }
+    : { bookId: 'john', chapterNumber: 1 }
 }
 
 function readCompletedChapters() {
@@ -81,12 +89,10 @@ function ChapterPage({
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef(null)
 
-  const readerLocation = useMemo(() => {
-    const match = chapter?.id?.match(/^(.*)-(\d+)$/)
-    return match
-      ? { bookId: match[1], chapterNumber: Number(match[2]) }
-      : { bookId: 'john', chapterNumber: 1 }
-  }, [chapter])
+  const readerLocation = useMemo(
+    () => parseChapterLocation(chapter?.id || chapterId),
+    [chapter, chapterId],
+  )
 
   const hasLeaderAccess = user?.plan === 'leader'
   const isCompleted = Boolean(chapter?.isCompleted) || readCompletedChapters().includes(chapter?.id)
@@ -100,6 +106,9 @@ function ChapterPage({
         setLoadError('')
         setNotice('')
         setActiveTab(getRequestedChapterTab(chapterId))
+
+        const location = parseChapterLocation(chapterId)
+        prefetchBibleChapter(location.bookId, location.chapterNumber)
 
         const [nextChapter, nextUser] = await Promise.all([
           getChapterById(chapterId),
@@ -162,6 +171,8 @@ function ChapterPage({
 
   async function handleContinue() {
     if (!chapter?.nextChapter?.id) return
+    const nextLocation = parseChapterLocation(chapter.nextChapter.id)
+    prefetchBibleChapter(nextLocation.bookId, nextLocation.chapterNumber)
     await completeChapter('continue')
   }
 
