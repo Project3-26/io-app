@@ -13,35 +13,15 @@ import {
   signUpMember,
 } from '../services/backend'
 
-const GUEST_USERNAME = 'guest'
-const GUEST_PASSWORD = 'guest'
-
-function AuthPage({
-  onAuthenticated,
-  onContinueDemo,
-}) {
+function AuthPage({ onAuthenticated }) {
   const [mode, setMode] = useState('sign-in')
   const [displayName, setDisplayName] = useState('')
-  const [identifier, setIdentifier] =
-    useState('')
-  const [password, setPassword] =
-    useState('')
-  const [isSubmitting, setIsSubmitting] =
-    useState(false)
-  const [error, setError] =
-    useState('')
-  const [notice, setNotice] =
-    useState('')
-  const [backendStatus, setBackendStatus] =
-    useState('checking')
-
-  const normalizedIdentifier =
-    identifier.trim().toLowerCase()
-
-  const isGuestCredentials =
-    mode === 'sign-in' &&
-    normalizedIdentifier === GUEST_USERNAME &&
-    password === GUEST_PASSWORD
+  const [identifier, setIdentifier] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [backendStatus, setBackendStatus] = useState('checking')
 
   useEffect(() => {
     let isMounted = true
@@ -49,17 +29,10 @@ function AuthPage({
     checkBackendConnection()
       .then((result) => {
         if (!isMounted) return
-
-        setBackendStatus(
-          result?.status === 'ok'
-            ? 'connected'
-            : 'unavailable',
-        )
+        setBackendStatus(result?.status === 'ok' ? 'connected' : 'unavailable')
       })
       .catch(() => {
-        if (isMounted) {
-          setBackendStatus('unavailable')
-        }
+        if (isMounted) setBackendStatus('unavailable')
       })
 
     return () => {
@@ -79,24 +52,12 @@ function AuthPage({
     setNotice('')
 
     if (!identifier.trim() || !password) {
-      setError(
-        'Enter your email and password.',
-      )
-      return
-    }
-
-    if (mode === 'sign-in' && isGuestCredentials) {
-      setError('')
-      onContinueDemo()
+      setError('Enter your email and password.')
       return
     }
 
     if (!identifier.includes('@')) {
-      setError(
-        mode === 'sign-in'
-          ? 'Use guest / guest for tester access, or enter the email address for a real account.'
-          : 'Enter a valid email address.',
-      )
+      setError('Enter a valid email address.')
       return
     }
 
@@ -126,19 +87,13 @@ function AuthPage({
           return
         }
 
-        setNotice(
-          'Account created. Check your email to confirm the account, then sign in.',
-        )
+        setNotice('Account created. Check your email to confirm the account, then sign in.')
         setMode('sign-in')
         setPassword('')
         return
       }
 
-      await signInMember(
-        identifier.trim(),
-        password,
-      )
-
+      await signInMember(identifier.trim(), password)
       await onAuthenticated()
     } catch (submitError) {
       setError(
@@ -163,81 +118,40 @@ function AuthPage({
             </div>
 
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-400">
-                PROJECT 3|26
-              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-400">PROJECT 3|26</p>
               <h1 className="mt-1 text-2xl font-bold">
-                {mode === 'create-account'
-                  ? 'Create your account'
-                  : 'Welcome back'}
+                {mode === 'create-account' ? 'Create your account' : 'Welcome back'}
               </h1>
             </div>
           </div>
 
           <section className="mt-7 border border-white/10 bg-[#0c2138] p-5 shadow-2xl shadow-black/20 sm:p-6">
             <div className="flex items-start gap-3 border-b border-white/10 pb-4">
-              <div className="mt-0.5 text-cyan-300">
-                <Server size={18} />
-              </div>
+              <div className="mt-0.5 text-cyan-300"><Server size={18} /></div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">
-                  Live development build
-                </p>
+                <p className="text-sm font-semibold">Project 3|26 member access</p>
                 <p className="mt-1 text-xs leading-5 text-slate-400">
-                  Signed-in accounts sync profile and progress across devices. Testers receive the full product surface during beta.
+                  Sign in to sync your profile, Bible progress, community activity, and product access across devices.
                 </p>
               </div>
-              <span
-                className={`shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] ${
-                  backendStatus === 'connected'
-                    ? 'text-emerald-300'
-                    : backendStatus === 'unavailable'
-                      ? 'text-orange-300'
-                      : 'text-slate-500'
-                }`}
-              >
-                {backendStatus === 'connected'
-                  ? 'Connected'
-                  : backendStatus === 'unavailable'
-                    ? 'Offline'
-                    : 'Checking'}
+              <span className={`shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] ${backendStatus === 'connected' ? 'text-emerald-300' : backendStatus === 'unavailable' ? 'text-orange-300' : 'text-slate-500'}`}>
+                {backendStatus === 'connected' ? 'Connected' : backendStatus === 'unavailable' ? 'Offline' : 'Checking'}
               </span>
             </div>
 
             <div className="mt-5 grid grid-cols-2 border border-white/10 bg-[#071a2d] p-1">
-              <button
-                type="button"
-                onClick={() => switchMode('sign-in')}
-                className={`px-3 py-2.5 text-xs font-bold ${
-                  mode === 'sign-in'
-                    ? 'bg-cyan-400 text-[#041326]'
-                    : 'text-slate-400'
-                }`}
-              >
+              <button type="button" onClick={() => switchMode('sign-in')} className={`px-3 py-2.5 text-xs font-bold ${mode === 'sign-in' ? 'bg-cyan-400 text-[#041326]' : 'text-slate-400'}`}>
                 Sign in
               </button>
-              <button
-                type="button"
-                onClick={() => switchMode('create-account')}
-                className={`px-3 py-2.5 text-xs font-bold ${
-                  mode === 'create-account'
-                    ? 'bg-cyan-400 text-[#041326]'
-                    : 'text-slate-400'
-                }`}
-              >
+              <button type="button" onClick={() => switchMode('create-account')} className={`px-3 py-2.5 text-xs font-bold ${mode === 'create-account' ? 'bg-cyan-400 text-[#041326]' : 'text-slate-400'}`}>
                 Create account
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="mt-5 space-y-4"
-            >
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               {mode === 'create-account' && (
                 <label className="block">
-                  <span className="text-xs font-semibold text-slate-300">
-                    Display name
-                  </span>
+                  <span className="text-xs font-semibold text-slate-300">Display name</span>
                   <input
                     type="text"
                     value={displayName}
@@ -250,36 +164,25 @@ function AuthPage({
               )}
 
               <label className="block">
-                <span className="text-xs font-semibold text-slate-300">
-                  {mode === 'sign-in' ? 'Email or username' : 'Email'}
-                </span>
+                <span className="text-xs font-semibold text-slate-300">Email</span>
                 <input
-                  type="text"
+                  type="email"
                   value={identifier}
-                  onChange={(event) =>
-                    setIdentifier(event.target.value)
-                  }
-                  autoComplete="username"
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  autoComplete="email"
                   className="mt-2 w-full border border-white/10 bg-[#071a2d] px-3 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                  placeholder={mode === 'sign-in' ? 'guest or you@example.com' : 'you@example.com'}
+                  placeholder="you@example.com"
                 />
               </label>
 
               <label className="block">
-                <span className="text-xs font-semibold text-slate-300">
-                  Password
-                </span>
+                <span className="text-xs font-semibold text-slate-300">Password</span>
                 <div className="relative mt-2">
-                  <LockKeyhole
-                    size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-                  />
+                  <LockKeyhole size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     type="password"
                     value={password}
-                    onChange={(event) =>
-                      setPassword(event.target.value)
-                    }
+                    onChange={(event) => setPassword(event.target.value)}
                     autoComplete={mode === 'create-account' ? 'new-password' : 'current-password'}
                     className="w-full border border-white/10 bg-[#071a2d] py-3 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
                     placeholder={mode === 'create-account' ? 'At least 8 characters' : 'Password'}
@@ -287,62 +190,30 @@ function AuthPage({
                 </div>
               </label>
 
-              {error && (
-                <p className="border border-orange-300/20 bg-orange-400/10 px-3 py-2.5 text-xs leading-5 text-orange-200">
-                  {error}
-                </p>
-              )}
-
-              {notice && (
-                <p className="border border-emerald-300/20 bg-emerald-400/10 px-3 py-2.5 text-xs leading-5 text-emerald-100">
-                  {notice}
-                </p>
-              )}
+              {error && <p className="border border-orange-300/20 bg-orange-400/10 px-3 py-2.5 text-xs leading-5 text-orange-200">{error}</p>}
+              {notice && <p className="border border-emerald-300/20 bg-emerald-400/10 px-3 py-2.5 text-xs leading-5 text-emerald-100">{notice}</p>}
 
               <button
                 type="submit"
-                disabled={
-                  isSubmitting ||
-                  (
-                    backendStatus === 'unavailable' &&
-                    !isGuestCredentials
-                  )
-                }
+                disabled={isSubmitting || backendStatus === 'unavailable'}
                 className="flex w-full items-center justify-center gap-2 border border-cyan-300/50 bg-cyan-400 px-4 py-3 text-sm font-bold text-[#041326] transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <LoaderCircle
-                      size={17}
-                      className="animate-spin"
-                    />
+                    <LoaderCircle size={17} className="animate-spin" />
                     {mode === 'create-account' ? 'Creating account…' : 'Signing in…'}
                   </>
                 ) : mode === 'create-account' ? (
-                  <>
-                    <UserPlus size={17} />
-                    Create account
-                  </>
+                  <><UserPlus size={17} />Create account</>
                 ) : (
-                  <>
-                    <CheckCircle2 size={17} />
-                    Sign in
-                  </>
+                  <><CheckCircle2 size={17} />Sign in</>
                 )}
               </button>
             </form>
           </section>
 
-          <button
-            type="button"
-            onClick={onContinueDemo}
-            className="mt-4 w-full border border-white/10 bg-transparent px-4 py-3 text-sm font-semibold text-slate-400 transition hover:border-white/20 hover:text-white"
-          >
-            Continue in demo mode
-          </button>
-
           <p className="mt-4 text-center text-[11px] leading-5 text-slate-600">
-            Guest access keeps test data on the tester’s device. Signed-in member accounts sync progress with the Project 3|26 backend.
+            Your account controls your plan access and keeps your journey synced across devices.
           </p>
         </div>
       </div>
