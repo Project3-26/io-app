@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Building2,
   Camera,
   Check,
   Crown,
@@ -12,6 +11,7 @@ import {
   User,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
+import ChurchConnectionPanel from '../components/profile/ChurchConnectionPanel'
 import {
   clearMemberSession,
   getMemberSnapshot,
@@ -112,7 +112,6 @@ function ProfilePage({
   async function handleAvatarChange(event) {
     const file = event.target.files?.[0]
     event.target.value = ''
-
     if (!file) return
 
     try {
@@ -301,19 +300,7 @@ function ProfilePage({
                   </section>
                 )}
 
-                <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047]">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-200/70 text-orange-600">
-                      <Building2 size={19} />
-                    </div>
-                    <div className="flex-1">
-                      <h2 className="font-semibold">Church Connection</h2>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Church membership and private church chat are being connected next.
-                      </p>
-                    </div>
-                  </div>
-                </section>
+                <ChurchConnectionPanel />
               </div>
 
               <aside className="space-y-4">
