@@ -27,6 +27,11 @@ const testingPlans = [
   { id: 'leader', label: 'Leader' },
 ]
 
+const testingAccountEmails = new Set([
+  'brian@project326.org',
+  'austin@project326.org',
+])
+
 function ProfilePage({
   onNavigate,
   onOpenUpgrade,
@@ -84,6 +89,12 @@ function ProfilePage({
     : snapshot?.access?.fullBibleStudyAccess
       ? 'Standard'
       : 'Free John'
+
+  const testingAccountEmail =
+    snapshot?.user?.email?.trim().toLowerCase() || ''
+  const canUseTestingPlan =
+    snapshot?.access?.canSwitchTestingPlan ||
+    testingAccountEmails.has(testingAccountEmail)
 
   async function saveProfile() {
     if (!displayName.trim()) {
@@ -269,12 +280,12 @@ function ProfilePage({
                   </div>
                 </section>
 
-                {snapshot?.access?.canSwitchTestingPlan && (
+                {canUseTestingPlan && (
                   <section className="rounded-[24px] border border-cyan-300/30 bg-[#0c2138] p-5">
                     <div className="flex items-center gap-3">
                       <Sparkles size={20} className="text-cyan-400" />
                       <div>
-                        <h2 className="font-semibold">Founder View</h2>
+                        <h2 className="font-semibold">Testing View</h2>
                         <p className="mt-1 text-xs text-slate-400">
                           Preview the exact access level a customer sees.
                         </p>
