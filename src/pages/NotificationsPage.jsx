@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   ArrowLeft,
   Bell,
@@ -5,8 +6,11 @@ import {
   Flame,
   Megaphone,
   Trophy,
+  X,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
+
+const DISMISSED_NOTIFICATIONS_KEY = 'project326-dismissed-notifications'
 
 const notifications = [
   {
@@ -37,6 +41,15 @@ const notifications = [
   },
 ]
 
+function loadDismissedNotificationIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DISMISSED_NOTIFICATIONS_KEY) || '[]')
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+
 function getNotificationStyle(type) {
   if (type === 'achievement') {
     return {
@@ -65,6 +78,22 @@ function NotificationsPage({
   onBack,
   onNavigate,
 }) {
+  const [dismissedIds, setDismissedIds] = useState(loadDismissedNotificationIds)
+
+  const visibleNotifications = useMemo(
+    () => notifications.filter((notification) => !dismissedIds.includes(notification.id)),
+    [dismissedIds],
+  )
+
+  function dismissNotification(notificationId) {
+    setDismissedIds((current) => {
+      if (current.includes(notificationId)) return current
+      const next = [...current, notificationId]
+      localStorage.setItem(DISMISSED_NOTIFICATIONS_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation
@@ -105,20 +134,25 @@ function NotificationsPage({
           </header>
 
           <section className="mt-6 space-y-3">
-            {notifications.map((notification) => {
-              const NotificationIcon =
-                notification.icon
-
-              const styles =
-                getNotificationStyle(
-                  notification.type,
-                )
+            {visibleNotifications.map((notification) => {
+              const NotificationIcon = notification.icon
+              const styles = getNotificationStyle(notification.type)
 
               return (
                 <article
                   key={notification.id}
-                  className={`rounded-[20px] border p-4 text-[#153047] shadow-lg shadow-black/10 ${styles.card}`}
+                  className={`relative rounded-[20px] border p-4 pr-12 text-[#153047] shadow-lg shadow-black/10 ${styles.card}`}
                 >
+                  <button
+                    type="button"
+                    onClick={() => dismissNotification(notification.id)}
+                    aria-label={`Dismiss ${notification.title}`}
+                    title="Dismiss notification"
+                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-black/5 hover:text-slate-800 active:scale-95"
+                  >
+                    <X size={17} strokeWidth={2.2} />
+                  </button>
+
                   <div className="flex items-start gap-3">
                     <div
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.icon}`}
@@ -135,7 +169,7 @@ function NotificationsPage({
                           {notification.title}
                         </h2>
 
-                        <span className="shrink-0 text-xs text-slate-500">
+                        <span className="shrink-0 pr-1 text-xs text-slate-500">
                           {notification.time}
                         </span>
                       </div>
@@ -155,6 +189,12 @@ function NotificationsPage({
                 </article>
               )
             })}
+
+            {visibleNotifications.length === 0 && (
+              <div className="rounded-[20px] border border-white/10 bg-[#0c2138] px-5 py-10 text-center text-sm text-slate-400">
+                You’re all caught up.
+              </div>
+            )}
           </section>
 
           <section className="mt-4 rounded-[20px] border border-emerald-300/40 bg-[#d9e7df] p-4 text-[#153047] shadow-lg shadow-black/10">
