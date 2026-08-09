@@ -187,18 +187,9 @@ function DashboardPage({
               </div>
 
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="truncate text-xs font-semibold tracking-[0.18em] text-cyan-400 sm:text-sm">
-                    PROJECT 3|26
-                  </p>
-                  {unreadNotifications > 0 && (
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.14)]"
-                      aria-label="Unread notifications"
-                      title="Unread notifications"
-                    />
-                  )}
-                </div>
+                <p className="truncate text-xs font-semibold tracking-[0.18em] text-cyan-400 sm:text-sm">
+                  PROJECT 3|26
+                </p>
                 <h1 className="mt-1 text-xl font-bold sm:text-2xl lg:text-3xl">
                   {getGreeting()}, {firstName}
                 </h1>
