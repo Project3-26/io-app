@@ -1,10 +1,11 @@
-import { ArrowLeft, Flame, Lock, Star, Trophy } from 'lucide-react'
+import { ArrowLeft, Flame, Lock, Star, Trophy, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
   achievementCategories,
   achievements,
   getAchievementProgress,
 } from '../utils/achievements'
+import { getAchievementEarnedMessage } from '../utils/achievementMessages'
 import BadgeMedallion from './BadgeMedallion'
 
 const tierLabels = {
@@ -36,6 +37,7 @@ function AchievementsGallery({
 }) {
   const [activeCategory, setActiveCategory] = useState('all')
   const [selectedAchievementId, setSelectedAchievementId] = useState(null)
+  const [popupAchievementId, setPopupAchievementId] = useState(null)
 
   const earnedSet = useMemo(
     () => new Set(earnedAchievementIds),
@@ -58,6 +60,9 @@ function AchievementsGallery({
   const selectedAchievement = achievements.find(
     (achievement) => achievement.id === selectedAchievementId,
   )
+  const popupAchievement = achievements.find(
+    (achievement) => achievement.id === popupAchievementId,
+  )
   const featuredAchievement = selectedAchievement || nextAchievement || achievements[0]
   const featuredEarned = earnedSet.has(featuredAchievement.id)
   const featuredProgress = getAchievementProgress(featuredAchievement, achievementMetrics)
@@ -67,6 +72,11 @@ function AchievementsGallery({
     if (activeCategory === 'legendary') return achievement.tier === 'legendary'
     return achievement.category === activeCategory
   })
+
+  function openBadgeDetails(achievement) {
+    setSelectedAchievementId(achievement.id)
+    setPopupAchievementId(achievement.id)
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
@@ -120,7 +130,11 @@ function AchievementsGallery({
               </span>
             </div>
             <h2 className="mt-1 text-xl font-semibold">{featuredAchievement.title}</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-400 sm:text-sm">{featuredAchievement.description}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400 sm:text-sm">
+              {featuredEarned
+                ? getAchievementEarnedMessage(featuredAchievement)
+                : featuredAchievement.description}
+            </p>
             {!featuredEarned && (
               <>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#24394b]">
@@ -161,6 +175,7 @@ function AchievementsGallery({
             {achievementCategories.find((category) => category.id === activeCategory)?.label}
           </p>
           <h2 className="mt-1 text-xl font-semibold">Collectible medallions</h2>
+          <p className="mt-1 text-xs text-slate-500">Hover or tap a badge to remember what it represents.</p>
         </div>
         <p className="text-xs font-semibold text-slate-500">{visibleAchievements.length} badges</p>
       </div>
@@ -170,12 +185,16 @@ function AchievementsGallery({
           const earned = earnedSet.has(achievement.id)
           const progress = getAchievementProgress(achievement, achievementMetrics)
           const selected = selectedAchievementId === achievement.id
+          const reminder = earned
+            ? getAchievementEarnedMessage(achievement)
+            : achievement.description
 
           return (
             <button
               key={achievement.id}
               type="button"
-              onClick={() => setSelectedAchievementId(achievement.id)}
+              onClick={() => openBadgeDetails(achievement)}
+              title={reminder}
               className={`relative min-h-[150px] rounded-[24px] border p-3 text-left transition sm:p-4 ${
                 selected
                   ? 'border-cyan-300/60 bg-[#10304a] shadow-[0_0_24px_rgba(34,211,238,0.12)]'
@@ -195,7 +214,7 @@ function AchievementsGallery({
               </p>
 
               {earned ? (
-                <p className="mt-2 text-xs font-semibold text-cyan-300">Earned</p>
+                <p className="mt-2 text-xs font-semibold text-cyan-300">Tap to remember</p>
               ) : (
                 <>
                   <div className="mt-3 h-1 overflow-hidden rounded-full bg-[#263b4d]">
@@ -208,6 +227,63 @@ function AchievementsGallery({
           )
         })}
       </section>
+
+      {popupAchievement && (() => {
+        const earned = earnedSet.has(popupAchievement.id)
+        const progress = getAchievementProgress(popupAchievement, achievementMetrics)
+        return (
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="badge-detail-title"
+            onClick={() => setPopupAchievementId(null)}
+          >
+            <div
+              className="relative w-full max-w-sm rounded-[28px] border border-white/10 bg-[#081b2d] p-6 text-center shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setPopupAchievementId(null)}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0c2138] text-slate-400 hover:text-white"
+                aria-label="Close badge details"
+              >
+                <X size={17} />
+              </button>
+
+              <div className="mx-auto w-fit">
+                <BadgeMedallion achievement={popupAchievement} earned={earned} size="lg" showCheck />
+              </div>
+
+              <p className={`mt-4 text-[10px] font-bold uppercase tracking-[0.16em] ${tierText[popupAchievement.tier]}`}>
+                {tierLabels[popupAchievement.tier]} · {earned ? 'Collected' : 'Locked'}
+              </p>
+              <h2 id="badge-detail-title" className="mt-2 text-2xl font-bold">{popupAchievement.title}</h2>
+
+              {earned ? (
+                <>
+                  <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.15em] text-cyan-400">Why you earned it</p>
+                  <p className="mt-2 text-base font-semibold leading-7 text-slate-100">
+                    {getAchievementEarnedMessage(popupAchievement)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.15em] text-orange-400">How to earn it</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{popupAchievement.description}</p>
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#24394b]">
+                    <div className="h-full rounded-full bg-orange-400" style={{ width: `${progress.percentage}%` }} />
+                  </div>
+                  <p className="mt-2 text-xs font-semibold text-slate-500">
+                    {progress.current} / {progress.target} {progressSuffix(popupAchievement)}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })()}
     </main>
   )
 }
