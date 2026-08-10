@@ -51,6 +51,7 @@ function buildScriptureOnlyChapter(chapterId) {
     summary: '',
     quote: '',
     quoteAttribution: '',
+    listenSummary: '',
     audio: {
       title: `${book.name} ${chapterNumber} Audio`,
       duration: '',
@@ -161,34 +162,6 @@ function buildChapterReference(chapterId) {
   }
 }
 
-function buildListenSummary(studySections) {
-  if (!Array.isArray(studySections) || studySections.length === 0) return ''
-
-  const preferredKeys = [
-    'before_you_read',
-    'before-you-read',
-    'setting_the_scene',
-    'setting-the-scene',
-    'interpret',
-    'observe',
-    'apply',
-  ]
-
-  const preferredSection = preferredKeys
-    .map((key) => studySections.find((section) => section?.key === key))
-    .find((section) => section?.summary?.trim())
-  const source =
-    preferredSection || studySections.find((section) => section?.summary?.trim())
-  const text = source?.summary?.trim() || ''
-
-  if (!text) return ''
-
-  const firstSentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0] || text
-  if (firstSentence.length <= 220) return firstSentence
-
-  return `${firstSentence.slice(0, 217).trimEnd()}...`
-}
-
 function mergePublishedResources(chapter, payload) {
   const resources = payload?.resources || {}
   const audio = resources.audio
@@ -204,13 +177,19 @@ function mergePublishedResources(chapter, payload) {
           summary: section.summary,
         }))
     : []
-  const listenSummary = buildListenSummary(studySections)
+  const listenSummary =
+    typeof payload?.listenSummary === 'string' && payload.listenSummary.trim()
+      ? payload.listenSummary.trim()
+      : typeof studyExperience?.listenSummary === 'string' && studyExperience.listenSummary.trim()
+        ? studyExperience.listenSummary.trim()
+        : ''
   const chapterQuote = payload?.chapterQuote || null
 
   return {
     ...chapter,
     quote: chapterQuote?.text || chapter.quote,
     quoteAttribution: chapterQuote?.attribution || chapter.quoteAttribution,
+    listenSummary,
     audio: {
       ...chapter.audio,
       title: chapter.reference,
