@@ -14,6 +14,8 @@ const chapterStarterQuestions = [
   'How can I apply this chapter?',
 ]
 
+const MAX_QUESTION_LENGTH = 800
+
 function buildVerseStarterQuestions(verseNumber) {
   return [
     `What should I notice about verse ${verseNumber}?`,
@@ -38,6 +40,7 @@ export default function CompassAssistant({
   const inputRef = useRef(null)
   const triggerRef = useRef(null)
   const chatEndRef = useRef(null)
+  const requestControllerRef = useRef(null)
 
   const starterQuestions = useMemo(() => {
     if (selectedVerseNumber) return buildVerseStarterQuestions(selectedVerseNumber)
@@ -89,16 +92,30 @@ export default function CompassAssistant({
     return () => window.clearTimeout(hintTimer)
   }, [chapterId, enabled, placement])
 
+  useEffect(() => {
+    requestControllerRef.current?.abort()
+    requestControllerRef.current = null
+    setMessages([])
+    setQuestion('')
+    setError('')
+    setIsSending(false)
+  }, [chapterId, currentPage])
+
+  useEffect(() => () => requestControllerRef.current?.abort(), [])
+
   if (!enabled) return null
 
   function closeAssistant() {
+    requestControllerRef.current?.abort()
+    requestControllerRef.current = null
+    setIsSending(false)
     setOpen(false)
     window.setTimeout(() => triggerRef.current?.focus(), 0)
   }
 
   async function submitQuestion(value = question) {
     const trimmed = value.trim()
-    if (!trimmed || isSending) return
+    if (!trimmed || trimmed.length > MAX_QUESTION_LENGTH || isSending) return
 
     setQuestion('')
     setError('')
@@ -110,10 +127,13 @@ export default function CompassAssistant({
       : trimmed
 
     try {
+      const controller = new AbortController()
+      requestControllerRef.current = controller
       const payload = await askCompass({
         question: contextualQuestion,
         currentPage,
         chapterId,
+        signal: controller.signal,
       })
       setMessages((current) => [
         ...current,
@@ -124,6 +144,7 @@ export default function CompassAssistant({
         },
       ])
     } catch (requestError) {
+      if (requestError?.code === 'REQUEST_CANCELLED') return
       if (requestError?.status === 503) {
         setEnabled(false)
         setOpen(false)
@@ -131,6 +152,7 @@ export default function CompassAssistant({
       }
       setError(requestError?.message || 'Compass could not answer that right now.')
     } finally {
+      requestControllerRef.current = null
       setIsSending(false)
     }
   }
@@ -291,7 +313,7 @@ export default function CompassAssistant({
                 </div>
               )}
 
-              {error && <div className="border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-xs text-red-200">{error}</div>}
+              {error && <div role="alert" aria-live="polite" className="border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-xs text-red-200">{error}</div>}
               <div ref={chatEndRef} aria-hidden="true" />
             </div>
 
@@ -305,9 +327,9 @@ export default function CompassAssistant({
               <input
                 ref={inputRef}
                 value={question}
-                onChange={(event) => setQuestion(event.target.value)}
+                onChange={(event) => setQuestion(event.target.value.slice(0, MAX_QUESTION_LENGTH))}
                 placeholder="Ask Compass AI…"
-                maxLength={selectedVerseNumber ? 720 : 800}
+                maxLength={selectedVerseNumber ? 720 : MAX_QUESTION_LENGTH}
                 className="min-w-0 flex-1 border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/35"
               />
               <button
