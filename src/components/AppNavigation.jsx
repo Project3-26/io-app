@@ -3,7 +3,7 @@ import {
   Flame,
   Home,
   Library,
-  Map,
+  Compass,
   MessageCircle,
   User,
 } from 'lucide-react'
@@ -21,7 +21,7 @@ const navigationItems = [
   {
     id: 'journey',
     label: 'Journey',
-    icon: Map,
+    icon: Compass,
   },
   {
     id: 'library',
