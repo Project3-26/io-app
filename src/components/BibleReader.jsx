@@ -9,7 +9,6 @@ import {
   Minus,
   Plus,
 } from 'lucide-react'
-import CompassAssistant from './CompassAssistant'
 import { bibleBooks } from '../data/bibleBooks'
 import { john1Scripture } from '../data/john1Scripture'
 import { getBibleChapter } from '../services/backend'
@@ -370,11 +369,6 @@ function BibleReader({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <CompassAssistant
-              currentPage="chapter"
-              chapterId={`${selectedBook.id}-${selectedChapter}`}
-              selectedVerseNumber={selectedVerseNumber}
-            />
             <button
               type="button"
               onClick={decreaseFontSize}
