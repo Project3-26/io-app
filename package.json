@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run verify:chapter-experience && vite build",
+    "build": "npm run verify:chapter-experience && npm run verify:app-contracts && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "verify:chapter-experience": "node scripts/verify-chapter-experience.mjs"
+    "verify:chapter-experience": "node scripts/verify-chapter-experience.mjs",
+    "verify:app-contracts": "node scripts/verify-app-contracts.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
