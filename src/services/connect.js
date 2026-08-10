@@ -44,12 +44,13 @@ async function connectRequest(path, options = {}, retry = true) {
   return payload
 }
 
-export function getConnectRoom(roomId, chapterId) {
+export function getConnectRoom(roomId, chapterId, options = {}) {
   const query = chapterId
     ? `?chapterId=${encodeURIComponent(chapterId)}`
     : ''
   return connectRequest(
     `/api/app/connect/${encodeURIComponent(roomId)}${query}`,
+    { signal: options.signal },
   )
 }
 
