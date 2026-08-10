@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
 import BibleReader from '../components/BibleReader'
+import CompassAssistant from '../components/CompassAssistant'
 import StudySummaryAccordion from '../components/StudySummaryAccordion'
 import {
   getChapterById,
@@ -376,14 +377,17 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => completeChapter('manual')}
-              disabled={isCompleted || isCompleting}
-              className="hidden bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white disabled:bg-[#c7dce7] disabled:text-cyan-700 sm:inline-flex"
-            >
-              {isCompleted ? 'Completed' : 'Mark Complete'}
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <CompassAssistant currentPage="chapter" chapterId={chapter.id} />
+              <button
+                type="button"
+                onClick={() => completeChapter('manual')}
+                disabled={isCompleted || isCompleting}
+                className="hidden bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white disabled:bg-[#c7dce7] disabled:text-cyan-700 sm:inline-flex"
+              >
+                {isCompleted ? 'Completed' : 'Mark Complete'}
+              </button>
+            </div>
           </header>
 
           <section className="mt-5 border border-[#c8d3db] bg-[#dfe8ee] p-1 text-[#153047]">
