@@ -199,7 +199,9 @@ function mergePublishedResources(chapter, payload) {
     },
     studyGuide: {
       ...chapter.studyGuide,
-      title: study?.title || chapter.studyGuide.title,
+      // The admin upload filename is useful for operators, but it should not
+      // become member-facing UI (for example, "John_3_bible.study.pdf").
+      title: `${chapter.reference} Study Guide`,
       description: study?.body ? '' : chapter.studyGuide.description,
       body: study?.body || '',
       pdfUrl: study?.url || '',
