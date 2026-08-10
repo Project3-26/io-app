@@ -156,10 +156,14 @@ export default function CompassAssistant({
           ref={triggerRef}
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex h-9 items-center gap-2 border border-cyan-600/25 bg-[#c7dce7] px-3 text-xs font-semibold text-cyan-800 transition hover:border-cyan-600/45 hover:bg-[#bad4df]"
+          className={
+            placement === 'floating'
+              ? 'fixed bottom-[33vh] right-4 z-[70] inline-flex h-12 items-center gap-2 rounded-full border border-cyan-200/35 bg-[#08243b] px-4 text-sm font-semibold text-white shadow-xl shadow-black/30 transition hover:-translate-y-0.5 hover:border-cyan-200/60 hover:bg-[#0a2b47] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 sm:right-6'
+              : 'inline-flex h-9 items-center gap-2 border border-cyan-600/25 bg-[#c7dce7] px-3 text-xs font-semibold text-cyan-800 transition hover:border-cyan-600/45 hover:bg-[#bad4df]'
+          }
           aria-haspopup="dialog"
         >
-          <Compass size={16} />
+          <Compass size={placement === 'floating' ? 19 : 16} />
           <span className="hidden sm:inline">
             {selectedVerseNumber ? `Ask about verse ${selectedVerseNumber}` : 'Ask Compass AI'}
           </span>
