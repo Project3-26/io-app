@@ -18,6 +18,7 @@ import { getChurchMemberships } from '../services/connect'
 import { getMemberNotifications } from '../services/notifications'
 
 const LAST_OPENED_CHAPTER_KEY = 'project326-last-opened-chapter'
+const HOME_FIRST_NAME_KEY = 'project326-home-first-name'
 
 function readLastOpenedChapter() {
   try {
@@ -25,6 +26,14 @@ function readLastOpenedChapter() {
     return value?.id ? value : null
   } catch {
     return null
+  }
+}
+
+function readCachedFirstName() {
+  try {
+    return localStorage.getItem(HOME_FIRST_NAME_KEY)?.trim() || ''
+  } catch {
+    return ''
   }
 }
 
@@ -110,7 +119,7 @@ function DashboardPage({
   onOpenUpgrade,
 }) {
   const [now, setNow] = useState(() => new Date())
-  const [firstName, setFirstName] = useState('Member')
+  const [firstName, setFirstName] = useState(readCachedFirstName)
   const [primaryChurch, setPrimaryChurch] = useState(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [lastOpenedChapter, setLastOpenedChapter] = useState(readLastOpenedChapter)
@@ -135,7 +144,15 @@ function DashboardPage({
       if (!mounted) return
 
       if (memberResult.status === 'fulfilled') {
-        setFirstName(memberResult.value?.firstName || 'Member')
+        const resolvedFirstName = memberResult.value?.firstName?.trim() || ''
+        if (resolvedFirstName) {
+          setFirstName(resolvedFirstName)
+          try {
+            localStorage.setItem(HOME_FIRST_NAME_KEY, resolvedFirstName)
+          } catch {
+            // The greeting still works if local storage is unavailable.
+          }
+        }
       }
 
       if (churchResult.status === 'fulfilled') {
@@ -235,7 +252,7 @@ function DashboardPage({
                   PROJECT 3|26
                 </p>
                 <h1 className="mt-1 text-xl font-bold sm:text-2xl lg:text-3xl">
-                  {getGreeting()}, {firstName}
+                  {firstName ? `${getGreeting()}, ${firstName}` : getGreeting()}
                 </h1>
               </div>
             </div>
@@ -353,7 +370,7 @@ function DashboardPage({
                 <div>
                   <p className="text-base font-semibold text-white sm:text-lg">{primaryChurch ? churchName : 'My Church'}</p>
                   <p className="mt-1 text-xs leading-5 text-slate-300 sm:text-sm">
-                    {primaryChurch ? 'Private church community' : 'Connect your church in Profile'}
+                    {primaryChurch ? 'Open your church community' : 'Connect with a church'}
                   </p>
                 </div>
               </div>
@@ -361,25 +378,17 @@ function DashboardPage({
 
             <button
               type="button"
-              onClick={onOpenUpgrade}
-              className="group flex min-h-36 flex-col justify-between rounded-[26px] border border-orange-300/35 bg-[#e8ddd0] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-orange-400/60 active:scale-[0.98] sm:min-h-40 sm:p-5"
+              onClick={() => (user?.plan === 'leader' ? onNavigate('library') : onOpenUpgrade?.())}
+              className="group flex min-h-36 flex-col justify-between rounded-[26px] border border-orange-300/15 bg-[#2c211c] p-4 text-left shadow-lg shadow-black/10 transition hover:border-orange-300/35 active:scale-[0.98] sm:min-h-40 sm:p-5"
             >
-              <Crown size={30} strokeWidth={1.9} className="text-orange-600" />
+              <Crown size={30} strokeWidth={1.9} className="text-orange-300" />
               <div>
-                <p className="text-base font-semibold sm:text-lg">Leader Guides</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">Lead a group</p>
+                <p className="text-base font-semibold text-white sm:text-lg">Leader Guides</p>
+                <p className="mt-1 text-xs leading-5 text-orange-100/65 sm:text-sm">
+                  {user?.plan === 'leader' ? 'Open leader resources' : 'For pastors & small-group leaders'}
+                </p>
               </div>
             </button>
-          </section>
-
-          <section className="mt-7 rounded-[24px] border border-white/10 bg-[#0c2138] px-5 py-5 text-sm text-slate-300 shadow-lg shadow-black/10 sm:mt-8">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400 sm:text-xs">
-              Today’s Journey
-            </p>
-            <p className="mt-2 font-semibold text-white">{sharedJourney.reference}</p>
-            <p className="mt-1 text-xs leading-5 text-slate-400 sm:text-sm">
-              Read today’s chapter, mark it complete, and keep moving through the Bible one chapter at a time.
-            </p>
           </section>
         </main>
       </div>
