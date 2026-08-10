@@ -120,6 +120,7 @@ function DashboardPage({
 }) {
   const [now, setNow] = useState(() => new Date())
   const [firstName, setFirstName] = useState(readCachedFirstName)
+  const [user, setUser] = useState(null)
   const [primaryChurch, setPrimaryChurch] = useState(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [lastOpenedChapter, setLastOpenedChapter] = useState(readLastOpenedChapter)
@@ -144,6 +145,7 @@ function DashboardPage({
       if (!mounted) return
 
       if (memberResult.status === 'fulfilled') {
+        setUser(memberResult.value)
         const resolvedFirstName = memberResult.value?.firstName?.trim() || ''
         if (resolvedFirstName) {
           setFirstName(resolvedFirstName)
