@@ -12,6 +12,8 @@ import {
   Pause,
   Play,
   RefreshCw,
+  RotateCcw,
+  RotateCw,
   ScrollText,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
@@ -101,6 +103,8 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
   const [notice, setNotice] = useState('')
   const [isCompleting, setIsCompleting] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0)
+  const [audioDuration, setAudioDuration] = useState(0)
   const [loadVersion, setLoadVersion] = useState(0)
   const audioRef = useRef(null)
 
@@ -122,6 +126,14 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
         setLoadError('')
         setNotice('')
         setActiveTab(getRequestedChapterTab(chapterId))
+        setAudioCurrentTime(0)
+        setAudioDuration(0)
+        setIsPlaying(false)
+
+        if (audioRef.current) {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        }
 
         const location = parseChapterLocation(chapterId)
         prefetchBibleChapter(location.bookId, location.chapterNumber)
@@ -216,6 +228,53 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
     }
   }
 
+  function handleLoadedMetadata(event) {
+    const audio = event.currentTarget
+    setAudioDuration(Number.isFinite(audio.duration) ? audio.duration : 0)
+  }
+
+  function handleAudioTimeUpdate(event) {
+    const audio = event.currentTarget
+    setAudioCurrentTime(audio.currentTime || 0)
+    if (Number.isFinite(audio.duration)) setAudioDuration(audio.duration)
+  }
+
+  function handleSeek(event) {
+    const audio = audioRef.current
+    if (!audio) return
+
+    const newTime = Number(event.target.value)
+    audio.currentTime = newTime
+    setAudioCurrentTime(newTime)
+  }
+
+  function skipAudio(seconds) {
+    const audio = audioRef.current
+    if (!audio) return
+
+    const duration = Number.isFinite(audio.duration) ? audio.duration : 0
+    const newTime = Math.min(
+      Math.max(audio.currentTime + seconds, 0),
+      duration || Infinity,
+    )
+
+    audio.currentTime = newTime
+    setAudioCurrentTime(newTime)
+  }
+
+  function formatAudioTime(seconds) {
+    if (!Number.isFinite(seconds)) return '0:00'
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  async function handleAudioEnded() {
+    setIsPlaying(false)
+    if (audioDuration) setAudioCurrentTime(audioDuration)
+    await completeChapter('audio-ended')
+  }
+
   async function handlePdf(url, label) {
     const result = await openChapterPdf(url, label)
     if (!result.success) setNotice(result.message)
@@ -283,9 +342,11 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
           ref={audioRef}
           src={chapter.audio.url}
           preload="metadata"
+          onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onEnded={() => completeChapter('audio-ended')}
+          onTimeUpdate={handleAudioTimeUpdate}
+          onEnded={handleAudioEnded}
         />
       )}
 
@@ -378,21 +439,88 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
                   locked
                 />
               ) : chapter.audio?.url ? (
-                <section className="bg-[#dfe8ee] p-5 text-[#153047]">
-                  <h2 className="font-semibold">{chapter.audio.title}</h2>
-                  {chapter.audio.body && (
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
-                      {chapter.audio.body}
-                    </p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={toggleAudio}
-                    className="mx-auto mt-6 flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500 text-white"
-                    aria-label={isPlaying ? 'Pause chapter audio' : 'Play chapter audio'}
-                  >
-                    {isPlaying ? <Pause size={27} /> : <Play size={27} />}
-                  </button>
+                <section className="rounded-3xl border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047] shadow-xl shadow-black/15 sm:p-5 lg:p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-[#b8ccd7] bg-[#c7dce7]">
+                      <span className="text-sm font-semibold">{chapter.reference}</span>
+                      <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-700">
+                        Audio
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                        Listen
+                      </p>
+                      <h2 className="mt-1 text-base font-semibold sm:text-lg">
+                        {chapter.audio.title}
+                      </h2>
+                      <p className="mt-1 text-xs text-slate-500 sm:text-sm">{chapter.title}</p>
+                      {chapter.audio.body && (
+                        <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-500 sm:text-sm">
+                          {chapter.audio.body}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <input
+                      type="range"
+                      min="0"
+                      max={audioDuration || 0}
+                      step="0.1"
+                      value={audioCurrentTime}
+                      onChange={handleSeek}
+                      className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[#bccbd4] accent-cyan-600"
+                      aria-label="Audio progress"
+                    />
+                    <div className="mt-2 flex items-center justify-between text-xs font-medium text-slate-500">
+                      <span>{formatAudioTime(audioCurrentTime)}</span>
+                      <span>{formatAudioTime(audioDuration)}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-center gap-5">
+                    <button
+                      type="button"
+                      onClick={() => skipAudio(-15)}
+                      className="group flex flex-col items-center gap-1 text-slate-600 transition hover:text-cyan-700 active:scale-95"
+                      aria-label="Go back 15 seconds"
+                    >
+                      <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#b8ccd7] bg-[#edf2f4] transition group-hover:bg-[#c7dce7]">
+                        <RotateCcw size={21} />
+                        <span className="absolute text-[9px] font-bold">15</span>
+                      </div>
+                      <span className="text-[10px] font-semibold">Back</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={toggleAudio}
+                      className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 active:scale-90"
+                      aria-label={isPlaying ? 'Pause chapter audio' : 'Play chapter audio'}
+                    >
+                      {isPlaying ? (
+                        <Pause size={27} fill="currentColor" />
+                      ) : (
+                        <Play size={27} fill="currentColor" className="ml-1" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => skipAudio(15)}
+                      className="group flex flex-col items-center gap-1 text-slate-600 transition hover:text-cyan-700 active:scale-95"
+                      aria-label="Go forward 15 seconds"
+                    >
+                      <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#b8ccd7] bg-[#edf2f4] transition group-hover:bg-[#c7dce7]">
+                        <RotateCw size={21} />
+                        <span className="absolute text-[9px] font-bold">15</span>
+                      </div>
+                      <span className="text-[10px] font-semibold">Forward</span>
+                    </button>
+                  </div>
                 </section>
               ) : (
                 <UnavailablePanel
