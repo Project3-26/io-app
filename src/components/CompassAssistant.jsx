@@ -179,7 +179,8 @@ export default function CompassAssistant({
             role="dialog"
             aria-modal="true"
             aria-label="Compass AI"
-            className="relative z-[91] flex max-h-[82vh] w-full max-w-lg flex-col overflow-hidden border border-cyan-300/25 bg-[#071a2d] text-white shadow-2xl shadow-black/50"
+            aria-busy={isSending}
+            className="relative z-[91] flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden border border-cyan-300/25 bg-[#071a2d] text-white shadow-2xl shadow-black/50 sm:max-h-[82vh]"
           >
             <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
               <div className="flex items-center gap-3">
@@ -247,12 +248,12 @@ export default function CompassAssistant({
               ))}
 
               {isSending && (
-                <div className="mr-20 flex items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-slate-400">
+                <div role="status" aria-live="polite" className="mr-20 flex items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-slate-400">
                   <LoaderCircle size={14} className="animate-spin" /> Compass is looking through approved Project 3|26 material…
                 </div>
               )}
 
-              {error && <div className="border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-xs text-red-200">{error}</div>}
+              {error && <div role="alert" className="border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-xs text-red-200">{error}</div>}
               <div ref={chatEndRef} aria-hidden="true" />
             </div>
 
@@ -267,6 +268,7 @@ export default function CompassAssistant({
                 ref={inputRef}
                 value={question}
                 onChange={(event) => setQuestion(event.target.value)}
+                aria-label="Question for Compass AI"
                 placeholder="Ask Compass AI…"
                 maxLength={selectedVerseNumber ? 720 : 800}
                 className="min-w-0 flex-1 border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/35"
