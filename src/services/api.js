@@ -166,9 +166,22 @@ function mergePublishedResources(chapter, payload) {
   const audio = resources.audio
   const study = resources.study
   const leader = resources.leader
+  const studyExperience = payload?.studyExperience || null
+  const studySections = Array.isArray(studyExperience?.sections)
+    ? studyExperience.sections
+        .filter((section) => section?.key && section?.summary)
+        .map((section) => ({
+          key: section.key,
+          label: section.label || section.key,
+          summary: section.summary,
+        }))
+    : []
+  const chapterQuote = payload?.chapterQuote || null
 
   return {
     ...chapter,
+    quote: chapterQuote?.text || chapter.quote,
+    quoteAttribution: chapterQuote?.attribution || chapter.quoteAttribution,
     audio: {
       ...chapter.audio,
       title: audio?.title || chapter.audio.title,
@@ -183,6 +196,7 @@ function mergePublishedResources(chapter, payload) {
       body: study?.body || '',
       pdfUrl: study?.url || '',
       locked: Boolean(study?.locked),
+      sections: studySections,
     },
     leaderGuide: {
       ...chapter.leaderGuide,
@@ -194,7 +208,7 @@ function mergePublishedResources(chapter, payload) {
     contentAvailability: {
       ...chapter.contentAvailability,
       audio: Boolean(audio),
-      study: Boolean(study),
+      study: Boolean(study) || studySections.length > 0,
       leaderGuide: Boolean(leader),
     },
   }
