@@ -9,6 +9,7 @@ import {
   Minus,
   Plus,
 } from 'lucide-react'
+import CompassAssistant from './CompassAssistant'
 import { bibleBooks } from '../data/bibleBooks'
 import { john1Scripture } from '../data/john1Scripture'
 import { getBibleChapter } from '../services/backend'
@@ -30,6 +31,7 @@ function BibleReader({
   const [scripture, setScripture] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [readerError, setReaderError] = useState(null)
+  const [selectedVerseNumber, setSelectedVerseNumber] = useState(null)
 
   useEffect(() => {
     const requestedView = sessionStorage.getItem(
@@ -102,6 +104,10 @@ function BibleReader({
       isMounted = false
     }
   }, [currentView, selectedBookId, selectedChapter])
+
+  useEffect(() => {
+    setSelectedVerseNumber(null)
+  }, [selectedBookId, selectedChapter])
 
   const selectedBook = useMemo(
     () =>
@@ -353,7 +359,7 @@ function BibleReader({
       </section>
 
       <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047] shadow-lg shadow-black/10">
-        <div className="flex items-center justify-between gap-4 border-b border-[#c8d3db] pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#c8d3db] pb-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
               New American Standard Bible 1995
@@ -364,6 +370,11 @@ function BibleReader({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <CompassAssistant
+              currentPage="chapter"
+              chapterId={`${selectedBook.id}-${selectedChapter}`}
+              selectedVerseNumber={selectedVerseNumber}
+            />
             <button
               type="button"
               onClick={decreaseFontSize}
@@ -411,8 +422,13 @@ function BibleReader({
               </p>
             ) : null}
 
+            <p className="mb-3 text-xs leading-5 text-slate-500">
+              Select a verse to ask Compass AI about it.
+            </p>
+
             {(scripture.verses || []).map((verse) => {
               const verseHeadings = headingsByVerse.get(verse.number) || []
+              const isSelected = selectedVerseNumber === verse.number
 
               return (
                 <div
@@ -427,8 +443,22 @@ function BibleReader({
                       {heading.text}
                     </h3>
                   ))}
-                  <span
-                    className={verse.kind === 'poetry' ? 'block pl-4' : ''}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedVerseNumber((current) =>
+                        current === verse.number ? null : verse.number,
+                      )
+                    }
+                    aria-pressed={isSelected}
+                    aria-label={`Select ${selectedBook.name} ${selectedChapter}:${verse.number} for Compass AI`}
+                    className={`block w-full border-l-2 px-2 py-1 text-left transition ${
+                      verse.kind === 'poetry' ? 'pl-6' : ''
+                    } ${
+                      isSelected
+                        ? 'border-cyan-600 bg-[#c7dce7]/70'
+                        : 'border-transparent hover:border-cyan-400/40 hover:bg-[#edf2f4]'
+                    }`}
                   >
                     <sup className="mr-1 font-bold text-cyan-700">
                       {verse.number}
@@ -436,7 +466,7 @@ function BibleReader({
                     <span className={verse.hasRedLetter ? 'text-red-700' : ''}>
                       {verse.text}
                     </span>{' '}
-                  </span>
+                  </button>
                 </div>
               )
             })}

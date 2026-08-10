@@ -15,6 +15,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
+import CompassAssistant from '../components/CompassAssistant'
 import { bibleBooks } from '../data/bibleBooks'
 import {
   getBookAvailability as getFallbackBookAvailability,
@@ -470,6 +471,8 @@ function LibraryPage({ onNavigate, onOpenChapter }) {
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white transition group-hover:translate-x-0.5"><ArrowRight size={19} /></div>
             </div>
           </button>
+
+          <CompassAssistant currentPage="library" placement="library" />
 
           <section className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
             {resourceTypes.map((resource) => {
