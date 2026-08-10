@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run verify:chapter-experience && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "verify:chapter-experience": "node scripts/verify-chapter-experience.mjs"
