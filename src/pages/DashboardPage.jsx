@@ -7,6 +7,7 @@ import {
   Flame,
   History,
   MessageCircle,
+  Quote,
 } from 'lucide-react'
 import AppNavigation from '../components/AppNavigation'
 import {
@@ -14,6 +15,7 @@ import {
   sharedJourney,
 } from '../data/sharedJourney'
 import { getCurrentUser } from '../services/api'
+import { getChapterResources } from '../services/chapterContent'
 import { getChurchMemberships } from '../services/connect'
 import { getMemberNotifications } from '../services/notifications'
 
@@ -34,6 +36,15 @@ function readCachedFirstName() {
     return localStorage.getItem(HOME_FIRST_NAME_KEY)?.trim() || ''
   } catch {
     return ''
+  }
+}
+
+function parseChapterId(chapterId) {
+  const match = String(chapterId || '').match(/^(.*)-(\d+)$/)
+  if (!match) return null
+  return {
+    bookSlug: match[1],
+    chapterNumber: Number(match[2]),
   }
 }
 
@@ -124,6 +135,7 @@ function DashboardPage({
   const [primaryChurch, setPrimaryChurch] = useState(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [lastOpenedChapter, setLastOpenedChapter] = useState(readLastOpenedChapter)
+  const [chapterQuote, setChapterQuote] = useState(null)
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -166,6 +178,36 @@ function DashboardPage({
     }
 
     loadMemberHome()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    const location = parseChapterId(sharedJourney.chapterId)
+
+    if (!location) {
+      setChapterQuote(null)
+      return () => {
+        mounted = false
+      }
+    }
+
+    async function loadChapterQuote() {
+      try {
+        const payload = await getChapterResources(
+          location.bookSlug,
+          location.chapterNumber,
+          { force: true },
+        )
+        if (mounted) setChapterQuote(payload?.chapterQuote || null)
+      } catch {
+        if (mounted) setChapterQuote(null)
+      }
+    }
+
+    loadChapterQuote()
     return () => {
       mounted = false
     }
@@ -312,6 +354,29 @@ function DashboardPage({
               </span>
             </button>
           </section>
+
+          {chapterQuote?.text && (
+            <section className="mt-4 border border-orange-300/20 bg-[#172238] px-5 py-4 shadow-lg shadow-black/10 sm:px-6 sm:py-5">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-400/10 text-orange-300">
+                  <Quote size={18} strokeWidth={2} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300">
+                    Quote of the Chapter · {sharedJourney.reference}
+                  </p>
+                  <p className="mt-2 text-base font-medium leading-7 text-white sm:text-lg">
+                    “{chapterQuote.text}”
+                  </p>
+                  {chapterQuote.attribution && (
+                    <p className="mt-2 text-xs font-medium text-slate-400">
+                      — {chapterQuote.attribution}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
 
           {canResume && (
             <button
