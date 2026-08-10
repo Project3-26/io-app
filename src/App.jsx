@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 
-import CompassAssistant from './components/CompassAssistant'
 import OnboardingTour from './components/OnboardingTour'
 import AuthPage from './pages/AuthPage'
 import ChapterPage from './pages/ChapterPage'
@@ -435,10 +434,6 @@ function App() {
     <>
       {pageContent}
       <OnboardingTour onNavigate={handleNavigate} />
-      <CompassAssistant
-        currentPage={currentPage}
-        chapterId={currentPage === PAGE_IDS.chapter ? selectedChapterId : null}
-      />
     </>
   )
 }
