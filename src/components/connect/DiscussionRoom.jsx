@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   LoaderCircle,
   Lock,
@@ -97,7 +97,7 @@ function DiscussionRoom({
   const [notice, setNotice] = useState('')
   const bottomRef = useRef(null)
 
-  async function loadRoom({ quiet = false } = {}) {
+  const loadRoom = useCallback(async ({ quiet = false } = {}) => {
     if (!signedIn) return
 
     try {
@@ -111,11 +111,11 @@ function DiscussionRoom({
     } finally {
       if (!quiet) setIsLoading(false)
     }
-  }
+  }, [chapterId, resolvedRoomId, signedIn])
 
   useEffect(() => {
     loadRoom()
-  }, [resolvedRoomId, chapterId])
+  }, [loadRoom])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
