@@ -34,6 +34,7 @@ export default function CompassAssistant({
   const [messages, setMessages] = useState([])
   const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState('')
+  const [showFloatingHint, setShowFloatingHint] = useState(false)
   const inputRef = useRef(null)
   const triggerRef = useRef(null)
   const chatEndRef = useRef(null)
@@ -78,6 +79,19 @@ export default function CompassAssistant({
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
     })
   }, [open, messages, isSending, error])
+
+  useEffect(() => {
+    if (!enabled || placement !== 'floating') return undefined
+
+    const hintKey = 'project326-compass-hint-seen'
+    if (window.sessionStorage.getItem(hintKey)) return undefined
+
+    window.sessionStorage.setItem(hintKey, 'true')
+    setShowFloatingHint(true)
+    const hintTimer = window.setTimeout(() => setShowFloatingHint(false), 5000)
+
+    return () => window.clearTimeout(hintTimer)
+  }, [enabled, placement])
 
   if (!enabled) return null
 
@@ -152,29 +166,48 @@ export default function CompassAssistant({
           </span>
         </button>
       ) : (
-        <button
-          ref={triggerRef}
-          type="button"
-          onClick={() => setOpen(true)}
-          className={
-            placement === 'floating'
-              ? 'fixed bottom-[33vh] right-4 z-[70] inline-flex h-14 w-14 items-center justify-center rounded-full border border-cyan-200/40 bg-[#08243b] text-cyan-200 shadow-xl shadow-black/35 transition hover:-translate-y-0.5 hover:border-cyan-200/70 hover:bg-[#0a2b47] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 sm:right-6'
-              : 'inline-flex h-9 items-center gap-2 border border-cyan-600/25 bg-[#c7dce7] px-3 text-xs font-semibold text-cyan-800 transition hover:border-cyan-600/45 hover:bg-[#bad4df]'
-          }
-          aria-haspopup="dialog"
-          aria-label="Open Compass AI"
-          title="Compass AI"
-        >
-          <Compass size={placement === 'floating' ? 28 : 16} strokeWidth={2.1} />
-          {placement !== 'floating' && (
-            <>
-              <span className="hidden sm:inline">
-                {selectedVerseNumber ? `Ask about verse ${selectedVerseNumber}` : 'Ask Compass AI'}
-              </span>
-              <span className="sm:hidden">Compass</span>
-            </>
+        <>
+          {placement === 'floating' && showFloatingHint && !open && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowFloatingHint(false)
+                setOpen(true)
+              }}
+              className="fixed bottom-[calc(33vh+0.5rem)] right-20 z-[70] max-w-[220px] rounded-2xl border border-cyan-200/30 bg-white px-4 py-3 text-left text-sm font-medium leading-5 text-[#08243b] shadow-xl shadow-black/25 transition hover:bg-cyan-50 sm:right-24"
+              aria-label="Open Compass AI: Have questions about the text? Ask me!"
+            >
+              Have questions about the text? Ask me!
+              <span className="absolute -right-2 bottom-4 h-4 w-4 rotate-45 border-r border-t border-cyan-200/30 bg-white" aria-hidden="true" />
+            </button>
           )}
-        </button>
+          <button
+            ref={triggerRef}
+            type="button"
+            onClick={() => {
+              setShowFloatingHint(false)
+              setOpen(true)
+            }}
+            className={
+              placement === 'floating'
+                ? 'fixed bottom-[33vh] right-4 z-[70] inline-flex h-14 w-14 items-center justify-center rounded-full border border-cyan-200/40 bg-[#08243b] text-cyan-200 shadow-xl shadow-black/35 transition hover:-translate-y-0.5 hover:border-cyan-200/70 hover:bg-[#0a2b47] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 sm:right-6'
+                : 'inline-flex h-9 items-center gap-2 border border-cyan-600/25 bg-[#c7dce7] px-3 text-xs font-semibold text-cyan-800 transition hover:border-cyan-600/45 hover:bg-[#bad4df]'
+            }
+            aria-haspopup="dialog"
+            aria-label="Open Compass AI"
+            title="Compass AI"
+          >
+            <Compass size={placement === 'floating' ? 28 : 16} strokeWidth={2.1} />
+            {placement !== 'floating' && (
+              <>
+                <span className="hidden sm:inline">
+                  {selectedVerseNumber ? `Ask about verse ${selectedVerseNumber}` : 'Ask Compass AI'}
+                </span>
+                <span className="sm:hidden">Compass</span>
+              </>
+            )}
+          </button>
+        </>
       )}
 
       {open && (
