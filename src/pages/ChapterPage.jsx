@@ -72,7 +72,11 @@ function readCompletedChapters() {
 function rememberCompleted(chapterId) {
   const current = readCompletedChapters()
   if (current.includes(chapterId)) return
-  localStorage.setItem(COMPLETED_CHAPTERS_KEY, JSON.stringify([...current, chapterId]))
+  try {
+    localStorage.setItem(COMPLETED_CHAPTERS_KEY, JSON.stringify([...current, chapterId]))
+  } catch {
+    // Server completion remains authoritative when browser storage is unavailable.
+  }
   window.dispatchEvent(
     new CustomEvent('project326-completion-change', {
       detail: { chapterId, completed: true },
@@ -82,16 +86,20 @@ function rememberCompleted(chapterId) {
 
 function rememberLastOpened(chapter, activeTab) {
   if (!chapter?.id) return
-  localStorage.setItem(
-    LAST_OPENED_CHAPTER_KEY,
-    JSON.stringify({
-      id: chapter.id,
-      reference: chapter.reference,
-      title: chapter.title,
-      tab: activeTab,
-      openedAt: Date.now(),
-    }),
-  )
+  try {
+    localStorage.setItem(
+      LAST_OPENED_CHAPTER_KEY,
+      JSON.stringify({
+        id: chapter.id,
+        reference: chapter.reference,
+        title: chapter.title,
+        tab: activeTab,
+        openedAt: Date.now(),
+      }),
+    )
+  } catch {
+    return
+  }
   window.dispatchEvent(new CustomEvent('project326-last-opened-change'))
 }
 
@@ -202,10 +210,14 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
     if (!nextChapterId) return
     const location = parseChapterLocation(nextChapterId)
     prefetchBibleChapter(location.bookId, location.chapterNumber)
-    sessionStorage.setItem(
-      'project326-chapter-request',
-      JSON.stringify({ chapterId: nextChapterId, tab, createdAt: Date.now() }),
-    )
+    try {
+      sessionStorage.setItem(
+        'project326-chapter-request',
+        JSON.stringify({ chapterId: nextChapterId, tab, createdAt: Date.now() }),
+      )
+    } catch {
+      // The navigation event still opens the chapter when storage is blocked.
+    }
     window.dispatchEvent(
       new CustomEvent('project326-open-chapter', {
         detail: { chapterId: nextChapterId, source: 'reader-navigation' },
