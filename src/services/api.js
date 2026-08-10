@@ -161,6 +161,34 @@ function buildChapterReference(chapterId) {
   }
 }
 
+function buildListenSummary(studySections) {
+  if (!Array.isArray(studySections) || studySections.length === 0) return ''
+
+  const preferredKeys = [
+    'before_you_read',
+    'before-you-read',
+    'setting_the_scene',
+    'setting-the-scene',
+    'interpret',
+    'observe',
+    'apply',
+  ]
+
+  const preferredSection = preferredKeys
+    .map((key) => studySections.find((section) => section?.key === key))
+    .find((section) => section?.summary?.trim())
+  const source =
+    preferredSection || studySections.find((section) => section?.summary?.trim())
+  const text = source?.summary?.trim() || ''
+
+  if (!text) return ''
+
+  const firstSentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0] || text
+  if (firstSentence.length <= 220) return firstSentence
+
+  return `${firstSentence.slice(0, 217).trimEnd()}...`
+}
+
 function mergePublishedResources(chapter, payload) {
   const resources = payload?.resources || {}
   const audio = resources.audio
@@ -176,6 +204,7 @@ function mergePublishedResources(chapter, payload) {
           summary: section.summary,
         }))
     : []
+  const listenSummary = buildListenSummary(studySections)
   const chapterQuote = payload?.chapterQuote || null
 
   return {
@@ -184,8 +213,8 @@ function mergePublishedResources(chapter, payload) {
     quoteAttribution: chapterQuote?.attribution || chapter.quoteAttribution,
     audio: {
       ...chapter.audio,
-      title: audio?.title || chapter.audio.title,
-      body: audio?.body || '',
+      title: chapter.reference,
+      body: listenSummary,
       url: audio?.url || '',
       locked: Boolean(audio?.locked),
     },
