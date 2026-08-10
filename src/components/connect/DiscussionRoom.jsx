@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   LoaderCircle,
   Lock,
@@ -96,26 +96,40 @@ function DiscussionRoom({
   const [reactionPickerId, setReactionPickerId] = useState(null)
   const [notice, setNotice] = useState('')
   const bottomRef = useRef(null)
+  const roomRequestRef = useRef(null)
+  const reactionLocksRef = useRef(new Set())
 
-  async function loadRoom({ quiet = false } = {}) {
+  const loadRoom = useCallback(async ({ quiet = false } = {}) => {
     if (!signedIn) return
+
+    roomRequestRef.current?.abort()
+    const controller = new AbortController()
+    roomRequestRef.current = controller
 
     try {
       if (!quiet) setIsLoading(true)
-      const payload = await getConnectRoom(resolvedRoomId, chapterId)
+      const payload = await getConnectRoom(resolvedRoomId, chapterId, {
+        signal: controller.signal,
+      })
+      if (controller.signal.aborted) return
       setRoom(payload.room)
       setPosts(payload.messages || [])
       setNotice('')
     } catch (error) {
+      if (error?.name === 'AbortError') return
       setNotice(moderationNotice(error, 'Unable to load this conversation.'))
     } finally {
-      if (!quiet) setIsLoading(false)
+      if (roomRequestRef.current === controller) {
+        roomRequestRef.current = null
+        if (!quiet) setIsLoading(false)
+      }
     }
-  }
+  }, [chapterId, resolvedRoomId, signedIn])
 
   useEffect(() => {
     loadRoom()
-  }, [resolvedRoomId, chapterId])
+    return () => roomRequestRef.current?.abort()
+  }, [loadRoom])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -182,6 +196,10 @@ function DiscussionRoom({
       return
     }
 
+    const reactionKey = `${postId}:${emoji}`
+    if (reactionLocksRef.current.has(reactionKey)) return
+    reactionLocksRef.current.add(reactionKey)
+
     setReactionPickerId(null)
     setNotice('')
     applyReaction(postId, emoji)
@@ -191,6 +209,8 @@ function DiscussionRoom({
     } catch (error) {
       applyReaction(postId, emoji)
       setNotice(moderationNotice(error, 'Unable to update reaction.'))
+    } finally {
+      reactionLocksRef.current.delete(reactionKey)
     }
   }
 
