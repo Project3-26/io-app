@@ -13,6 +13,9 @@ function requireText(source, text, label) {
 const chapterPage = read('src/pages/ChapterPage.jsx')
 const studyAccordion = read('src/components/StudySummaryAccordion.jsx')
 const api = read('src/services/api.js')
+const compass = read('src/components/CompassAssistant.jsx')
+const compassService = read('src/services/compass.js')
+const discussionRoom = read('src/components/connect/DiscussionRoom.jsx')
 
 for (const tab of ['read', 'listen', 'study', 'leader']) {
   requireText(chapterPage, `id: '${tab}'`, `missing canonical ${tab} tab`)
@@ -42,5 +45,10 @@ if (/<details[^>]*\sopen(?:\s|=|>)/.test(studyAccordion)) {
 requireText(api, 'payload?.listenSummary', 'frontend adapter must use dedicated Listen summary')
 requireText(api, 'studyExperience?.sections', 'frontend adapter must use approved Study sections')
 requireText(api, 'chapterQuote', 'frontend adapter must preserve chapter quote')
+requireText(compass, 'requestControllerRef.current?.abort()', 'Compass must cancel stale requests')
+requireText(compass, 'MAX_QUESTION_LENGTH', 'Compass must enforce the server question limit')
+requireText(compassService, 'COMPASS_TIMEOUT_MS', 'Compass requests must time out safely')
+requireText(discussionRoom, 'roomRequestRef.current?.abort()', 'Connect must cancel stale room loads')
+requireText(discussionRoom, 'reactionLocksRef', 'Connect must prevent duplicate reaction mutations')
 
 console.log('Canonical chapter experience verified.')
