@@ -377,18 +377,17 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
-              <CompassAssistant currentPage="chapter" chapterId={chapter.id} />
-              <button
-                type="button"
-                onClick={() => completeChapter('manual')}
-                disabled={isCompleted || isCompleting}
-                className="hidden bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white disabled:bg-[#c7dce7] disabled:text-cyan-700 sm:inline-flex"
-              >
-                {isCompleted ? 'Completed' : 'Mark Complete'}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => completeChapter('manual')}
+              disabled={isCompleted || isCompleting}
+              className="hidden bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white disabled:bg-[#c7dce7] disabled:text-cyan-700 sm:inline-flex"
+            >
+              {isCompleted ? 'Completed' : 'Mark Complete'}
+            </button>
           </header>
+
+          <CompassAssistant currentPage="chapter" chapterId={chapter.id} placement="floating" />
 
           <section className="mt-5 border border-[#c8d3db] bg-[#dfe8ee] p-1 text-[#153047]">
             <div className="grid grid-cols-4 gap-1">
