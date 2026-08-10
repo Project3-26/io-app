@@ -1,0 +1,54 @@
+/* Project 3|26 Listen card polish.
+   The player remains functionally unchanged; these rules only refine the
+   chapter-audio presentation until it moves into its own component. */
+section:has(input[aria-label="Audio progress"]) {
+  border-radius: 0 !important;
+  box-shadow: 0 18px 45px rgba(4, 19, 38, 0.14) !important;
+}
+
+/* Remove the duplicate chapter tile. The main heading now carries John 1. */
+section:has(input[aria-label="Audio progress"]) > div:first-child > div:first-child {
+  display: none !important;
+}
+
+/* The old chapter title repeated directly beneath the audio heading. */
+section:has(input[aria-label="Audio progress"]) h2 + p {
+  display: none !important;
+}
+
+section:has(input[aria-label="Audio progress"]) > div:first-child {
+  gap: 0 !important;
+  border-bottom: 1px solid #b8ccd7;
+  background: #d5e4ea;
+  margin: -1rem -1rem 0;
+  padding: 1.25rem;
+}
+
+section:has(input[aria-label="Audio progress"]) h2 {
+  margin-top: 0.2rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+section:has(input[aria-label="Audio progress"]) h2 ~ p {
+  max-width: 48rem;
+  margin-top: 0.75rem;
+  color: #526779;
+  font-size: 0.925rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 640px) {
+  section:has(input[aria-label="Audio progress"]) > div:first-child {
+    margin: -1.25rem -1.25rem 0;
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  section:has(input[aria-label="Audio progress"]) > div:first-child {
+    margin: -1.5rem -1.5rem 0;
+  }
+}
