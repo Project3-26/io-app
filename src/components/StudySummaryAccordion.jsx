@@ -19,10 +19,9 @@ export default function StudySummaryAccordion({ sections = [] }) {
 
   return (
     <div className="mt-5 space-y-3">
-      {ordered.map((section, index) => (
+      {ordered.map((section) => (
         <details
           key={section.key}
-          open={index === 0}
           className="group overflow-hidden border border-slate-300/80 bg-white/65"
         >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 text-left font-semibold text-[#153047] [&::-webkit-details-marker]:hidden">
