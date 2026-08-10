@@ -17,6 +17,8 @@ export default function CompassAssistant({ currentPage, chapterId }) {
   const [error, setError] = useState('')
   const inputRef = useRef(null)
   const chatEndRef = useRef(null)
+  const isConnectPage = currentPage === 'connect' || currentPage === 'connect-room'
+  const mobileDockClass = isConnectPage ? 'bottom-40' : 'bottom-28'
 
   useEffect(() => {
     let mounted = true
@@ -83,10 +85,10 @@ export default function CompassAssistant({ currentPage, chapterId }) {
   return (
     <>
       {open && (
-        <section className="fixed bottom-24 right-4 z-[80] flex max-h-[68vh] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden border border-cyan-300/25 bg-[#071a2d] text-white shadow-2xl shadow-black/40 sm:bottom-24 sm:right-6 lg:bottom-8 lg:right-8">
+        <section className={`fixed ${mobileDockClass} right-4 z-[80] flex max-h-[68vh] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden border border-cyan-300/25 bg-[#071a2d] text-white shadow-2xl shadow-black/40 sm:right-6 lg:bottom-8 lg:right-8`}>
           <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center bg-cyan-400 text-[#041326]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan-200/30 bg-[#0b2a43] text-cyan-300">
                 <Compass size={20} strokeWidth={2.2} />
               </div>
               <div>
@@ -179,10 +181,13 @@ export default function CompassAssistant({ currentPage, chapterId }) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="fixed bottom-24 right-4 z-[79] flex h-14 w-14 items-center justify-center rounded-full border border-cyan-200/25 bg-cyan-400 text-[#041326] shadow-xl shadow-black/30 transition hover:scale-105 hover:bg-cyan-300 active:scale-95 sm:right-6 lg:bottom-8 lg:right-8"
+        className={`fixed ${mobileDockClass} right-4 z-[79] flex h-[60px] w-[60px] items-center justify-center rounded-full border-2 border-cyan-300/55 bg-[#08243b] text-white shadow-xl shadow-black/35 transition hover:scale-105 hover:border-cyan-200 active:scale-95 sm:right-6 lg:bottom-8 lg:right-8`}
         aria-label="Open Compass"
       >
-        <Compass size={25} strokeWidth={2.3} />
+        <span className="absolute inset-[5px] rounded-full border border-white/15" aria-hidden="true" />
+        <span className="absolute top-[5px] text-[7px] font-bold tracking-[0.08em] text-orange-300" aria-hidden="true">N</span>
+        <Compass size={31} strokeWidth={1.65} className="text-cyan-200" />
+        <span className="absolute h-2.5 w-2.5 rounded-full border border-orange-200/70 bg-orange-400" aria-hidden="true" />
       </button>
     </>
   )
