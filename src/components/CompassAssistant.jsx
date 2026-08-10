@@ -83,15 +83,11 @@ export default function CompassAssistant({
   useEffect(() => {
     if (!enabled || placement !== 'floating') return undefined
 
-    const hintKey = 'project326-compass-hint-seen'
-    if (window.sessionStorage.getItem(hintKey)) return undefined
-
-    window.sessionStorage.setItem(hintKey, 'true')
     setShowFloatingHint(true)
     const hintTimer = window.setTimeout(() => setShowFloatingHint(false), 5000)
 
     return () => window.clearTimeout(hintTimer)
-  }, [enabled, placement])
+  }, [chapterId, enabled, placement])
 
   if (!enabled) return null
 
@@ -174,7 +170,7 @@ export default function CompassAssistant({
                 setShowFloatingHint(false)
                 setOpen(true)
               }}
-              className="fixed bottom-[calc(33vh+0.5rem)] right-20 z-[70] max-w-[220px] rounded-2xl border border-cyan-200/30 bg-white px-4 py-3 text-left text-sm font-medium leading-5 text-[#08243b] shadow-xl shadow-black/25 transition hover:bg-cyan-50 sm:right-24"
+              className="fixed bottom-[calc(33vh+0.5rem)] right-20 z-[70] max-w-[220px] rounded-[1.5rem] border border-cyan-200/30 bg-white px-4 py-3 text-left text-sm font-medium leading-5 text-[#08243b] shadow-xl shadow-black/25 transition hover:bg-cyan-50 sm:right-24"
               aria-label="Open Compass AI: Have questions about the text? Ask me!"
             >
               Have questions about the text? Ask me!
