@@ -43,10 +43,10 @@ async function authenticatedBillingRequest(path, options = {}, retry = true) {
   return payload
 }
 
-export function createCheckout({ productCode, priceId, billingInterval }) {
+export function createCheckout({ productCode, priceId, billingInterval, churchName }) {
   return authenticatedBillingRequest('/api/billing/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productCode, priceId, billingInterval }),
+    body: JSON.stringify({ productCode, priceId, billingInterval, churchName }),
   })
 }
