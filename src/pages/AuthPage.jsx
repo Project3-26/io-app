@@ -12,12 +12,14 @@ import {
   signInMember,
   signUpMember,
 } from '../services/backend'
+import { joinChurch } from '../services/connect'
 
 function AuthPage({ onAuthenticated }) {
   const [mode, setMode] = useState('sign-in')
   const [displayName, setDisplayName] = useState('')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [churchCode, setChurchCode] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -83,6 +85,9 @@ function AuthPage({ onAuthenticated }) {
         )
 
         if (result?.session) {
+          if (churchCode.trim()) {
+            await joinChurch(churchCode.trim())
+          }
           await onAuthenticated()
           return
         }
@@ -160,6 +165,22 @@ function AuthPage({ onAuthenticated }) {
                     className="mt-2 w-full border border-white/10 bg-[#071a2d] px-3 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
                     placeholder="Your name"
                   />
+                </label>
+              )}
+
+              {mode === 'create-account' && (
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-300">Church or group code <span className="font-normal text-slate-500">(optional)</span></span>
+                  <input
+                    type="text"
+                    value={churchCode}
+                    onChange={(event) => setChurchCode(event.target.value.toUpperCase())}
+                    autoComplete="off"
+                    maxLength={32}
+                    className="mt-2 w-full border border-white/10 bg-[#071a2d] px-3 py-3 text-sm uppercase tracking-[0.12em] text-white outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-600 focus:border-cyan-300/60"
+                    placeholder="Enter the code from your church leader"
+                  />
+                  <span className="mt-2 block text-[11px] leading-4 text-slate-500">A valid code adds you to your church’s plan and private Connect room. You will not be charged.</span>
                 </label>
               )}
 
