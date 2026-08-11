@@ -18,6 +18,7 @@ import {
   signUpMember,
 } from './services/backend'
 import { claimReferral } from './services/referrals'
+import { installNativePushBridge } from './services/push'
 import { syncAchievements } from './utils/achievements'
 
 const PAGE_IDS = {
@@ -48,7 +49,7 @@ const CHAPTER_TABS = new Set(['read', 'listen', 'study', 'leader'])
 // Keep the real authentication flow intact, but hide it during beta. Set this
 // to false near production and the existing sign-in/create-account screen is
 // restored without rebuilding auth.
-const BETA_AUTO_ENTRY_ENABLED = true
+const BETA_AUTO_ENTRY_ENABLED = false
 
 function captureReferralFromUrl() {
   const params = new URLSearchParams(window.location.search)
@@ -196,6 +197,14 @@ function App() {
   const [selectedConnectRoomId, setSelectedConnectRoomId] = useState('today')
   const [authMode, setAuthMode] = useState('checking')
   const [bootstrapError, setBootstrapError] = useState('')
+  const [churchOnboarding, setChurchOnboarding] = useState(() => {
+    if (window.location.pathname !== '/billing/success') return null
+    try {
+      return JSON.parse(sessionStorage.getItem('project326-church-onboarding') || 'null')
+    } catch {
+      return null
+    }
+  })
 
   useEffect(() => {
     captureReferralFromUrl()
@@ -251,6 +260,8 @@ function App() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => installNativePushBridge(), [])
 
   useEffect(() => {
     let isMounted = true
@@ -434,6 +445,35 @@ function App() {
     <>
       {pageContent}
       <OnboardingTour onNavigate={handleNavigate} />
+      {churchOnboarding && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#041326]/90 p-4 backdrop-blur-sm">
+          <section className="w-full max-w-md rounded-3xl border border-cyan-300/25 bg-[#0c2138] p-6 text-center text-white shadow-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">Church Plan ready</p>
+            <h2 className="mt-3 text-2xl font-bold">Welcome to {churchOnboarding.name}</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-400">Your private Connect room is being prepared. Share this code so members can create their own free sponsored accounts.</p>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard?.writeText(churchOnboarding.inviteCode)}
+              className="mt-5 w-full rounded-2xl border border-cyan-300/25 bg-[#071a2d] px-4 py-4 font-mono text-xl font-bold tracking-[0.2em] text-cyan-300"
+            >
+              {churchOnboarding.inviteCode}
+            </button>
+            <p className="mt-2 text-xs text-slate-500">Tap the code to copy it.</p>
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.removeItem('project326-church-onboarding')
+                window.history.replaceState({}, '', '/')
+                setChurchOnboarding(null)
+                setCurrentPage(PAGE_IDS.connect)
+              }}
+              className="mt-6 w-full rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-[#041326]"
+            >
+              Open my church space
+            </button>
+          </section>
+        </div>
+      )}
     </>
   )
 }
