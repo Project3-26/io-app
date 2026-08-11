@@ -401,7 +401,10 @@ function ChapterPage({ chapterId = 'john-1', onBack, onNavigate }) {
 
           <CompassAssistant currentPage="chapter" chapterId={chapter.id} placement="floating" />
 
-          <section className="mt-5 border border-[#c8d3db] bg-[#dfe8ee] p-1 text-[#153047]">
+          <section
+            className="mt-5 border border-[#c8d3db] bg-[#dfe8ee] p-1 text-[#153047]"
+            data-tour="chapter-tabs"
+          >
             <div className="grid grid-cols-4 gap-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon
