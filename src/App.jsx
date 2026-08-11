@@ -433,7 +433,7 @@ function App() {
   return (
     <>
       {pageContent}
-      <OnboardingTour onNavigate={handleNavigate} />
+      <OnboardingTour onNavigate={handleNavigate} onOpenChapter={handleOpenChapter} />
     </>
   )
 }
