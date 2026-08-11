@@ -86,7 +86,16 @@ function AuthPage({ onAuthenticated }) {
 
         if (result?.session) {
           if (churchCode.trim()) {
-            await joinChurch(churchCode.trim())
+            try {
+              await joinChurch(churchCode.trim())
+            } catch (joinError) {
+              localStorage.setItem(
+                'project326-church-code-notice',
+                joinError instanceof Error
+                  ? joinError.message
+                  : 'Your account is ready, but the church code could not be applied.',
+              )
+            }
           }
           await onAuthenticated()
           return
