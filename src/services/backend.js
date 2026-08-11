@@ -17,14 +17,6 @@ const SCRIPTURE_CACHE_LIMIT = 3
 
 let memberSnapshotCache = null
 const scriptureMemoryCache = new Map()
-  'project326-member-session'
-const TEST_PLAN_KEY =
-  'project326-founder-test-plan'
-const MEMBER_SNAPSHOT_TTL_MS = 30_000
-const SCRIPTURE_CACHE_LIMIT = 3
-
-let memberSnapshotCache = null
-const scriptureMemoryCache = new Map()
 
 function normalizeSession(session) {
   if (!session?.accessToken || !session?.refreshToken) {
