@@ -12,7 +12,7 @@ import {
   signInMember,
   signUpMember,
 } from '../services/backend'
-import { joinChurch } from '../services/connect'
+import { joinChurchByCode } from '../services/connect'
 
 function AuthPage({ onAuthenticated }) {
   const [mode, setMode] = useState('sign-in')
@@ -87,7 +87,7 @@ function AuthPage({ onAuthenticated }) {
         if (result?.session) {
           if (churchCode.trim()) {
             try {
-              await joinChurch(churchCode.trim())
+              await joinChurchByCode(churchCode.trim())
             } catch (joinError) {
               localStorage.setItem(
                 'project326-church-code-notice',
