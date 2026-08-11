@@ -1,8 +1,22 @@
+const LAUNCH_PREVIEW_HOST = 'io-app-git-feature-launch-experience-project-326.vercel.app'
+const LAUNCH_PREVIEW_BACKEND_URL =
+  'https://project326-admin-git-feature-launch-experience-project-326.vercel.app'
+
 const BACKEND_BASE_URL =
   import.meta.env.VITE_PROJECT326_BACKEND_URL ||
-  'https://admin.project326.io'
+  (window.location.hostname === LAUNCH_PREVIEW_HOST
+    ? LAUNCH_PREVIEW_BACKEND_URL
+    : 'https://admin.project326.io')
 
 const MEMBER_SESSION_KEY =
+  'project326-member-session'
+const TEST_PLAN_KEY =
+  'project326-founder-test-plan'
+const MEMBER_SNAPSHOT_TTL_MS = 30_000
+const SCRIPTURE_CACHE_LIMIT = 3
+
+let memberSnapshotCache = null
+const scriptureMemoryCache = new Map()
   'project326-member-session'
 const TEST_PLAN_KEY =
   'project326-founder-test-plan'
