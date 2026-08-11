@@ -26,6 +26,13 @@ const standardFeatures = [
   'Community conversation participation',
 ]
 
+const churchFeatures = [
+  'Bible Study and Leader access for your group',
+  'A private Connect room for your church or small group',
+  'One invite code members use without paying individually',
+  'Sponsored access managed under one subscription',
+]
+
 function formatPrice(price) {
   if (!price) return 'Price coming soon'
   const amount = Number(price.amount || 0) / 100
@@ -39,8 +46,8 @@ function formatPrice(price) {
     : money
 }
 
-function offerForEntitlement(offers, entitlementCode) {
-  return offers.find((offer) => (offer.entitlementCodes || []).includes(entitlementCode)) || null
+function offerForCode(offers, productCode) {
+  return offers.find((offer) => offer.productCode === productCode) || null
 }
 
 function preferredPrice(offer) {
@@ -57,6 +64,7 @@ function UpgradePage({ onBack, onNavigate }) {
   const [isLoading, setIsLoading] = useState(true)
   const [checkoutPriceId, setCheckoutPriceId] = useState('')
   const [error, setError] = useState('')
+  const [churchName, setChurchName] = useState('')
 
   useEffect(() => {
     let mounted = true
@@ -77,27 +85,38 @@ function UpgradePage({ onBack, onNavigate }) {
   }, [])
 
   const standardOffer = useMemo(
-    () => offerForEntitlement(offers, 'full_bible_study_access'),
+    () => offerForCode(offers, 'bible_study'),
     [offers],
   )
   const leaderOffer = useMemo(
-    () => offerForEntitlement(offers, 'leader_guide_access'),
+    () => offerForCode(offers, 'leader_guides'),
     [offers],
   )
+  const churchOffer = useMemo(() => offerForCode(offers, 'church_plan'), [offers])
   const standardPrice = preferredPrice(standardOffer)
   const leaderPrice = preferredPrice(leaderOffer)
+  const churchPrice = preferredPrice(churchOffer)
 
   async function beginCheckout(offer, price) {
     if (!offer || !price?.checkoutConfigured || checkoutPriceId) return
 
     try {
+      const normalizedChurchName = churchName.trim().replace(/\s+/g, ' ')
+      if (offer.productCode === 'church_plan' && normalizedChurchName.length < 2) {
+        setError('Enter your church or small-group name first.')
+        return
+      }
       setCheckoutPriceId(price.id)
       setError('')
       const payload = await createCheckout({
         productCode: offer.productCode,
         priceId: price.id,
         billingInterval: price.billingInterval,
+        churchName: offer.productCode === 'church_plan' ? normalizedChurchName : undefined,
       })
+      if (payload?.churchOnboarding) {
+        sessionStorage.setItem('project326-church-onboarding', JSON.stringify(payload.churchOnboarding))
+      }
       if (!payload?.url) throw new Error('Checkout did not return a secure redirect.')
       window.location.assign(payload.url)
     } catch (checkoutError) {
@@ -132,7 +151,7 @@ function UpgradePage({ onBack, onNavigate }) {
             </p>
           </header>
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">
+          <div className="mt-8 grid gap-4 lg:grid-cols-3">
             <ProductCard
               title="Bible Study"
               subtitle="Core paid experience"
@@ -157,6 +176,21 @@ function UpgradePage({ onBack, onNavigate }) {
               isCheckingOut={checkoutPriceId === leaderPrice?.id}
               onCheckout={() => beginCheckout(leaderOffer, leaderPrice)}
               theme="leader"
+            />
+
+            <ProductCard
+              title="Church Plan"
+              subtitle="One plan for your whole group"
+              icon={<Users size={20} strokeWidth={2.2} />}
+              features={churchFeatures}
+              offer={churchOffer}
+              price={churchPrice}
+              isLoading={isLoading}
+              isCheckingOut={checkoutPriceId === churchPrice?.id}
+              onCheckout={() => beginCheckout(churchOffer, churchPrice)}
+              theme="church"
+              churchName={churchName}
+              onChurchNameChange={setChurchName}
             />
           </div>
 
@@ -199,8 +233,11 @@ function ProductCard({
   isCheckingOut,
   onCheckout,
   theme,
+  churchName,
+  onChurchNameChange,
 }) {
   const leader = theme === 'leader'
+  const church = theme === 'church'
   const configured = Boolean(price?.checkoutConfigured)
 
   return (
@@ -232,6 +269,19 @@ function ProductCard({
             </div>
           ))}
         </div>
+
+        {church && (
+          <label className="mt-5 block text-sm font-semibold text-slate-700">
+            Church or small-group name
+            <input
+              value={churchName}
+              onChange={(event) => onChurchNameChange(event.target.value)}
+              maxLength={100}
+              placeholder="Example: Villas Church"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-600/15"
+            />
+          </label>
+        )}
 
         <button
           type="button"
