@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Compass, MessageCircle, UserRound, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Compass, MessageCircle, ScrollText, UserRound, X } from 'lucide-react'
 
 const ONBOARDING_TOUR_ENABLED = true
-const ONBOARDING_TOUR_VERSION = 4
+const ONBOARDING_TOUR_VERSION = 5
 const ONBOARDING_STORAGE_KEY = `project326-onboarding-tour-v${ONBOARDING_TOUR_VERSION}`
 
 const TOUR_STEPS = [
@@ -29,6 +29,16 @@ const TOUR_STEPS = [
     title: 'Explore the Bible without losing your place.',
     body: 'Use the Library whenever you want to browse books and chapters beyond today’s reading.',
     icon: BookOpen,
+  },
+  {
+    id: 'chapter',
+    pageId: 'chapter',
+    chapterId: 'john-1',
+    focusSelector: '[data-tour="chapter-tabs"]',
+    eyebrow: 'YOUR DAILY CHAPTER',
+    title: 'Choose how you want to engage.',
+    body: 'Every chapter gathers its resources in one place: Read the Scripture, Listen on the go, Study the passage more deeply, or open Leader tools when you have that access.',
+    icon: ScrollText,
   },
   {
     id: 'connect',
@@ -64,8 +74,12 @@ function markTourComplete() {
   }
 }
 
-function getFocusRect() {
-  const target = document.querySelector('main h1') || document.querySelector('main header') || document.querySelector('main')
+function getFocusRect(selector) {
+  const target =
+    (selector && document.querySelector(selector)) ||
+    document.querySelector('main h1') ||
+    document.querySelector('main header') ||
+    document.querySelector('main')
   if (!target) return null
 
   const rect = target.getBoundingClientRect()
@@ -80,7 +94,7 @@ function getFocusRect() {
   }
 }
 
-function OnboardingTour({ onNavigate }) {
+function OnboardingTour({ onNavigate, onOpenChapter }) {
   const [isOpen, setIsOpen] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [focusRect, setFocusRect] = useState(null)
@@ -104,26 +118,34 @@ function OnboardingTour({ onNavigate }) {
   useEffect(() => {
     if (!isOpen || !step?.pageId) return
 
-    onNavigate?.(step.pageId)
+    if (step.pageId === 'chapter') {
+      onOpenChapter?.(step.chapterId || 'john-1')
+    } else {
+      onNavigate?.(step.pageId)
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
     let frame
     let timer
+    let observer
 
     function measure() {
-      setFocusRect(getFocusRect())
+      setFocusRect(getFocusRect(step.focusSelector))
     }
 
     frame = window.requestAnimationFrame(measure)
     timer = window.setTimeout(measure, 240)
+    observer = new MutationObserver(measure)
+    observer.observe(document.body, { childList: true, subtree: true })
     window.addEventListener('resize', measure)
 
     return () => {
       window.cancelAnimationFrame(frame)
       window.clearTimeout(timer)
+      observer.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [isOpen, onNavigate, step?.pageId])
+  }, [isOpen, onNavigate, onOpenChapter, step?.chapterId, step?.focusSelector, step?.pageId])
 
   function finishTour() {
     markTourComplete()
