@@ -192,7 +192,10 @@ function hydrateMemberProgress(snapshot) {
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState(PAGE_IDS.dashboard)
+  const [currentPage, setCurrentPage] = useState(() => {
+    const plan = new URLSearchParams(window.location.search).get('plan')
+    return ['bible-study', 'leader', 'church'].includes(plan) ? PAGE_IDS.upgrade : PAGE_IDS.dashboard
+  })
   const [selectedChapterId, setSelectedChapterId] = useState('john-1')
   const [selectedConnectRoomId, setSelectedConnectRoomId] = useState('today')
   const [authMode, setAuthMode] = useState('checking')
