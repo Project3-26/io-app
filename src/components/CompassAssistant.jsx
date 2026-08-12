@@ -321,7 +321,7 @@ export default function CompassAssistant({
                   <p className="whitespace-pre-wrap text-sm leading-6">{message.text}</p>
                   {message.role === 'assistant' && message.sources?.length > 0 && (
                     <p className="mt-2 text-[10px] leading-4 text-slate-500">
-                      Grounded in {message.sources.slice(0, 3).join(' Â· ')}
+                      Grounded in {message.sources.slice(0, 3).join(' · ')}
                     </p>
                   )}
                 </div>
@@ -329,7 +329,7 @@ export default function CompassAssistant({
 
               {isSending && (
                 <div className="mr-20 flex items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-slate-400">
-                  <LoaderCircle size={14} className="animate-spin" /> Compass is looking through approved Project 3|26 materialâ¦
+                  <LoaderCircle size={14} className="animate-spin" /> Compass is looking through approved Project 3|26 material…
                 </div>
               )}
 
@@ -348,7 +348,7 @@ export default function CompassAssistant({
                 ref={inputRef}
                 value={question}
                 onChange={(event) => setQuestion(event.target.value.slice(0, MAX_QUESTION_LENGTH))}
-                placeholder="Ask Compass AIâ¦"
+                placeholder="Ask Compass AI…"
                 maxLength={selectedVerseNumber ? 720 : MAX_QUESTION_LENGTH}
                 className="min-w-0 flex-1 border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/35"
               />
