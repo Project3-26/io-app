@@ -40,14 +40,13 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
       }),
     ]).then(([maplibre, , mapStyle]) => {
       if (cancelled || !mapNodeRef.current) return
-      const styleKey = getMapStyleKey(state.data.mapStyleUrl)
       map = new maplibre.Map({
         container: mapNodeRef.current,
         style: mapStyle,
         bounds: state.data.bounds || undefined,
         fitBoundsOptions: { padding: 48, maxZoom: 8 },
         attributionControl: true,
-        transformRequest: (url) => withMapTilerKey(url, styleKey),
+        transformRequest: (url) => proxyMapTilerRequest(url),
       })
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
       map.on('load', () => {
@@ -145,21 +144,13 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]))
 }
 
-function getMapStyleKey(styleUrl) {
-  try {
-    return new URL(styleUrl).searchParams.get('key') || ''
-  } catch {
-    return ''
-  }
-}
-
-function withMapTilerKey(url, key) {
-  if (!key || !url.startsWith('https://api.maptiler.com/')) return { url }
-
+function proxyMapTilerRequest(url) {
+  if (!url.startsWith('https://api.maptiler.com/')) return { url }
   try {
     const requestedUrl = new URL(url)
-    if (!requestedUrl.searchParams.has('key')) requestedUrl.searchParams.set('key', key)
-    return { url: requestedUrl.toString() }
+    requestedUrl.searchParams.delete('key')
+    const resource = `${requestedUrl.pathname.replace(/^\//, '')}${requestedUrl.search}`
+    return { url: `/api/maptiler?resource=${encodeURIComponent(resource)}` }
   } catch {
     return { url }
   }
