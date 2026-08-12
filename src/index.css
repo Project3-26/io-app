@@ -17,3 +17,71 @@ button:not(:disabled):active {
 button:disabled {
   cursor: not-allowed;
 }
+
+/* Member-selected dark appearance. The existing app is built with a deliberate
+   paper-card palette, so these tokens darken those surfaces without changing the
+   brand accents or requiring every screen to duplicate a `dark:` Tailwind class. */
+html[data-theme='dark'] {
+  background: #041326;
+}
+
+html[data-theme='dark'] [class*='bg-[#dfe8ee]'],
+html[data-theme='dark'] [class*='bg-[#edf2f4]'],
+html[data-theme='dark'] [class*='bg-[#e7eef2]'],
+html[data-theme='dark'] [class*='bg-[#f7f2e8]'] {
+  background-color: #10263a !important;
+}
+
+html[data-theme='dark'] [class*='bg-[#c7dce7]'] {
+  background-color: #16384d !important;
+}
+
+html[data-theme='dark'] [class*='bg-[#f2e6d8]'] {
+  background-color: #392b1d !important;
+}
+
+html[data-theme='dark'] [class*='bg-[#d9e7df]'] {
+  background-color: #15382d !important;
+}
+
+html[data-theme='dark'] [class*='bg-[#ead9d9]'] {
+  background-color: #3b2228 !important;
+}
+
+html[data-theme='dark'] [class*='bg-white'],
+html[data-theme='dark'] [class*='bg-slate-50'] {
+  background-color: #0c1c2b !important;
+}
+
+html[data-theme='dark'] [class*='border-[#c8d3db]'],
+html[data-theme='dark'] [class*='border-[#b8ccd7]'] {
+  border-color: #31516a !important;
+}
+
+html[data-theme='dark'] [class*='text-[#153047]'],
+html[data-theme='dark'] [class*='text-[#181007]'],
+html[data-theme='dark'] [class*='text-[#170d20]'] {
+  color: #e5f1f7 !important;
+}
+
+html[data-theme='dark'] [class*='text-slate-500'],
+html[data-theme='dark'] [class*='text-slate-600'] {
+  color: #aabccc !important;
+}
+
+html[data-theme='dark'] [class*='text-cyan-700'],
+html[data-theme='dark'] [class*='text-cyan-800'] {
+  color: #67e8f9 !important;
+}
+
+html[data-theme='dark'] input,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] select {
+  background-color: #0c1c2b !important;
+  border-color: #31516a !important;
+  color: #e5f1f7 !important;
+}
+
+html[data-theme='dark'] .theme-toggle > span {
+  background-color: #e5f1f7 !important;
+}
