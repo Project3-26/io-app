@@ -55,3 +55,20 @@ button:disabled {
   padding: 0.18rem 0.35rem;
   box-shadow: 0 1px 4px rgb(6 59 93 / 20%);
 }
+
+.biblical-map-route-label {
+  border: 1px solid rgb(255 255 255 / 75%);
+  background: rgb(6 109 169 / 92%);
+  padding: 0.25rem 0.4rem;
+  color: white;
+  font: 700 11px/1.1 system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 7px rgb(6 59 93 / 28%);
+  text-shadow: 0 1px 1px rgb(0 0 0 / 18%);
+  white-space: nowrap;
+}
+
+.biblical-map-route-label-comparison {
+  border-style: dashed;
+  background: rgb(70 93 109 / 92%);
+}
