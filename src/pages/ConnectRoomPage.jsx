@@ -2,18 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   Church,
-  Heart,
   LoaderCircle,
-  ShieldCheck,
-  Sparkles,
+  MessageCircle,
   Users,
 } from 'lucide-react'
 
 import AppNavigation from '../components/AppNavigation'
 import ChurchRoom from '../components/connect/ChurchRoom'
 import DiscussionRoom from '../components/connect/DiscussionRoom'
-import PrayerRoom from '../components/connect/PrayerRoom'
-import TransformationBoard from '../components/connect/TransformationBoard'
 import { sharedJourney } from '../data/sharedJourney'
 import { hasMemberSession } from '../services/backend'
 import { getChurchMemberships } from '../services/connect'
@@ -21,28 +17,21 @@ import { getChurchMemberships } from '../services/connect'
 const communityRooms = [
   {
     id: 'today',
-    shortName: 'Today',
-    name: 'Today’s Conversation',
+    shortName: 'Today’s Chapter',
+    name: 'Today’s Chapter',
     type: 'chapter',
   },
   {
-    id: 'prayer',
-    shortName: 'Prayer',
-    name: 'Prayer Room',
-    type: 'prayer',
-  },
-  {
-    id: 'transformation',
-    shortName: 'Transformation',
-    name: 'Transformation Board',
-    type: 'transformation',
+    id: 'journey',
+    shortName: 'Journey Chat',
+    name: 'Journey Chat',
+    type: 'journey',
   },
 ]
 
 function getRoomIcon(type) {
   if (type === 'chapter') return BookOpen
-  if (type === 'transformation') return Sparkles
-  if (type === 'prayer') return Heart
+  if (type === 'journey') return MessageCircle
   if (type === 'church') return Church
   return Users
 }
@@ -57,15 +46,6 @@ function getRoomStyle(type, active = false) {
     }
   }
 
-  if (type === 'prayer') {
-    return {
-      icon: 'bg-[#d5dce6] text-[#48617b]',
-      button: active
-        ? 'border-[#9eb1c3] bg-[#d5dce6] text-[#153047]'
-        : 'border-[#c8d3db] bg-[#dfe8ee] text-slate-600 hover:border-[#9eb1c3] hover:bg-[#e7eef2]',
-    }
-  }
-
   return {
     icon: 'bg-[#c7dce7] text-cyan-700',
     button: active
@@ -76,9 +56,8 @@ function getRoomStyle(type, active = false) {
 
 function roomDescriptor(room) {
   if (room.type === 'church') return 'Private church community'
-  if (room.id === 'today') return 'Today’s shared Bible conversation'
-  if (room.id === 'prayer') return 'Share requests; support one another with prayer reactions'
-  if (room.id === 'transformation') return 'Share what God is changing; encourage with reactions'
+  if (room.id === 'today') return 'Discuss today’s shared Bible chapter'
+  if (room.id === 'journey') return 'Encouragement, questions, and testimonies for the journey'
   return 'Project 3|26 community'
 }
 
@@ -148,7 +127,7 @@ function ConnectRoomPage({
         .filter((membership) => membership?.slug)
         .map((membership) => ({
           id: membership.slug,
-          shortName: 'My Church',
+          shortName: 'My Group',
           name: membership.name,
           type: 'church',
           membership,
@@ -175,9 +154,19 @@ function ConnectRoomPage({
   }
 
   function renderRoomContent() {
-    if (activeRoom.id === 'today') return <DiscussionRoom roomId="today" />
-    if (activeRoom.id === 'prayer') return <PrayerRoom />
-    if (activeRoom.id === 'transformation') return <TransformationBoard />
+    if (activeRoom.id === 'today') {
+      return <DiscussionRoom roomId="today" contextLabel="Today’s Chapter" />
+    }
+    if (activeRoom.id === 'journey') {
+      return (
+        <DiscussionRoom
+          roomId="journey"
+          prompt="Share an encouragement, question, or testimony…"
+          contextLabel="Journey Chat"
+          contextPrompts={['Encourage someone', 'Ask a question', 'Share what God is doing']}
+        />
+      )
+    }
     if (activeRoom.type === 'church') {
       return (
         <ChurchRoom
@@ -191,8 +180,6 @@ function ConnectRoomPage({
   }
 
   const ActiveRoomIcon = getRoomIcon(activeRoom.type)
-  const isReactionOnlyRoom = ['prayer', 'transformation'].includes(activeRoom.id)
-
   return (
     <div className="min-h-screen bg-[#041326] text-white">
       <AppNavigation activePage="connect" onNavigate={onNavigate} />
@@ -204,7 +191,7 @@ function ConnectRoomPage({
               <div className="min-w-0">
                 <h1 className="truncate text-base font-semibold sm:text-lg">
                   {activeRoom.id === 'today'
-                    ? `${sharedJourney.reference} — Today’s Conversation`
+                    ? `${sharedJourney.reference} — Today’s Chapter`
                     : activeRoom.name}
                 </h1>
 
@@ -234,15 +221,6 @@ function ConnectRoomPage({
               )}
             </div>
           </section>
-
-          {isReactionOnlyRoom && (
-            <section className="mt-2.5 flex items-start gap-2 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.06] px-3 py-2.5 text-[11px] leading-5 text-cyan-50/70 sm:text-xs">
-              <ShieldCheck size={15} className="mt-0.5 shrink-0 text-cyan-300" />
-              <p>
-                This is a reaction-only space by design. Support people without advice threads or written replies.
-              </p>
-            </section>
-          )}
 
           <div className="mt-2.5">{renderRoomContent()}</div>
         </main>
