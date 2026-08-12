@@ -36,12 +36,14 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
       import('maplibre-gl/dist/maplibre-gl.css'),
     ]).then(([maplibre]) => {
       if (cancelled || !mapNodeRef.current) return
+      const styleKey = getMapStyleKey(state.data.mapStyleUrl)
       map = new maplibre.Map({
         container: mapNodeRef.current,
         style: state.data.mapStyleUrl,
         bounds: state.data.bounds || undefined,
         fitBoundsOptions: { padding: 48, maxZoom: 8 },
         attributionControl: true,
+        transformRequest: (url) => withMapTilerKey(url, styleKey),
       })
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
       map.on('load', () => {
@@ -127,4 +129,24 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]))
+}
+
+function getMapStyleKey(styleUrl) {
+  try {
+    return new URL(styleUrl).searchParams.get('key') || ''
+  } catch {
+    return ''
+  }
+}
+
+function withMapTilerKey(url, key) {
+  if (!key || !url.startsWith('https://api.maptiler.com/')) return { url }
+
+  try {
+    const requestedUrl = new URL(url)
+    if (!requestedUrl.searchParams.has('key')) requestedUrl.searchParams.set('key', key)
+    return { url: requestedUrl.toString() }
+  } catch {
+    return { url }
+  }
 }
