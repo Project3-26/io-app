@@ -50,6 +50,60 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
       })
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
       map.on('load', () => {
+        const placeLabels = (state.data.places || []).map((place) => ({
+          type: 'Feature',
+          properties: { name: place.name },
+          geometry: { type: 'Point', coordinates: [place.longitude, place.latitude] },
+        }))
+        if (placeLabels.length) {
+          map.addSource('place-labels', { type: 'geojson', data: { type: 'FeatureCollection', features: placeLabels } })
+          map.addLayer({
+            id: 'place-labels',
+            type: 'symbol',
+            source: 'place-labels',
+            layout: {
+              'text-field': ['get', 'name'],
+              'text-font': ['Noto Sans Regular'],
+              'text-size': 12,
+              'text-anchor': 'left',
+              'text-offset': [1.15, 0],
+              'text-allow-overlap': false,
+              'text-ignore-placement': false,
+              'text-optional': true,
+            },
+            paint: { 'text-color': '#063b5d', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+          })
+        }
+
+        const orientationLabels = state.data.orientationLabels || []
+        if (orientationLabels.length) {
+          map.addSource('orientation-labels', {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: orientationLabels.map((label) => ({
+                type: 'Feature',
+                properties: { name: label.name },
+                geometry: { type: 'Point', coordinates: [label.longitude, label.latitude] },
+              })),
+            },
+          })
+          map.addLayer({
+            id: 'orientation-labels',
+            type: 'symbol',
+            source: 'orientation-labels',
+            layout: {
+              'text-field': ['get', 'name'],
+              'text-font': ['Noto Sans Bold'],
+              'text-size': 13,
+              'text-letter-spacing': 0.04,
+              'text-allow-overlap': false,
+              'text-ignore-placement': false,
+            },
+            paint: { 'text-color': '#161616', 'text-halo-color': '#ffffff', 'text-halo-width': 1.25, 'text-opacity': 0.86 },
+          })
+        }
+
         for (const place of state.data.places || []) {
           const marker = document.createElement('div')
           marker.className = place.isStoryLocation ? 'biblical-map-marker biblical-map-marker-current' : 'biblical-map-marker'
@@ -57,7 +111,6 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
           marker.setAttribute('role', 'img')
           marker.innerHTML = `
             <span class="biblical-map-marker-dot" aria-hidden="true">${place.isStoryLocation ? '▲' : '●'}</span>
-            <span class="biblical-map-marker-label">${escapeHtml(place.name)}</span>
           `
           new maplibre.Marker({ element: marker, anchor: 'bottom' })
             .setLngLat([place.longitude, place.latitude])
