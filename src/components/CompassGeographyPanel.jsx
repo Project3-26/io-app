@@ -88,7 +88,14 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
       mapRef.current = map
     }).catch((error) => {
       if (cancelled) return
-      setState({ loading: false, data: null, error: error?.message || 'The map could not load right now.' })
+      const isAccessDenied = /\(403\)/.test(error?.message || '')
+      setState({
+        loading: false,
+        data: null,
+        error: isAccessDenied
+          ? `MapTiler denied the request from ${window.location.origin}.`
+          : error?.message || 'The map could not load right now.',
+      })
     })
 
     return () => {
