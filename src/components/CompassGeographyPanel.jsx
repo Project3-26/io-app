@@ -34,12 +34,16 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
     Promise.all([
       import('maplibre-gl'),
       import('maplibre-gl/dist/maplibre-gl.css'),
-    ]).then(([maplibre]) => {
+      fetch(state.data.mapStyleUrl).then(async (response) => {
+        if (!response.ok) throw new Error(`Map style request failed (${response.status}).`)
+        return response.json()
+      }),
+    ]).then(([maplibre, , mapStyle]) => {
       if (cancelled || !mapNodeRef.current) return
       const styleKey = getMapStyleKey(state.data.mapStyleUrl)
       map = new maplibre.Map({
         container: mapNodeRef.current,
-        style: state.data.mapStyleUrl,
+        style: mapStyle,
         bounds: state.data.bounds || undefined,
         fitBoundsOptions: { padding: 48, maxZoom: 8 },
         attributionControl: true,
@@ -82,6 +86,9 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
         }
       })
       mapRef.current = map
+    }).catch((error) => {
+      if (cancelled) return
+      setState({ loading: false, data: null, error: error?.message || 'The map could not load right now.' })
     })
 
     return () => {
