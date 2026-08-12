@@ -17,3 +17,41 @@ button:not(:disabled):active {
 button:disabled {
   cursor: not-allowed;
 }
+
+.biblical-map-marker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 0;
+  background: transparent;
+  color: #063b5d;
+  font: 600 12px/1.2 system-ui, sans-serif;
+  text-shadow: 0 1px 2px rgb(255 255 255 / 90%);
+  white-space: nowrap;
+}
+
+.biblical-map-marker-dot {
+  display: inline-flex;
+  height: 1.35rem;
+  width: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  border-radius: 999px !important;
+  background: #138ccf;
+  color: white;
+  box-shadow: 0 2px 7px rgb(6 59 93 / 35%);
+  font-size: 0.7rem;
+  text-shadow: none;
+}
+
+.biblical-map-marker-current .biblical-map-marker-dot {
+  background: #066da9;
+}
+
+.biblical-map-marker-label {
+  border: 1px solid rgb(255 255 255 / 72%);
+  background: rgb(255 255 255 / 88%);
+  padding: 0.18rem 0.35rem;
+  box-shadow: 0 1px 4px rgb(6 59 93 / 20%);
+}
