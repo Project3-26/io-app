@@ -230,7 +230,7 @@ function DiscussionRoom({
         </div>
       </section>
 
-      {!room?.canParticipate && signedIn && resolvedRoomId === 'today' && (
+      {!room?.canParticipate && signedIn && ['today', 'journey'].includes(resolvedRoomId) && (
         <div className="mt-3 flex items-start gap-3 rounded-2xl border border-cyan-300/20 bg-cyan-400/[0.08] p-3 text-sm text-cyan-100">
           <Lock size={17} className="mt-0.5 shrink-0" />
           <p>This conversation is read-only for your account.</p>
