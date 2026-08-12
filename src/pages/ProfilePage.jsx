@@ -170,7 +170,7 @@ function ProfilePage({
   function changeTheme() {
     const nextTheme = theme === 'dark' ? 'light' : 'dark'
     setTheme(saveThemePreference(nextTheme))
-    setNotice(`${nextTheme === 'dark' ? 'Dark' : 'Light'} mode is on.`)
+    setNotice(`${nextTheme === 'dark' ? 'Night' : 'Light'} mode is on.`)
   }
 
   return (
@@ -355,18 +355,18 @@ function ProfilePage({
                         {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">Dark mode</p>
-                        <p className="mt-0.5 text-xs text-slate-500">Easy on your eyes in low light.</p>
+                        <p className="text-sm font-semibold">Night Mode</p>
+                        <p className="mt-0.5 text-xs text-slate-500">Black, charcoal, and gold for low-light reading.</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       role="switch"
                       aria-checked={theme === 'dark'}
-                      aria-label="Toggle dark mode"
+                      aria-label="Toggle Night Mode"
                       onClick={changeTheme}
                       className={`theme-toggle relative h-8 w-14 rounded-full p-1 transition-colors ${
-                        theme === 'dark' ? 'bg-cyan-600' : 'bg-slate-300'
+                        theme === 'dark' ? 'bg-[#d4af37]' : 'bg-slate-300'
                       }`}
                     >
                       <span
