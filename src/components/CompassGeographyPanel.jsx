@@ -51,20 +51,16 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
       map.on('load', () => {
         for (const place of state.data.places || []) {
-          const marker = document.createElement('button')
-          marker.type = 'button'
+          const marker = document.createElement('div')
           marker.className = place.isStoryLocation ? 'biblical-map-marker biblical-map-marker-current' : 'biblical-map-marker'
-          marker.setAttribute('aria-label', place.name)
+          marker.setAttribute('aria-label', `${place.name} map label`)
+          marker.setAttribute('role', 'img')
           marker.innerHTML = `
             <span class="biblical-map-marker-dot" aria-hidden="true">${place.isStoryLocation ? '▲' : '●'}</span>
             <span class="biblical-map-marker-label">${escapeHtml(place.name)}</span>
           `
-          const popup = new maplibre.Popup({ offset: 22, closeButton: false }).setHTML(
-            `<strong>${escapeHtml(place.name)}</strong>${place.summary ? `<p>${escapeHtml(place.summary)}</p>` : ''}`,
-          )
           new maplibre.Marker({ element: marker, anchor: 'bottom' })
             .setLngLat([place.longitude, place.latitude])
-            .setPopup(popup)
             .addTo(map)
         }
         for (const route of state.data.routes || []) {
