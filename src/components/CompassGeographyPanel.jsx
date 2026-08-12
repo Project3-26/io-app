@@ -89,7 +89,7 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
           const routeLabel = document.createElement('div')
           routeLabel.className = isComparisonRoute ? 'biblical-map-route-label biblical-map-route-label-comparison' : 'biblical-map-route-label'
           routeLabel.textContent = isComparisonRoute ? '↗ Common route' : '↗ Jesus’ route'
-          const labelCoordinate = route.coordinates[Math.max(1, Math.floor(route.coordinates.length / 2))]
+          const labelCoordinate = route.labelCoordinate || route.coordinates[Math.max(1, Math.floor(route.coordinates.length / 2))]
           new maplibre.Marker({ element: routeLabel, anchor: 'bottom', offset: [0, -5] })
             .setLngLat(labelCoordinate)
             .addTo(map)
