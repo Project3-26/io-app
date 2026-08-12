@@ -331,7 +331,20 @@ export default function CompassAssistant({
                   <p className="whitespace-pre-wrap text-sm leading-6">{message.text}</p>
                   {message.role === 'assistant' && message.sources?.length > 0 && (
                     <p className="mt-2 text-[10px] leading-4 text-slate-500">
-                      Grounded in {message.sources.slice(0, 3).join(' · ')}
+                      Grounded in {message.sources.slice(0, 3).map((source, sourceIndex) => {
+                        const label = typeof source === 'string' ? source : source?.label || 'Approved source'
+                        const url = typeof source === 'object' ? source?.url : null
+                        return (
+                          <span key={`${label}-${sourceIndex}`}>
+                            {sourceIndex > 0 && ' · '}
+                            {url ? (
+                              <a href={url} target="_blank" rel="noreferrer" className="text-cyan-300 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-100">
+                                {label}
+                              </a>
+                            ) : label}
+                          </span>
+                        )
+                      })}
                     </p>
                   )}
                 </div>
