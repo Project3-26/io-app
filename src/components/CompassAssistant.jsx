@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Compass, LoaderCircle, Send, X } from 'lucide-react'
-import { askCompass, getCompassStatus } from '../services/compass'
+import { ArrowRight, Compass, LoaderCircle, Navigation, Send, X } from 'lucide-react'
+import { askCompass, getCompassStatus, getPreviewGeographyFeature } from '../services/compass'
+import CompassGeographyPanel from './CompassGeographyPanel'
 
 const libraryStarterQuestions = [
   'How do I find a specific book or chapter?',
@@ -13,6 +14,8 @@ const chapterStarterQuestions = [
   'What should I notice in this chapter?',
   'How can I apply this chapter?',
 ]
+
+const MAX_QUESTION_LENGTH = 800
 
 function buildVerseStarterQuestions(verseNumber) {
   return [
@@ -29,6 +32,8 @@ export default function CompassAssistant({
   placement = 'reader',
 }) {
   const [enabled, setEnabled] = useState(false)
+  const [geography, setGeography] = useState(null)
+  const [showGeography, setShowGeography] = useState(false)
   const [open, setOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [messages, setMessages] = useState([])
@@ -38,6 +43,7 @@ export default function CompassAssistant({
   const inputRef = useRef(null)
   const triggerRef = useRef(null)
   const chatEndRef = useRef(null)
+  const requestControllerRef = useRef(null)
 
   const starterQuestions = useMemo(() => {
     if (selectedVerseNumber) return buildVerseStarterQuestions(selectedVerseNumber)
@@ -48,7 +54,10 @@ export default function CompassAssistant({
     let mounted = true
     getCompassStatus()
       .then((payload) => {
-        if (mounted) setEnabled(Boolean(payload?.enabled))
+        if (mounted) {
+          setEnabled(Boolean(payload?.enabled))
+          setGeography(payload?.geography?.enabled ? payload.geography : getPreviewGeographyFeature())
+        }
       })
       .catch(() => {
         if (mounted) setEnabled(false)
@@ -89,16 +98,43 @@ export default function CompassAssistant({
     return () => window.clearTimeout(hintTimer)
   }, [chapterId, enabled, placement])
 
+  useEffect(() => {
+    requestControllerRef.current?.abort()
+    requestControllerRef.current = null
+    setMessages([])
+    setQuestion('')
+    setError('')
+    setIsSending(false)
+    setShowGeography(false)
+  }, [chapterId, currentPage])
+
+  useEffect(() => () => requestControllerRef.current?.abort(), [])
+
   if (!enabled) return null
 
+  const canShowGeography = currentPage === 'chapter' && Boolean(chapterId) && Boolean(geography?.enabled)
+
   function closeAssistant() {
+    requestControllerRef.current?.abort()
+    requestControllerRef.current = null
+    setIsSending(false)
+    setMessages([])
+    setQuestion('')
+    setError('')
     setOpen(false)
     window.setTimeout(() => triggerRef.current?.focus(), 0)
   }
 
   async function submitQuestion(value = question) {
     const trimmed = value.trim()
-    if (!trimmed || isSending) return
+    if (!trimmed || trimmed.length > MAX_QUESTION_LENGTH || isSending) return
+
+    if (canShowGeography && isMapRequest(trimmed)) {
+      setQuestion('')
+      setError('')
+      setShowGeography(true)
+      return
+    }
 
     setQuestion('')
     setError('')
@@ -110,10 +146,13 @@ export default function CompassAssistant({
       : trimmed
 
     try {
+      const controller = new AbortController()
+      requestControllerRef.current = controller
       const payload = await askCompass({
         question: contextualQuestion,
         currentPage,
         chapterId,
+        signal: controller.signal,
       })
       setMessages((current) => [
         ...current,
@@ -124,6 +163,7 @@ export default function CompassAssistant({
         },
       ])
     } catch (requestError) {
+      if (requestError?.code === 'REQUEST_CANCELLED') return
       if (requestError?.status === 503) {
         setEnabled(false)
         setOpen(false)
@@ -131,6 +171,7 @@ export default function CompassAssistant({
       }
       setError(requestError?.message || 'Compass could not answer that right now.')
     } finally {
+      requestControllerRef.current = null
       setIsSending(false)
     }
   }
@@ -193,7 +234,7 @@ export default function CompassAssistant({
             aria-label="Open Compass AI"
             title="Compass AI"
           >
-            <Compass size={placement === 'floating' ? 28 : 16} strokeWidth={2.1} />
+            {placement === 'floating' ? <Navigation size={27} fill="currentColor" strokeWidth={2.1} /> : <Compass size={16} strokeWidth={2.1} />}
             {placement !== 'floating' && (
               <>
                 <span className="hidden sm:inline">
@@ -207,7 +248,7 @@ export default function CompassAssistant({
       )}
 
       {open && (
-        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm sm:p-6">
           <button
             type="button"
             onClick={closeAssistant}
@@ -218,7 +259,7 @@ export default function CompassAssistant({
             role="dialog"
             aria-modal="true"
             aria-label="Compass AI"
-            className="relative z-[91] flex max-h-[82vh] w-full max-w-lg flex-col overflow-hidden border border-cyan-300/25 bg-[#071a2d] text-white shadow-2xl shadow-black/50"
+            className="relative z-[91] flex max-h-[82vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-cyan-300/25 bg-[#071a2d] text-white shadow-2xl shadow-black/50"
           >
             <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
               <div className="flex items-center gap-3">
@@ -257,6 +298,17 @@ export default function CompassAssistant({
                         : 'Ask a Bible question or get help finding something in Project 3|26.'}
                   </p>
                   <div className="mt-4 space-y-2">
+                    {canShowGeography && (
+                      <button
+                        type="button"
+                        onClick={() => setShowGeography(true)}
+                        className="flex w-full items-center gap-3 border border-cyan-300/35 bg-cyan-300/[0.09] px-3 py-3 text-left text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/[0.14]"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#168ee8]"><Navigation size={16} fill="currentColor" /></span>
+                        <span>Show me the map</span>
+                        <ArrowRight size={16} className="ml-auto text-cyan-300" />
+                      </button>
+                    )}
                     {starterQuestions.map((starter) => (
                       <button
                         key={starter}
@@ -304,7 +356,7 @@ export default function CompassAssistant({
                 </div>
               )}
 
-              {error && <div className="border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-xs text-red-200">{error}</div>}
+              {error && <div role="alert" aria-live="polite" className="border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-xs text-red-200">{error}</div>}
               <div ref={chatEndRef} aria-hidden="true" />
             </div>
 
@@ -318,9 +370,9 @@ export default function CompassAssistant({
               <input
                 ref={inputRef}
                 value={question}
-                onChange={(event) => setQuestion(event.target.value)}
+                onChange={(event) => setQuestion(event.target.value.slice(0, MAX_QUESTION_LENGTH))}
                 placeholder="Ask Compass AI…"
-                maxLength={selectedVerseNumber ? 720 : 800}
+                maxLength={selectedVerseNumber ? 720 : MAX_QUESTION_LENGTH}
                 className="min-w-0 flex-1 border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/35"
               />
               <button
@@ -335,6 +387,11 @@ export default function CompassAssistant({
           </section>
         </div>
       )}
+      {showGeography && canShowGeography && <CompassGeographyPanel chapterId={chapterId} feature={geography} onClose={() => setShowGeography(false)} />}
     </>
   )
+}
+
+function isMapRequest(question) {
+  return /^(?:please\s+)?(?:show|open|view|see)\s+(?:me\s+)?(?:the\s+|a\s+)?map\??$/i.test(question.trim())
 }
