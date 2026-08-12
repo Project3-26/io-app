@@ -6,7 +6,6 @@ import {
 } from './backend'
 
 const COMPASS_TIMEOUT_MS = 30_000
-const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY?.trim() || ''
 const MAPTILER_STYLE_ID = import.meta.env.VITE_MAPTILER_STYLE_ID?.trim() || ''
 
 async function compassRequest(path, options = {}, retry = true) {
@@ -81,7 +80,7 @@ export async function getChapterGeography(chapterId, { signal } = {}) {
 
 export function getPreviewGeographyFeature() {
   const isVercelPreview = window.location.hostname.endsWith('.vercel.app')
-  if (!isVercelPreview || !MAPTILER_API_KEY || !MAPTILER_STYLE_ID) return null
+  if (!isVercelPreview || !MAPTILER_STYLE_ID) return null
 
   return {
     enabled: true,
@@ -98,7 +97,7 @@ export function getPreviewChapterGeography(chapterId) {
     chapterId: 'john-4',
     summary: 'John 4 follows Jesus north from Judea toward Galilee. The encounter at the well takes place in Samaria, near Sychar.',
     bounds: [[34.75, 31.45], [35.75, 33.15]],
-    mapStyleUrl: `https://api.maptiler.com/maps/${encodeURIComponent(MAPTILER_STYLE_ID)}/style.json?key=${encodeURIComponent(MAPTILER_API_KEY)}`,
+    mapStyleUrl: `/api/maptiler?resource=${encodeURIComponent(`maps/${MAPTILER_STYLE_ID}/style.json`)}`,
     places: [
       {
         id: 'jerusalem',
