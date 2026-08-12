@@ -50,7 +50,7 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
           marker.type = 'button'
           marker.className = place.isStoryLocation ? 'biblical-map-marker biblical-map-marker-current' : 'biblical-map-marker'
           marker.setAttribute('aria-label', place.name)
-          marker.innerHTML = place.isStoryLocation ? '<span aria-hidden="true">â²</span>' : '<span aria-hidden="true">â</span>'
+          marker.innerHTML = place.isStoryLocation ? '<span aria-hidden="true">▲</span>' : '<span aria-hidden="true">●</span>'
           const popup = new maplibre.Popup({ offset: 22, closeButton: false }).setHTML(
             `<strong>${escapeHtml(place.name)}</strong>${place.summary ? `<p>${escapeHtml(place.summary)}</p>` : ''}`,
           )
@@ -105,17 +105,17 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {state.loading && <div className="flex min-h-52 items-center justify-center gap-2 text-sm text-slate-400"><LoaderCircle size={16} className="animate-spin" /> Loading place contextâ¦</div>}
+          {state.loading && <div className="flex min-h-52 items-center justify-center gap-2 text-sm text-slate-400"><LoaderCircle size={16} className="animate-spin" /> Loading place context…</div>}
           {state.error && <div className="m-5 border border-red-300/20 bg-red-300/[0.06] p-3 text-sm text-red-100">{state.error}</div>}
           {data && <>
-            {showMap ? <div ref={mapNodeRef} className="h-64 w-full bg-[#0b2a43] sm:h-80" aria-label="Interactive biblical map" /> : <div className="flex min-h-44 items-center justify-center border-b border-white/10 bg-[radial-gradient(circle_at_50%_35%,#164d68_0%,#092940_42%,#071a2d_72%)] px-6 text-center"><div><Map size={28} className="mx-auto text-cyan-300" /><p className="mt-3 text-sm font-medium text-slate-200">Interactive map is currently unavailable.</p><p className="mt-1 text-xs leading-5 text-slate-400">The chapterâs approved place context is still available below.</p></div></div>}
+            {showMap ? <div ref={mapNodeRef} className="h-64 w-full bg-[#0b2a43] sm:h-80" aria-label="Interactive biblical map" /> : <div className="flex min-h-44 items-center justify-center border-b border-white/10 bg-[radial-gradient(circle_at_50%_35%,#164d68_0%,#092940_42%,#071a2d_72%)] px-6 text-center"><div><Map size={28} className="mx-auto text-cyan-300" /><p className="mt-3 text-sm font-medium text-slate-200">Interactive map is currently unavailable.</p><p className="mt-1 text-xs leading-5 text-slate-400">The chapter’s approved place context is still available below.</p></div></div>}
             <div className="space-y-5 p-4 sm:p-5">
               {data.summary && <p className="text-sm leading-6 text-slate-300">{data.summary}</p>}
               <div className="space-y-3">{(data.places || []).map((place) => <article key={place.id} className="border border-white/10 bg-white/[0.04] p-3.5"><div className="flex items-start gap-3"><span className={place.isStoryLocation ? 'mt-0.5 text-[#2da9f5]' : 'mt-0.5 text-cyan-300'}>{place.isStoryLocation ? <Navigation size={17} fill="currentColor" /> : <Map size={17} />}</span><div><h3 className="text-sm font-semibold text-white">{place.name}</h3>{place.ancientRegion && <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-cyan-300">{place.ancientRegion}</p>}{place.summary && <p className="mt-2 text-sm leading-6 text-slate-300">{place.summary}</p>}</div></div></article>)}</div>
               {data.routeComparison && <section className="border border-cyan-300/20 bg-cyan-300/[0.06] p-3.5"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">Why this route matters</p><h3 className="mt-1 text-sm font-semibold text-white">{data.routeComparison.title}</h3><p className="mt-2 text-sm leading-6 text-slate-300">{data.routeComparison.body}</p></section>}
               {data.routes?.length > 0 && <div className="border-t border-white/10 pt-4"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">Journey context</p>{data.routes.map((route) => <div key={route.id} className="mt-2 flex gap-2 text-sm leading-6 text-slate-300"><span className={route.kind === 'comparison' ? 'mt-2 h-0.5 w-5 shrink-0 border-t-2 border-dashed border-slate-400' : 'mt-2 h-0.5 w-5 shrink-0 bg-cyan-300'} /><p><span className="font-semibold text-white">{route.name}.</span> {route.summary}</p></div>)}</div>}
               <footer className="border-t border-white/10 pt-4 text-[11px] leading-5 text-slate-500">
-                Â© 2026 Project 3|26. Original biblical map design, place context, and route materials are protected. Third-party map and research sources are credited in Map Sources & Attribution.
+                © 2026 Project 3|26. Original biblical map design, place context, and route materials are protected. Third-party map and research sources are credited in Map Sources & Attribution.
               </footer>
             </div>
           </>}
