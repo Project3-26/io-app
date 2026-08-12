@@ -91,7 +91,7 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
       const isAccessDenied = /\(403\)/.test(error?.message || '')
       setState({
         loading: false,
-        data: null,
+        data: state.data,
         error: isAccessDenied
           ? `MapTiler denied the request from ${window.location.origin}.`
           : error?.message || 'The map could not load right now.',
@@ -106,7 +106,7 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
   }, [feature?.interactiveMapsEnabled, state.data])
 
   const data = state.data
-  const showMap = Boolean(feature?.interactiveMapsEnabled && data?.mapStyleUrl)
+  const showMap = Boolean(feature?.interactiveMapsEnabled && data?.mapStyleUrl && !state.error)
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm sm:p-6">
