@@ -190,7 +190,7 @@ Project 3|26 owns its original geography work: the custom map design, visual
 overlays, place summaries, route narratives, chapter curation, and application
 code. Use this member-facing notice in the map experience:
 
-> Â© 2026 Project 3|26. Original biblical map design, place context, and route
+> © 2026 Project 3|26. Original biblical map design, place context, and route
 > materials are protected. Third-party map and research sources are credited in
 > Map Sources & Attribution.
 
