@@ -134,6 +134,7 @@ export function getPreviewChapterGeography(chapterId) {
         kind: 'story',
         summary: 'The highlighted route passes north through Samaria toward Galilee.',
         coordinates: [[35.22, 31.78], [35.28, 32.21], [35.0, 32.8]],
+        labelCoordinate: [35.08, 32.48],
       },
       {
         id: 'john-4-avoidance',
@@ -141,6 +142,7 @@ export function getPreviewChapterGeography(chapterId) {
         kind: 'comparison',
         summary: 'A longer route many Jewish travelers used to avoid Samaritan territory.',
         coordinates: [[35.22, 31.78], [35.55, 31.95], [35.62, 32.55], [35.0, 32.8]],
+        labelCoordinate: [35.54, 32.5],
       },
     ],
     routeComparison: {
