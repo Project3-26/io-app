@@ -27,6 +27,7 @@ export function getJohnChapterGeography(chapterId, styleId) {
     bounds: entry.bounds || allIsraelBounds,
     mapStyleUrl: `/api/maptiler?resource=${encodeURIComponent(`maps/${styleId}/style.json`)}`,
     routes: [],
+    orientationLabels: orientationLabelsFor(entry.bounds || allIsraelBounds),
     ...entry,
   }
 }
@@ -75,4 +76,33 @@ function place(id, name, latitude, longitude, ancientRegion, summary) {
 
 function route(id, name, coordinates, summary, kind = 'story', labelCoordinate = undefined) {
   return { id, name, coordinates, summary, kind, ...(labelCoordinate ? { labelCoordinate } : {}) }
+}
+
+function orientationLabelsFor(bounds) {
+  if (bounds === jerusalemBounds) {
+    return [
+      orientation('Jerusalem', 31.795, 35.205),
+      orientation('Mount of Olives', 31.783, 35.245),
+      orientation('Kidron Valley', 31.765, 35.24),
+    ]
+  }
+  if (bounds === galileeBounds) {
+    return [
+      orientation('Galilee', 32.93, 35.36),
+      orientation('Sea of Galilee', 32.78, 35.58),
+      orientation('Jordan River', 32.72, 35.66),
+    ]
+  }
+  return [
+    orientation('Israel', 32.02, 34.93),
+    orientation('Judea', 31.64, 34.98),
+    orientation('Samaria', 32.3, 35.03),
+    orientation('Galilee', 32.95, 35.12),
+    orientation('Jordan River', 32.5, 35.57),
+    orientation('Sea of Galilee', 32.84, 35.58),
+  ]
+}
+
+function orientation(name, latitude, longitude) {
+  return { name, latitude, longitude }
 }
