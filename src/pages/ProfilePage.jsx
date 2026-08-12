@@ -6,10 +6,8 @@ import {
   Crown,
   LoaderCircle,
   Mail,
-  Moon,
   Save,
   Sparkles,
-  Sun,
   User,
   X,
 } from 'lucide-react'
@@ -22,7 +20,6 @@ import {
   updateMemberProfile,
 } from '../services/backend'
 import { uploadMemberAvatar } from '../services/profile'
-import { readThemePreference, saveThemePreference } from '../services/theme'
 
 const testingPlans = [
   { id: 'free', label: 'Free John' },
@@ -48,7 +45,6 @@ function ProfilePage({
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [avatarUploadError, setAvatarUploadError] = useState('')
-  const [theme, setTheme] = useState(() => readThemePreference())
   const [selectedTestingPlan, setSelectedTestingPlan] = useState(
     () => readFounderTestPlan() || 'leader',
   )
@@ -165,12 +161,6 @@ function ProfilePage({
     setSelectedTestingPlan(plan)
     setNotice(`Viewing the app as ${testingPlans.find((item) => item.id === plan)?.label}.`)
     await loadProfile(true)
-  }
-
-  function changeTheme() {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(saveThemePreference(nextTheme))
-    setNotice(`${nextTheme === 'dark' ? 'Night' : 'Light'} mode is on.`)
   }
 
   return (
@@ -348,36 +338,6 @@ function ProfilePage({
               </div>
 
               <aside className="space-y-4">
-                <section className="rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047]">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#c7dce7] text-cyan-700">
-                        {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold">Night Mode</p>
-                        <p className="mt-0.5 text-xs text-slate-500">Black, charcoal, and gold for low-light reading.</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={theme === 'dark'}
-                      aria-label="Toggle Night Mode"
-                      onClick={changeTheme}
-                      className={`theme-toggle relative h-8 w-14 rounded-full p-1 transition-colors ${
-                        theme === 'dark' ? 'bg-[#d4af37]' : 'bg-slate-300'
-                      }`}
-                    >
-                      <span
-                        className={`block h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
-                          theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </section>
-
                 <section className="rounded-[22px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-[#153047]">
                   <div className="flex items-center gap-3">
                     <Crown size={19} className="text-orange-600" />
