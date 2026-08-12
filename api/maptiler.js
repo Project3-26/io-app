@@ -2,7 +2,7 @@ const MAPTILER_BASE_URL = 'https://api.maptiler.com/'
 const ALLOWED_PATHS = ['maps/', 'tiles/', 'fonts/', 'sprites/']
 
 export default async function handler(request, response) {
-  const apiKey = process.env.MAPTILER_API_KEY || process.env.VITE_MAPTILER_API_KEY
+  const apiKey = process.env.MAPTILER_API_KEY
   const requestUrl = new URL(request.url, `https://${request.headers.host}`)
   const resource = requestUrl.searchParams.get('resource') || ''
 
