@@ -118,6 +118,9 @@ export default function CompassAssistant({
     requestControllerRef.current?.abort()
     requestControllerRef.current = null
     setIsSending(false)
+    setMessages([])
+    setQuestion('')
+    setError('')
     setOpen(false)
     window.setTimeout(() => triggerRef.current?.focus(), 0)
   }
@@ -125,6 +128,13 @@ export default function CompassAssistant({
   async function submitQuestion(value = question) {
     const trimmed = value.trim()
     if (!trimmed || trimmed.length > MAX_QUESTION_LENGTH || isSending) return
+
+    if (canShowGeography && isMapRequest(trimmed)) {
+      setQuestion('')
+      setError('')
+      setShowGeography(true)
+      return
+    }
 
     setQuestion('')
     setError('')
@@ -367,4 +377,8 @@ export default function CompassAssistant({
       {showGeography && canShowGeography && <CompassGeographyPanel chapterId={chapterId} feature={geography} onClose={() => setShowGeography(false)} />}
     </>
   )
+}
+
+function isMapRequest(question) {
+  return /^(?:please\s+)?(?:show|open|view|see)\s+(?:me\s+)?(?:the\s+|a\s+)?map\??$/i.test(question.trim())
 }
