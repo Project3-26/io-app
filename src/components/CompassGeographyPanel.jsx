@@ -85,11 +85,24 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
               'line-dasharray': isComparisonRoute ? [2, 1.5] : [1, 0],
             },
           })
+
+          const routeLabel = document.createElement('div')
+          routeLabel.className = isComparisonRoute ? 'biblical-map-route-label biblical-map-route-label-comparison' : 'biblical-map-route-label'
+          routeLabel.textContent = isComparisonRoute ? '↗ Common route' : '↗ Jesus’ route'
+          const labelCoordinate = route.coordinates[Math.max(1, Math.floor(route.coordinates.length / 2))]
+          new maplibre.Marker({ element: routeLabel, anchor: 'bottom', offset: [0, -5] })
+            .setLngLat(labelCoordinate)
+            .addTo(map)
         }
       })
       mapRef.current = map
     }).catch((error) => {
       if (cancelled) return
+      if (/dynamically imported module/i.test(error?.message || '') && !sessionStorage.getItem('compass-map-reload')) {
+        sessionStorage.setItem('compass-map-reload', 'true')
+        window.location.reload()
+        return
+      }
       const isAccessDenied = /\(403\)/.test(error?.message || '')
       setState({
         loading: false,
