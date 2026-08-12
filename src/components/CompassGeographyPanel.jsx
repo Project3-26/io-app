@@ -55,7 +55,10 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
           marker.type = 'button'
           marker.className = place.isStoryLocation ? 'biblical-map-marker biblical-map-marker-current' : 'biblical-map-marker'
           marker.setAttribute('aria-label', place.name)
-          marker.innerHTML = place.isStoryLocation ? '<span aria-hidden="true">▲</span>' : '<span aria-hidden="true">●</span>'
+          marker.innerHTML = `
+            <span class="biblical-map-marker-dot" aria-hidden="true">${place.isStoryLocation ? '▲' : '●'}</span>
+            <span class="biblical-map-marker-label">${escapeHtml(place.name)}</span>
+          `
           const popup = new maplibre.Popup({ offset: 22, closeButton: false }).setHTML(
             `<strong>${escapeHtml(place.name)}</strong>${place.summary ? `<p>${escapeHtml(place.summary)}</p>` : ''}`,
           )
