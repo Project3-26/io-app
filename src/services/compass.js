@@ -111,11 +111,11 @@ export function getPreviewChapterGeography(chapterId) {
       },
       {
         id: 'sychar',
-        name: 'Sychar / Jacobâs well area',
+        name: 'Sychar / Jacob’s well area',
         latitude: 32.21,
         longitude: 35.28,
         ancientRegion: 'Samaria',
-        summary: 'The setting for Jesusâ conversation with the Samaritan woman. The exact identification is represented as an approximate study location.',
+        summary: 'The setting for Jesus’ conversation with the Samaritan woman. The exact identification is represented as an approximate study location.',
         isStoryLocation: true,
       },
       {
@@ -131,7 +131,7 @@ export function getPreviewChapterGeography(chapterId) {
     routes: [
       {
         id: 'john-4-direct',
-        name: 'Jesusâ direct route through Samaria',
+        name: 'Jesus’ direct route through Samaria',
         kind: 'story',
         summary: 'The highlighted route passes north through Samaria toward Galilee.',
         coordinates: [[35.22, 31.78], [35.28, 32.21], [35.0, 32.8]],
@@ -146,7 +146,7 @@ export function getPreviewChapterGeography(chapterId) {
     ],
     routeComparison: {
       title: 'A direct road with a social boundary',
-      body: 'Traveling north through Samaria was the direct route from Judea to Galilee. Many Jewish travelers chose a longer eastern route to avoid Samaritan territory. Jesusâ journey through Samaria sets the scene for his conversation at the well.',
+      body: 'Traveling north through Samaria was the direct route from Judea to Galilee. Many Jewish travelers chose a longer eastern route to avoid Samaritan territory. Jesus’ journey through Samaria sets the scene for his conversation at the well.',
     },
   }
 }
