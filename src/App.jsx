@@ -19,6 +19,7 @@ import {
 } from './services/backend'
 import { claimReferral } from './services/referrals'
 import { syncAchievements } from './utils/achievements'
+import { recordCompletionDay } from './utils/streak'
 
 const PAGE_IDS = {
   dashboard: 'dashboard',
@@ -258,13 +259,15 @@ function App() {
     async function refreshAchievementsAfterCompletion(event) {
       if (event?.detail?.source === 'backend-sync' || !hasMemberSession()) return
 
+      recordCompletionDay()
+
       try {
         const snapshot = await getMemberSnapshot({ force: true })
         if (isMounted && snapshot?.progress) {
           hydrateMemberProgress(snapshot)
         }
       } catch {
-        // Completion is already saved. A later bootstrap/focus sync can retry.
+        // Completion is already saved locally. A later bootstrap/focus sync can retry.
       }
     }
 

@@ -146,6 +146,21 @@ function BibleReader({
     return result
   }, [scripture])
 
+  function openPassage(bookId, chapterNumber) {
+    if (!bookId || !chapterNumber) return
+
+    window.dispatchEvent(
+      new CustomEvent('project326-open-chapter', {
+        detail: {
+          chapterId: `${bookId}-${chapterNumber}`,
+          source: 'bible-reader',
+        },
+      }),
+    )
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }
+
   function selectBook(bookId) {
     setSelectedBookId(bookId)
     setSelectedChapter(1)
@@ -155,20 +170,12 @@ function BibleReader({
   }
 
   function selectChapter(chapterNumber) {
-    setSelectedChapter(chapterNumber)
-    setScripture(null)
-    setReaderError(null)
-    setCurrentView('reader')
-
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+    openPassage(selectedBook.id, chapterNumber)
   }
 
   function goToPreviousChapter() {
-    setScripture(null)
-    setReaderError(null)
-
     if (selectedChapter > 1) {
-      setSelectedChapter((current) => current - 1)
+      openPassage(selectedBook.id, selectedChapter - 1)
       return
     }
 
@@ -179,16 +186,12 @@ function BibleReader({
     if (currentBookIndex <= 0) return
 
     const previousBook = bibleBooks[currentBookIndex - 1]
-    setSelectedBookId(previousBook.id)
-    setSelectedChapter(previousBook.chapters)
+    openPassage(previousBook.id, previousBook.chapters)
   }
 
   function goToNextChapter() {
-    setScripture(null)
-    setReaderError(null)
-
     if (selectedChapter < selectedBook.chapters) {
-      setSelectedChapter((current) => current + 1)
+      openPassage(selectedBook.id, selectedChapter + 1)
       return
     }
 
@@ -199,8 +202,7 @@ function BibleReader({
     if (currentBookIndex >= bibleBooks.length - 1) return
 
     const nextBook = bibleBooks[currentBookIndex + 1]
-    setSelectedBookId(nextBook.id)
-    setSelectedChapter(1)
+    openPassage(nextBook.id, 1)
   }
 
   function decreaseFontSize() {
