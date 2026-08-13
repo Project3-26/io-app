@@ -17,7 +17,7 @@ const locations = {
 
 const allIsraelBounds = [[34.7, 31.4], [35.8, 33.2]]
 const jerusalemBounds = [[35.18, 31.73], [35.3, 31.84]]
-const galileeBounds = [[35.25, 32.58], [35.72, 33.02]]
+const galileeBounds = [[35.1, 32.55], [35.86, 33.25]]
 
 export function getJohnChapterGeography(chapterId, styleId) {
   const entry = johnChapters[chapterId]
@@ -88,9 +88,14 @@ function orientationLabelsFor(bounds) {
   }
   if (bounds === galileeBounds) {
     return [
-      orientation('Galilee', 32.93, 35.36),
-      orientation('Sea of Galilee', 32.78, 35.58),
+      orientation('Nazareth', 32.7036, 35.2956),
+      orientation('Tiberias', 32.794, 35.5315),
+      orientation('Safed', 32.9647, 35.496),
+      orientation('Sea of Galilee', 32.84, 35.58),
       orientation('Jordan River', 32.72, 35.66),
+      orientation('Israel', 32.9, 35.18),
+      orientation('Jordan', 32.7, 35.81),
+      orientation('Lebanon', 33.2, 35.48),
     ]
   }
   return [
