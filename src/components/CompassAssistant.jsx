@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Compass, LoaderCircle, Navigation, Send, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Compass, LoaderCircle, Navigation, Send, X } from 'lucide-react'
 import { askCompass, getCompassStatus, getPreviewGeographyFeature } from '../services/compass'
 import CompassGeographyPanel from './CompassGeographyPanel'
 
@@ -126,6 +126,16 @@ export default function CompassAssistant({
     setError('')
     setOpen(false)
     window.setTimeout(() => triggerRef.current?.focus(), 0)
+  }
+
+  function backToSuggestions() {
+    requestControllerRef.current?.abort()
+    requestControllerRef.current = null
+    setIsSending(false)
+    setMessages([])
+    setQuestion('')
+    setError('')
+    window.setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   async function submitQuestion(value = question) {
@@ -291,6 +301,17 @@ export default function CompassAssistant({
             </header>
 
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-5">
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={backToSuggestions}
+                  className="inline-flex items-center gap-2 border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-2 text-xs font-semibold text-cyan-200 transition hover:border-cyan-300/40 hover:bg-cyan-300/[0.1] hover:text-white"
+                >
+                  <ArrowLeft size={14} />
+                  Back to suggested questions
+                </button>
+              )}
+
               {messages.length === 0 && (
                 <div>
                   <p className="text-sm leading-6 text-slate-300">
