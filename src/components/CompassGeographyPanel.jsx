@@ -45,7 +45,7 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
         style: mapStyle,
         bounds: state.data.bounds || undefined,
         fitBoundsOptions: { padding: 48, maxZoom: 8 },
-        attributionControl: true,
+        attributionControl: { compact: true },
         transformRequest: (url) => proxyMapTilerRequest(url),
       })
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
@@ -71,7 +71,7 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
               'text-ignore-placement': false,
               'text-optional': true,
             },
-            paint: { 'text-color': '#063b5d', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+            paint: { 'text-color': '#063b5d' },
           })
         }
 
@@ -94,13 +94,14 @@ export default function CompassGeographyPanel({ chapterId, feature, onClose }) {
             source: 'orientation-labels',
             layout: {
               'text-field': ['get', 'name'],
-              'text-font': ['Noto Sans Bold'],
-              'text-size': 13,
-              'text-letter-spacing': 0.04,
+              'text-font': ['Noto Sans Regular'],
+              'text-size': 12,
+              'text-letter-spacing': 0.02,
               'text-allow-overlap': false,
               'text-ignore-placement': false,
+              'text-optional': true,
             },
-            paint: { 'text-color': '#161616', 'text-halo-color': '#ffffff', 'text-halo-width': 1.25, 'text-opacity': 0.86 },
+            paint: { 'text-color': '#111111' },
           })
         }
 
