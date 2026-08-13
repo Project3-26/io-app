@@ -31,7 +31,7 @@ export default function CompassAssistant({
   selectedVerseNumber = null,
   placement = 'reader',
 }) {
-  const [enabled, setEnabled] = useState(false)
+  const [enabled, setEnabled] = useState(true)
   const [geography, setGeography] = useState(null)
   const [showGeography, setShowGeography] = useState(false)
   const [open, setOpen] = useState(false)
@@ -55,12 +55,15 @@ export default function CompassAssistant({
     getCompassStatus()
       .then((payload) => {
         if (mounted) {
-          setEnabled(Boolean(payload?.enabled))
+          setEnabled(payload?.enabled !== false)
           setGeography(payload?.geography?.enabled ? payload.geography : getPreviewGeographyFeature())
         }
       })
       .catch(() => {
-        if (mounted) setEnabled(false)
+        if (mounted) {
+          setEnabled(true)
+          setGeography(getPreviewGeographyFeature())
+        }
       })
     return () => {
       mounted = false
