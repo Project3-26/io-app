@@ -6,7 +6,9 @@ import {
 } from './backend'
 import { getJohnChapterGeography } from '../data/johnGeography'
 
-// A first-ever question may build and store approved historical context before\n// Compass responds. Later questions use the cached record and return faster.\nconst COMPASS_TIMEOUT_MS = 70_000
+// A first-ever question may build and store approved historical context before
+// Compass responds. Later questions use the cached record and return faster.
+const COMPASS_TIMEOUT_MS = 70_000
 const MAPTILER_STYLE_ID = import.meta.env.VITE_MAPTILER_STYLE_ID?.trim() || ''
 
 async function compassRequest(path, options = {}, retry = true) {
