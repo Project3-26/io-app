@@ -152,6 +152,18 @@ function ChurchConnectionPanel() {
     }
   }
 
+  async function copyReferral() {
+    const url = referralUrl()
+    if (!url) return
+
+    try {
+      await navigator.clipboard.writeText(url)
+      setNotice('Friend invite link copied.')
+    } catch {
+      setNotice(`Friend invite: ${url}`)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <section className="rounded-[24px] border border-[#c8d3db] bg-[#dfe8ee] p-5 text-[#153047]">
@@ -247,16 +259,26 @@ function ChurchConnectionPanel() {
 
         {referral?.code && (
           <>
-            <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white/10 bg-[#071a2d] p-3">
-              <code className="min-w-0 flex-1 truncate font-bold tracking-wider text-cyan-200">{referral.code}</code>
-              <button type="button" onClick={shareReferral} className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-3 py-2 text-xs font-bold text-[#041326]">
+            <div className="mt-4 rounded-2xl border border-white/10 bg-[#071a2d] p-3">
+              <div className="flex items-center gap-2">
+                <code className="min-w-0 flex-1 truncate font-bold tracking-wider text-cyan-200">{referral.code}</code>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Your code</span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button type="button" onClick={shareReferral} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-3 py-2 text-xs font-bold text-[#041326]">
                 <Share2 size={14} />
                 Share
-              </button>
+                </button>
+                <button type="button" onClick={copyReferral} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-cyan-100">
+                  <Copy size={14} />
+                  Copy link
+                </button>
+              </div>
             </div>
-            <p className="mt-3 text-xs leading-5 text-slate-500">
-              Referral tracking is live. The planned friend offer is 50% off the first month; that discount will activate when checkout is connected.
-            </p>
+            <div className="mt-3 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.05] px-3 py-2.5">
+              <p className="text-xs font-semibold text-cyan-100">Planned launch reward: 50% off your friend’s first month</p>
+              <p className="mt-1 text-[11px] leading-4 text-slate-500">Referral tracking works now. The discount activates when checkout is connected.</p>
+            </div>
             {(referral.counts?.registered || referral.counts?.qualified || referral.counts?.rewarded) > 0 && (
               <p className="mt-2 text-xs text-cyan-200">
                 {referral.counts.registered || 0} joined · {referral.counts.qualified || 0} qualified · {referral.counts.rewarded || 0} rewarded
@@ -267,7 +289,7 @@ function ChurchConnectionPanel() {
       </section>
 
       {(notice || error) && (
-        <p className={`text-xs leading-5 ${error ? 'text-red-300' : 'text-emerald-300'}`}>{error || notice}</p>
+        <p role={error ? 'alert' : 'status'} aria-live="polite" className={`text-xs leading-5 ${error ? 'text-red-300' : 'text-emerald-300'}`}>{error || notice}</p>
       )}
     </div>
   )
