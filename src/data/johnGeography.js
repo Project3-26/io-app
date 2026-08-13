@@ -15,8 +15,8 @@ const locations = {
   temple: place('temple', 'Temple Mount', 31.78, 35.23, 'Jerusalem', 'The temple precinct at the heart of Jerusalem’s religious life.'),
 }
 
-const allIsraelBounds = [[34.7, 31.4], [35.8, 33.2]]
-const jerusalemBounds = [[35.18, 31.73], [35.3, 31.84]]
+const allIsraelBounds = [[34.65, 31.35], [35.9, 33.35]]
+const jerusalemBounds = [[35.12, 31.62], [35.56, 31.92]]
 const galileeBounds = [[35.1, 32.55], [35.86, 33.25]]
 
 export function getJohnChapterGeography(chapterId, styleId) {
@@ -81,7 +81,11 @@ function route(id, name, coordinates, summary, kind = 'story', labelCoordinate =
 function orientationLabelsFor(bounds) {
   if (bounds === jerusalemBounds) {
     return [
-      orientation('Jerusalem', 31.795, 35.205),
+      orientation('Bethlehem', 31.7058, 35.2007),
+      orientation('Jericho', 31.8667, 35.45),
+      orientation('Dead Sea', 31.68, 35.5),
+      orientation('Israel', 31.84, 35.16),
+      orientation('Jordan', 31.82, 35.54),
       orientation('Mount of Olives', 31.783, 35.245),
       orientation('Kidron Valley', 31.765, 35.24),
     ]
@@ -99,12 +103,17 @@ function orientationLabelsFor(bounds) {
     ]
   }
   return [
-    orientation('Israel', 32.02, 34.93),
-    orientation('Judea', 31.64, 34.98),
-    orientation('Samaria', 32.3, 35.03),
-    orientation('Galilee', 32.95, 35.12),
-    orientation('Jordan River', 32.5, 35.57),
+    orientation('Jerusalem', 31.78, 35.22),
+    orientation('Nazareth', 32.7036, 35.2956),
+    orientation('Haifa', 32.8156, 34.9892),
+    orientation('Caesarea', 32.519, 34.9045),
+    orientation('Mediterranean Sea', 32.35, 34.72),
+    orientation('Dead Sea', 31.68, 35.5),
     orientation('Sea of Galilee', 32.84, 35.58),
+    orientation('Jordan River', 32.5, 35.57),
+    orientation('Israel', 32.02, 34.93),
+    orientation('Jordan', 32.0, 35.78),
+    orientation('Lebanon', 33.25, 35.5),
   ]
 }
 
