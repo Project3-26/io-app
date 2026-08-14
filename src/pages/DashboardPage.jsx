@@ -403,18 +403,6 @@ function DashboardPage({
           <section className="mt-7 grid grid-cols-2 gap-5 sm:mt-8 sm:gap-6">
             <button
               type="button"
-              onClick={() => onNavigate('connect')}
-              className="group flex min-h-36 flex-col justify-between rounded-[26px] border border-white/10 bg-[#0c2138] p-4 text-left shadow-lg shadow-black/10 transition hover:border-cyan-400/35 active:scale-[0.98] sm:min-h-40 sm:p-5"
-            >
-              <MessageCircle size={30} strokeWidth={1.9} className="text-cyan-400" />
-              <div>
-                <p className="text-base font-semibold text-white sm:text-lg">Connect</p>
-                <p className="mt-1 text-xs leading-5 text-slate-400 sm:text-sm">Join today&apos;s chat</p>
-              </div>
-            </button>
-
-            <button
-              type="button"
               onClick={() => onNavigate('journey')}
               className="group flex min-h-36 flex-col justify-between rounded-[26px] border border-[#c8d3db] bg-[#dfe8ee] p-4 text-left text-[#153047] shadow-lg shadow-black/10 transition hover:border-cyan-400/40 hover:bg-[#e7eef2] active:scale-[0.98] sm:min-h-40 sm:p-5"
             >
@@ -422,6 +410,18 @@ function DashboardPage({
               <div>
                 <p className="text-base font-semibold sm:text-lg">Journey</p>
                 <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">See your progress</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigate('connect')}
+              className="group flex min-h-36 flex-col justify-between rounded-[26px] border border-white/10 bg-[#0c2138] p-4 text-left shadow-lg shadow-black/10 transition hover:border-cyan-400/35 active:scale-[0.98] sm:min-h-40 sm:p-5"
+            >
+              <MessageCircle size={30} strokeWidth={1.9} className="text-cyan-400" />
+              <div>
+                <p className="text-base font-semibold text-white sm:text-lg">Connect</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400 sm:text-sm">Join today&apos;s chat</p>
               </div>
             </button>
 
